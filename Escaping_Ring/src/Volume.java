@@ -1,13 +1,15 @@
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.plugin.RGBStackMerge;
+import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
 
 public class Volume {
 
-	public float[][][] data;
+	public int[][][] data;
 	public int nx;
 	public int ny;
 	public int nz;
@@ -16,21 +18,22 @@ public class Volume {
 		nx = imp.getWidth();
 		ny = imp.getHeight();
 		nz = imp.getNSlices();
-		data = new float[nx][ny][nz];
+		data = new int[nx][ny][nz];
 		for(int z=0; z<nz; z++) {
 			ImageProcessor ip = imp.getStack().getProcessor(z+1);
 			for(int x=0; x<nx; x++)
 				for(int y=0; y<ny; y++)
-					data[x][y][z] = ip.getPixelValue(x, y);
+					data[x][y][z] =(int)ip.getPixelValue(x, y);
 		}
 		IJ.log("Create byte volume " + nx + " " + ny + " " + nz);
 	}
+	
 	
 	public Volume(int nx, int ny, int nz) {
 		this.nx = nx;
 		this.ny = ny;
 		this.nz = nz;
-		data = new float[nx][ny][nz];
+		data = new int[nx][ny][nz];
 		IJ.log("Create byte volume " + nx + " " + ny + " " + nz);
 	}
 
@@ -77,15 +80,11 @@ public class Volume {
 		if (z >= nz)
 			return;
 		
-		data[x][y][z] = value;
-		
-	//	IJ.log(" // " + x + " " + y + " " + z + " " + data[x][y][z]);
-		
-	
+		data[x][y][z] = (int)value;	
 	}
 
 	
-	public void show(String title) {
+	public void showFloat(String title) {
 		ImageStack stack = new ImageStack(nx, ny);
 		for(int z=0; z<nz; z++) {
 			FloatProcessor fp = new FloatProcessor(nx, ny);
@@ -95,6 +94,27 @@ public class Volume {
 			stack.addSlice("", fp);
 		}
 		new ImagePlus(title, stack).show();
+	}
+	public void show(String title) {
+		new ImagePlus(title, createImageStackFrom3DArray(this)).show();
+	}
+	
+	public void showTwoChannels(String title, Volume vol2) {
+		ImagePlus first = new ImagePlus(title, createImageStackFrom3DArray(this));
+		ImagePlus second = new ImagePlus(title, createImageStackFrom3DArray(vol2));
+		RGBStackMerge.mergeChannels(new ImagePlus[] {first, second}, false).show();	
+	}
+	
+	public ImageStack createImageStackFrom3DArray(Volume vol) {
+		ImageStack stack = new ImageStack(nx, ny);
+		for(int z=0; z<nz; z++) {
+			ByteProcessor fp = new ByteProcessor(nx, ny);
+			for(int x=0; x<nx; x++)
+				for(int y=0; y<ny; y++)
+					fp.putPixelValue(x, y, vol.data[x][y][z]);
+			stack.addSlice("", fp);
+		}
+		return stack;
 	}
 		
 }

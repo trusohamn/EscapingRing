@@ -46,46 +46,27 @@ public class Espacing_Ring implements PlugIn {
 
 
 		GenericDialog dlg = new GenericDialog("Espacing Ring");
-		dlg.addNumericField("Progression step (in pixels)", 10, 0);
-		dlg.addNumericField("x-0, y-1, z-2", 0, 0);
+		dlg.addNumericField("Progression step (in pixels)", 20, 0);
 		dlg.showDialog();
 		if (dlg.wasCanceled())
 			return;
 
 		double step = dlg.getNextNumber();
-		int axis = (int)dlg.getNextNumber();
+	
 
-		double dx=0, dy=0, dz = 1;
-		/*if(axis==0) {//x
-			dx = 1;
-			dy = 0;
-			dz = 0;
-		}
-		else if(axis==1) {//y
-			dx = 0;
-			dy = 1;
-			dz = 0;
-
-		}
-		else if(axis==2) {//z
-			dx = 0;
-			dy = 0;
-			dz = 1;
-		}
-*/
-		Ring initial = new Ring(xc, yc, zc, dx, dy, dz, radius);
+		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius);
 		IJ.log(" Initial Ring " + initial);
 		Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		//drawMeasureArea(test, initial, step);
 		Volume vol = new Volume(imp);	
 		
 		Ring adjInitial = adjustFirstRing(initial, vol, step);
-		//test.show("init");
 		drawMeasureArea(test, adjInitial, step);
 		evolve(vol, adjInitial, step, test);
-		test.show("firstDir");
+		//test.show("firstDir");
 		evolve(vol, flippedRing(adjInitial), step, test);
 		test.show("secDir");
+		vol.showTwoChannels("Result", test);
 
 	}
 	private Ring flippedRing(Ring ring) {
