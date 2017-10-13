@@ -1,3 +1,4 @@
+import ij.IJ;
 
 public class Ring {
 
@@ -5,8 +6,9 @@ public class Ring {
 	public Point3D dir = new Point3D(0, 0, 1);
 
 	public double radius;
-	public double thickness = 3;
-	public double length = 10;
+	public double thickness = 3; //??
+	public double length = 10; //??
+	public double contrast;
 	
 	public Ring() {
 		
@@ -55,8 +57,6 @@ public class Ring {
 		double zp = Math.cos(theta);	
 		return new Point3D(xp, yp, zp);
 	}
-
-	
 	
 	public double[] getAnglesFromDirection() {
 		double[] polar = new double[2];
@@ -64,25 +64,35 @@ public class Ring {
 		polar[1] = Math.atan2(dir.y, dir.x);//(-pi, pi)
 		return polar;
 	}
-	/*
-	// 0 RADIUS
-	// 1 theta
-	// 2 phi
-	public void toCartesian(double polar[]) {
-		double st = Math.sin(polar[1]);
-		x = polar[0]* st * Math.cos(polar[2]);
-		y = polar[0] * st * Math.sin(polar[2]);
-		z = polar[0] * Math.cos(polar[1]);	
-	}
 	
-	public double[] toPolar() {
-		double[] polar = new double[3];
-		polar[0] = Math.sqrt(x*x + y*y + z*z);
-		polar[1] = Math.acos(z/polar[0]);
-		polar[2] = Math.atan2(y, x);
-		return polar;
-	}
-	*/
-	
+	public void calculateContrast(MeasurmentVolume mv){
+		int n = (int) Math.ceil(this.radius*2/mv.bin);
+		double meanInner = 0;
+		double countInner = 0;
+		double meanMembrane = 0;
+		double countMembrane = 0;
+		double meanOuter = 0;
+		double countOuter = 0;
+		//IJ.log("radius: " + radius);
+		
+		for(int i=0; i<n; i++){
+			double curRadius = i*mv.bin;
+			//IJ.log("current radius: " + curRadius);
+			if (curRadius  < 0.7*radius) {
+				meanInner =+ mv.sumIntensity[i];
+				countInner =+ mv.count[i];
+			}
 
+			if (curRadius  >= 0.8*radius && curRadius <=1.2*radius) {
+				meanMembrane =+ mv.sumIntensity[i];
+				countMembrane =+ mv.count[i];
+			}
+
+			if (curRadius  >= 1.3*radius && curRadius < 2*radius) {
+				countOuter =+ mv.sumIntensity[i];
+				countInner =+ mv.count[i];
+			}
+		}	
+		this.contrast = meanMembrane/countMembrane - (meanInner/countInner)/2 - (meanOuter/countOuter);	
+	}
 }
