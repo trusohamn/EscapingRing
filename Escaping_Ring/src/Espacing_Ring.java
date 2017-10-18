@@ -63,9 +63,9 @@ public class Espacing_Ring implements PlugIn {
 		Ring adjInitial = adjustFirstRing(initial, vol, step);
 		drawMeasureArea(test, adjInitial, step);
 		evolve(vol, adjInitial, step, test);
-		//test.show("firstDir");
+		
+		//evolve in opposite direction
 		evolve(vol, flippedRing(adjInitial), step, test);
-		test.show("secDir");
 		vol.showTwoChannels("Result", test);
 
 	}
@@ -85,20 +85,19 @@ public class Espacing_Ring implements PlugIn {
 
 		double initRadius = ring.radius;	
 		double maxRadius = 1.25;
+		double maxMeasurmentArea = 2;
 
 		for(double dt = -Math.PI; dt<=Math.PI; dt+=angleStep) {
 			for(double dp = -Math.PI/2; dp<=Math.PI/2; dp+=angleStep) {
 				//return the MeasurmentVolume
 				Ring maxRing = ring.duplicate();
-				maxRing.radius = initRadius*maxRadius;
+				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
 				maxRing.dir = maxRing.getDirectionFromSphericalAngles( dt,  dp);
 				MeasurmentVolume mv = new MeasurmentVolume(vol, maxRing, step);
-				IJ.log(mv.toString());
+				//IJ.log(mv.toString());
 				for(double r = initRadius*0.90; r<initRadius*maxRadius; r+=0.05*initRadius) {
-					Ring cand = ring.duplicate();
-	
+					Ring cand = maxRing.duplicate();
 					cand.radius = r;
-					cand.dir = cand.getDirectionFromSphericalAngles( dt,  dp);
 					cand.calculateContrast(mv);
 					double contrast = cand.contrast;
 					//IJ.log(""+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
@@ -106,14 +105,12 @@ public class Espacing_Ring implements PlugIn {
 						IJ.log("better >>>>>"+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
 						bestCand=cand;
 						maxContrast=contrast;
-
 					}
 				}
 			}
 		}	
-		IJ.log("best candidate"+ maxContrast + "rad: " + bestCand.radius + "init" +initRadius);
+		IJ.log("best candidate: "+ maxContrast + " rad: " + bestCand.radius);
 		return bestCand;
-
 	}
 
 
@@ -124,14 +121,15 @@ public class Espacing_Ring implements PlugIn {
 		double prevMax = -Double.MAX_VALUE;
 		MAINLOOP:
 			do {
-				ArrayList<Ring> candidates = proposeCandidates(current, step, test);
+				ArrayList<Ring> candidates = proposeCandidates(current, step, vol);
 				Ring best = null;
 				double max = -Double.MAX_VALUE;
 				for(int i=0; i<candidates.size(); i++) {
 					double c = candidates.get(i).contrast;
+					//IJ.log(" c: " + c);
 					if (c > max) {
 						max = c;
-						best = candidates.get(i);
+						best = candidates.get(i);	
 					}
 				}
 				if(max<prevMax*0.7) break MAINLOOP;
@@ -143,7 +141,6 @@ public class Espacing_Ring implements PlugIn {
 				iter++;
 			}
 			while (true);
-
 	}
 
 	private ArrayList<Ring> proposeCandidates(Ring ring, double step, Volume volume) {
@@ -152,29 +149,29 @@ public class Espacing_Ring implements PlugIn {
 		int angleRange = 2;
 
 		double initRadius = ring.radius;
-		float maxRadius = (float)1.25;
-		double width=step;
-		step=step/2;
+		double maxRadius = 1.25;
+		double maxMeasurmentArea = 2;
+		double width = step;
+		step = step/2;
 
 
 		for(double dt = -angleRange*angleStep; dt<=angleRange*angleStep; dt+=angleStep) {
 			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+=angleStep) {	
 				//return the MeasurmentVolume
 				Ring maxRing = ring.duplicate();
-				maxRing.radius = initRadius*maxRadius;
+				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
 				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.c = maxRing.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp);
 				maxRing.dir = new Point3D((maxRing.c.x-ring.c.x)/step, (maxRing.c.y-ring.c.y)/step, (maxRing.c.z-ring.c.z)/step);
 				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing, width);
+				//IJ.log("radius: " + maxRing.radius);
+				//IJ.log(mv.toString());
 
-
-				for(double r = initRadius*0.95; r<initRadius*maxRadius; r+=0.05*initRadius) {
-					Ring cand = ring.duplicate();
+				for(double r = initRadius*0.90; r<initRadius*maxRadius; r+=0.05*initRadius) {
+					Ring cand = maxRing.duplicate();
 					cand.radius = r;
-					polar = cand.getAnglesFromDirection();
-					cand.c = cand.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp);
-					cand.dir = new Point3D((cand.c.x-ring.c.x)/step, (cand.c.y-ring.c.y)/step, (cand.c.z-ring.c.z)/step);
 					cand.calculateContrast(mv);
+					//IJ.log("contrast: " + cand.contrast);
 					cands.add(cand);
 				}
 			}

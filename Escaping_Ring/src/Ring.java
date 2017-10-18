@@ -89,10 +89,13 @@ public class Ring {
 			}
 
 			if (curRadius  >= 1.3*radius && curRadius < 2*radius) {
-				countOuter =+ mv.sumIntensity[i];
-				countInner =+ mv.count[i];
+				meanOuter =+ mv.sumIntensity[i];
+				countOuter =+ mv.count[i];
 			}
 		}	
-		this.contrast = meanMembrane/countMembrane - (meanInner/countInner)/2 - (meanOuter/countOuter);	
+		this.contrast = meanMembrane/countMembrane - (meanInner/countInner)/4 - (meanOuter/countOuter)/4;	
+		//IJ.log("meanM: " + meanMembrane + " countM: " + countMembrane+
+		//		" meanI: " + meanInner + " countI: " + countInner+
+		//		" meanO: " + meanOuter + " countO: " + countOuter);
 	}
 }
