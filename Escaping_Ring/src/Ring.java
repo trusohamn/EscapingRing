@@ -10,8 +10,7 @@ public class Ring {
 	public double length = 10; //??
 	public double contrast;
 	
-	public Ring() {
-		
+	public Ring() {	
 	}
 	
 	public Ring(double x, double y, double z, double radius) {
