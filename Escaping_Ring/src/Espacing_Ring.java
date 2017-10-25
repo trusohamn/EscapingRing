@@ -8,6 +8,7 @@ import ij.plugin.PlugIn;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class Espacing_Ring implements PlugIn {
@@ -59,24 +60,18 @@ public class Espacing_Ring implements PlugIn {
 		Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		//drawMeasureArea(test, initial, step);
 		Volume vol = new Volume(imp);	
-
-		Ring adjInitial = adjustFirstRing(initial, vol, step);
-		drawMeasureArea(test, adjInitial, step);
-		evolve(vol, adjInitial, step, test);
+		Volume workingVol = new Volume(imp); //will be erased
 		
-		//evolve in opposite direction
-		evolve(vol, flippedRing(adjInitial), step, test);
+		Ring adjInitial = adjustFirstRing(initial, vol, step);
+		Branch firstBranch = new Branch(adjInitial, vol, test, workingVol, step);
+		//drawMeasureArea(test, adjInitial, step);
+
+		
+		
 		vol.showTwoChannels("Result", test);
 
 	}
-	private Ring flippedRing(Ring ring) {
-		Ring newRing = ring.duplicate();
-		newRing.dir.x = -ring.dir.x;
-		newRing.dir.y = -ring.dir.y;
-		newRing.dir.z = -ring.dir.z;
 
-		return newRing;
-	}
 
 	private Ring adjustFirstRing(Ring ring, Volume vol, double step) {
 		Ring bestCand = null;	
@@ -114,135 +109,6 @@ public class Espacing_Ring implements PlugIn {
 	}
 
 
-	private void evolve(Volume vol, Ring initial, double step, Volume test) {
-
-		Ring current = initial.duplicate();
-		int iter = 0;
-		double prevMax = -Double.MAX_VALUE;
-		
-		MAINLOOP:
-			do {
-				ArrayList<Ring> candidates = proposeCandidates(current, step, vol);
-				ArrayList<Ring[]> candidatesTriple = new ArrayList<Ring[]>();
-				for ( Ring cand : candidates){
-					//IJ.log("First loop");
-					ArrayList<Ring> candidates2 = proposeCandidates(cand, step, vol);
-					for (Ring cand2 : candidates2){
-						ArrayList<Ring> candidates3 = proposeCandidates(cand2, step, vol);
-						for (Ring cand3 : candidates3){
-							
-							candidatesTriple.add(new Ring[]{cand,cand2, cand3});
-						}	
-					}
-				}
-				
-				//calculating the best contrast out of those three rings
-				Ring best = null; //first ring of couple
-				double max = -Double.MAX_VALUE;
-				for(Ring[] cC : candidatesTriple) {
-					double c = cC[0].contrast + cC[1].contrast + cC[2].contrast;
-					//IJ.log(" c: " + c);
-					if (c > max) {
-						max = c;
-						best = cC[0];	
-					}
-				}
-				if(max<prevMax*0.7) break MAINLOOP;
-				
-				//adjust the first ring with more subtle parameter change
-				
-				Ring current1 = best.duplicate();
-				ArrayList<Ring> candidatesRefine = proposeCandidates(current1, step, vol, "refine");
-				for(Ring cand : candidatesRefine) {
-					double c = cand.contrast;
-					//IJ.log(" c: " + c);
-					if (c > max) {
-						max = c;
-						best = cand;	
-					}
-				}
-				
-				drawMeasureArea(test, best, step);
-				//drawCenterLine(vol, best);
-				current = best.duplicate();
-				IJ.log(" after iter"  + iter + " " + max);
-				prevMax=max;
-				iter++;
-			}
-			while (true);
-	}
-
-	private ArrayList<Ring> proposeCandidates(Ring ring, double step, Volume volume) {
-		ArrayList<Ring> cands = new ArrayList<Ring>();	
-		double angleStep = Math.PI/10;
-		int angleRange = 1;
-
-		double initRadius = ring.radius;
-		double maxRadius = 1.10;
-		double maxMeasurmentArea = 2;
-		double width = step;
-		step = step/2;
-
-
-		for(double dt = -angleRange*angleStep; dt<=angleRange*angleStep; dt+=angleStep) {
-			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+=angleStep) {	
-				//return the MeasurmentVolume
-				Ring maxRing = ring.duplicate();
-				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
-				double polar[] = maxRing.getAnglesFromDirection();
-				maxRing.c = maxRing.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp);
-				maxRing.dir = new Point3D((maxRing.c.x-ring.c.x)/step, (maxRing.c.y-ring.c.y)/step, (maxRing.c.z-ring.c.z)/step);
-				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing, width);
-				//IJ.log("radius: " + maxRing.radius);
-				//IJ.log(mv.toString());
-
-				for(double r = initRadius*0.90; r<initRadius*maxRadius; r+=0.10*initRadius) {
-					Ring cand = maxRing.duplicate();
-					cand.radius = r;
-					cand.calculateContrast(mv);
-					//IJ.log("contrast: " + cand.contrast);
-					cands.add(cand);
-				}
-			}
-		}	
-		return cands;
-	}
-
-	private ArrayList<Ring> proposeCandidates(Ring ring, double step, Volume volume, String refine) {
-		ArrayList<Ring> cands = new ArrayList<Ring>();	
-		double angleStep = Math.PI/12;
-		int angleRange = 3;
-
-		double initRadius = ring.radius;
-		double maxRadius = 1.30;
-		double maxMeasurmentArea = 2;
-		double width = step;
-		step = 0;
-
-
-		for(double dt = -angleRange*angleStep; dt<=angleRange*angleStep; dt+=angleStep) {
-			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+=angleStep) {	
-				//return the MeasurmentVolume
-				Ring maxRing = ring.duplicate();
-				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
-				double polar[] = maxRing.getAnglesFromDirection();
-				maxRing.c = maxRing.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp);
-				maxRing.dir = new Point3D((maxRing.c.x-ring.c.x)/step, (maxRing.c.y-ring.c.y)/step, (maxRing.c.z-ring.c.z)/step);
-				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing, width);
-				//IJ.log("radius: " + maxRing.radius);
-				//IJ.log(mv.toString());
-
-				for(double r = initRadius*0.90; r<initRadius*maxRadius; r+=0.05*initRadius) {
-					Ring cand = maxRing.duplicate();
-					cand.radius = r;
-					cand.calculateContrast(mv);
-					//IJ.log("contrast: " + cand.contrast);
-					cands.add(cand);
-				}
-			}
-		}	
-		return cands;
-	}
 
 
 	private double[] unit(double[] u) {
@@ -253,7 +119,7 @@ public class Espacing_Ring implements PlugIn {
 		return new double[] {u[0]/norm, u[1]/norm, u[2]/norm};	
 	}
 
-	private void drawCenterLine(Volume volume, Ring ring) {
+	public void drawCenterLine(Volume volume, Ring ring) {
 
 		double angles[] = ring.getAnglesFromDirection();
 		double sint = Math.sin(angles[0]);
@@ -271,38 +137,6 @@ public class Espacing_Ring implements PlugIn {
 			double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
 			double dz = i*R[2][0]  + k*R[2][2];
 			volume.setValue(ring.c, dx, dy, dz, 1000);
-		}
-	}
-
-	private void drawMeasureArea(Volume volume, Ring ring, double step) {
-		int radius = (int)Math.ceil(ring.radius);
-
-		double angles[] = ring.getAnglesFromDirection();
-		double sint = Math.sin(angles[0]);
-		double cost = Math.cos(angles[0]);
-		double sinp = Math.sin(angles[1]);
-		double cosp = Math.cos(angles[1]);
-		double R[][] = 
-			{{cosp*cost, -sinp, cosp*sint},
-					{sinp*cost, cosp, sinp*sint},
-					{-sint, 0, cost}};
-
-		for(int k=-(int)step/2; k<=(int)step/2; k++) {
-			for(int j=-radius*2; j<=radius*2; j++) {
-				for(int i=-radius*2; i<=radius*2; i++) {
-
-					double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
-					double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
-					double dz = i*R[2][0]  + k*R[2][2];
-
-					double d = Math.sqrt(i*i+j*j);
-
-
-					if (d >= 0.8*radius && d <=1.2*radius) {
-						volume.setValue(ring.c, dx, dy, dz, 150);
-					}
-				}	
-			}
 		}
 	}
 }
