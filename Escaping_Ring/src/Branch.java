@@ -7,25 +7,29 @@ public class Branch extends ArrayList<Ring>{
 
 	public Branch(Ring ring, Volume vol, Volume test, Volume workingVol, double step){
 		this.add(ring);
-		this.evolve(vol, ring, step, test);
+		this.evolve(vol, ring, step, test, 0.7);
 		//evolve in opposite direction
-		this.evolve(vol, ring.flippedRing(), step, test);
+		this.evolve(vol, ring.flippedRing(), step, test, 0.7);
 		this.regression(workingVol, test, step);
 	}
 	
 	public void regression(Volume workingVol, Volume test, double width){
+		//erase the whole branch
+		for(Ring ring: this) {
+			ring.eraseVol(workingVol, width);
+		}
+		workingVol.showTwoChannels("Working volume", test);
+		
 		Branch branchCopy = (Branch) this.clone();
 		for(int i = branchCopy.size()-1; i >0 ; i--){
-			Ring erasing = branchCopy.get(i);
-			erasing.eraseVol(workingVol, width);
 			Ring nextRing = branchCopy.get(i-1);
 			double step = width;
-			evolve(workingVol, nextRing, step, test);
-			//evolve(workingVol, nextRing.flippedRing(), step, test);
+			evolve(workingVol, nextRing, step, test, 0.9);
+			evolve(workingVol, nextRing.flippedRing(), step, test, 0.9);
 		}
 	}
 	
-	public void evolve(Volume vol, Ring initial, double step, Volume test) {
+	public void evolve(Volume vol, Ring initial, double step, Volume test, double breakValue) {
 
 		Ring current = initial.duplicate();
 		int iter = 0;
@@ -62,7 +66,7 @@ public class Branch extends ArrayList<Ring>{
 					}
 				}
 				
-				if(max<prevMax*0.7) break MAINLOOP;
+				if(max<prevMax*breakValue) break MAINLOOP;
 				
 				//adjust the first ring with more subtle parameter change
 				

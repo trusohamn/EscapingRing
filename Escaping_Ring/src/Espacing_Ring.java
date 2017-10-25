@@ -69,6 +69,7 @@ public class Espacing_Ring implements PlugIn {
 		
 		
 		vol.showTwoChannels("Result", test);
+		
 
 	}
 
