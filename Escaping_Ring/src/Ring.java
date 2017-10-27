@@ -139,7 +139,7 @@ public class Ring {
 	}
 	
 	public void eraseVol(Volume workingVol, double width){
-		double plusErase = 3;
+		double plusErase = 2;
 		int radius = (int)Math.ceil(this.radius*plusErase);
 		
 		
