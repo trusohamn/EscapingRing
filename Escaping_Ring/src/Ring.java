@@ -35,6 +35,7 @@ public class Ring {
 		r.radius = radius;
 		r.thickness = thickness;
 		r.length = length;
+		//r.contrast = contrast;
 		return r;
 	}
 
@@ -134,7 +135,7 @@ public class Ring {
 		newRing.dir.x = -this.dir.x;
 		newRing.dir.y = -this.dir.y;
 		newRing.dir.z = -this.dir.z;
-
+		newRing.contrast = this.contrast;
 		return newRing;
 	}
 	

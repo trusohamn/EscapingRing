@@ -10,10 +10,11 @@ public class Branch extends ArrayList<Ring>{
 		this.evolve(vol, ring, step, test, 0.7);
 		//evolve in opposite direction
 		this.evolve(vol, ring.flippedRing(), step, test, 0.7);
-		//this.regression(workingVol, test, step);
+		this.regression(workingVol, test, step);
 	}
 	
 	public void regression(Volume workingVol, Volume test, double width){
+		
 		//erase the whole branch
 		for(Ring ring: this) {
 			ring.eraseVol(workingVol, width);
@@ -21,12 +22,17 @@ public class Branch extends ArrayList<Ring>{
 		workingVol.showTwoChannels("Working volume", test);
 		
 		Branch branchCopy = (Branch) this.clone();
-		for(int i = branchCopy.size()-1; i >0 ; i--){
-			Ring nextRing = branchCopy.get(i-1);
+		for(int i = branchCopy.size()-1; i >=0 ; i--){
+			IJ.log("checking ring: " + i);
+			Ring nextRing = branchCopy.get(i);
 			double step = width;
-			evolve(workingVol, nextRing, step, test, 0.85);
-			evolve(workingVol, nextRing.flippedRing(), step, test, 0.85);
-			test.showTwoChannels("t", workingVol);
+			nextRing.contrast = nextRing.contrast/2; //to lower the threshold of starting the new branch
+			ArrayList<Ring> ringsAround = proposeCandidates(nextRing, step, workingVol, true);
+			for(Ring r : ringsAround) {
+				IJ.log("checking next from " + ringsAround.size());
+				evolve(workingVol, r, step, test, 0.7);
+			}
+			//test.showTwoChannels("t", workingVol);
 		}
 	}
 	
@@ -57,8 +63,8 @@ public class Branch extends ArrayList<Ring>{
 				
 				//calculating the best contrast out of those [three rings]
 				Ring best = null; //first ring of couple
-				double max = -Double.MAX_VALUE;
-				double rest = -Double.MAX_VALUE;
+				double max = -Double.MAX_VALUE; //total contrast of three rings
+				double rest = -Double.MAX_VALUE; //sum of contrast of second and third ring
 				for(Ring[] cC : candidatesTriple) {
 					double c = cC[0].contrast + cC[1].contrast + cC[2].contrast;
 					//IJ.log(" c: " + c);
@@ -72,28 +78,31 @@ public class Branch extends ArrayList<Ring>{
 				
 				//adjust the first ring with more subtle parameter change
 				
-				Ring current1 = best.duplicate();
-				ArrayList<Ring> candidatesRefine = proposeCandidates(current1, step, vol, "refine");
-				IJ.log("best: " + max);
-				for(Ring cand : candidatesRefine) {
-					double c = cand.contrast + rest ; //new best value plus two contrast from triple
-					IJ.log("new: " + cand.contrast);
-					//IJ.log(" c: " + c);
-					if (c > max) {
-						max = c;
-						best = cand;
-						IJ.log("refined");
+				ArrayList<Ring> candidatesRefine = proposeCandidates(best, step, vol, "refine");
+				//IJ.log("best: " + max);
+				double currentContrast = best.contrast;
+				for(Ring cand4 : candidatesRefine) {
+					if (cand4.contrast > currentContrast) {
+						currentContrast = cand4.contrast;
+						best = cand4;
+						//IJ.log("refined: " + currentContrast);
 					}
 				}
-					
+				
+				max = currentContrast + rest; 
+				
+				//IJ.log("TotalContrast: " + max + "max: " + currentContrast + "rest: " + rest );
+				
+				//max = max+rest;
 				if(max<prevMax*breakValue) break MAINLOOP;
+				
 				
 				best.drawMeasureArea(test, step);
 				//drawCenterLine(vol, best);
 				this.add(best);
 				
 				current = best.duplicate();
-				IJ.log(" after iter"  + iter + " " + candidatesTriple.size() );
+				IJ.log(" after iter"  + iter + " " + max );
 				prevMax=max;
 				iter++;
 			}
@@ -162,11 +171,11 @@ public class Branch extends ArrayList<Ring>{
 
 	private ArrayList<Ring> proposeCandidates(Ring ring, double step, Volume volume, String refine) {
 		ArrayList<Ring> cands = new ArrayList<Ring>();	
-		double angleStep = Math.PI/30;
-		int angleRange = 3;
+		double angleStep = Math.PI/40;
+		int angleRange = 1;
 
 		double initRadius = ring.radius;
-		double maxRadius = 1.05;
+		double maxRadius = 1.01;
 		double maxMeasurmentArea = 2;
 		double width = step;
 		step = 0;
@@ -176,16 +185,49 @@ public class Branch extends ArrayList<Ring>{
 			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+=angleStep) {	
 				//return the MeasurmentVolume
 				Ring maxRing = ring.duplicate();
+				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
-				maxRing.dir = maxRing.getDirectionFromSphericalAngles( dt,  dp);
+				maxRing.dir = maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp);
 				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing, width);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
-				for(double r = initRadius*0.95; r<initRadius*maxRadius; r+=0.05*initRadius) {
+				for(double r = initRadius*0.99; r<initRadius*maxRadius; r+=0.01*initRadius) {
 					Ring cand = maxRing.duplicate();
 					cand.radius = r;
 					cand.calculateContrast(mv);
+					//IJ.log("contrast: " + cand.contrast);
+					cands.add(cand);
+				}				
+			}
+		}	
+		return cands;
+	}
+	
+	private ArrayList<Ring> proposeCandidates(Ring ring, double step, Volume volume, boolean sparse) {
+		//returns sparse rings in 3d space, which keep the initial contrast
+		double keepContrast = ring.contrast;
+		ArrayList<Ring> cands = new ArrayList<Ring>();	
+		double angleStep = Math.PI/2;
+		int angleRange = 1;
+
+		double initRadius = ring.radius;
+		double maxRadius = 1.75;
+		double maxMeasurmentArea = 2;
+		double width = step;
+		step = 0;
+
+
+		for(double dt = -angleRange*angleStep; dt<=angleRange*angleStep; dt+=angleStep) {
+			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+=angleStep) {	
+				Ring maxRing = ring.duplicate();
+				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
+				maxRing.dir = maxRing.getDirectionFromSphericalAngles( dt, dp);
+
+				for(double r = initRadius*0.25; r<initRadius*maxRadius; r+=0.75*initRadius) {
+					Ring cand = maxRing.duplicate();
+					cand.radius = r;
+					cand.contrast = keepContrast;
 					//IJ.log("contrast: " + cand.contrast);
 					cands.add(cand);
 				}				
