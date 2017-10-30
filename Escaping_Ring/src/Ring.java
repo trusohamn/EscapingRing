@@ -35,6 +35,7 @@ public class Ring {
 		r.radius = radius;
 		r.thickness = thickness;
 		r.length = length;
+		//r.contrast = contrast;
 		return r;
 	}
 
@@ -92,9 +93,82 @@ public class Ring {
 				countOuter =+ mv.count[i];
 			}
 		}	
-		this.contrast = meanMembrane/countMembrane - (meanInner/countInner)/4 - (meanOuter/countOuter)/4;	
+		this.contrast = meanMembrane/countMembrane - (meanInner/countInner)/2 - (meanOuter/countOuter)/4;	
 		//IJ.log("meanM: " + meanMembrane + " countM: " + countMembrane+
 		//		" meanI: " + meanInner + " countI: " + countInner+
 		//		" meanO: " + meanOuter + " countO: " + countOuter);
 	}
+	public void drawMeasureArea(Volume volume, double step) {
+		int radius = (int)Math.ceil(this.radius);
+
+		double angles[] = this.getAnglesFromDirection();
+		double sint = Math.sin(angles[0]);
+		double cost = Math.cos(angles[0]);
+		double sinp = Math.sin(angles[1]);
+		double cosp = Math.cos(angles[1]);
+		double R[][] = 
+			{{cosp*cost, -sinp, cosp*sint},
+					{sinp*cost, cosp, sinp*sint},
+					{-sint, 0, cost}};
+
+		for(int k=-(int)step/2; k<=(int)step/2; k++) {
+			for(int j=-radius*2; j<=radius*2; j++) {
+				for(int i=-radius*2; i<=radius*2; i++) {
+
+					double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
+					double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
+					double dz = i*R[2][0]  + k*R[2][2];
+
+					double d = Math.sqrt(i*i+j*j);
+
+
+					if (d >= 0.8*radius && d <=1.2*radius) {
+						volume.setValue(this.c, dx, dy, dz, 150);
+					}
+				}	
+			}
+		}
+	}
+	
+	public Ring flippedRing() {
+		Ring newRing = this.duplicate();
+		newRing.dir.x = -this.dir.x;
+		newRing.dir.y = -this.dir.y;
+		newRing.dir.z = -this.dir.z;
+		newRing.contrast = this.contrast;
+		return newRing;
+	}
+	
+	public void eraseVol(Volume workingVol, double width){
+		double plusErase = 2;
+		int radius = (int)Math.ceil(this.radius*plusErase);
+		
+		
+		double angles[] = this.getAnglesFromDirection();
+		double sint = Math.sin(angles[0]);
+		double cost = Math.cos(angles[0]);
+		double sinp = Math.sin(angles[1]);
+		double cosp = Math.cos(angles[1]);
+		double R[][] = 
+			{{cosp*cost, -sinp, cosp*sint},
+					{sinp*cost, cosp, sinp*sint},
+					{-sint, 0, cost}};
+
+		for(int k=-(int)width/2; k<=(int)width/2; k++) {
+			for(int j=-radius; j<=radius; j++) {
+				for(int i=-radius; i<=radius; i++) {
+
+					double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
+					double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
+					double dz = i*R[2][0]  + k*R[2][2];
+
+					double d = Math.sqrt(i*i+j*j);	
+					if (d <=radius) {
+						workingVol.setValue(this.c, dx, dy, dz, 0 );
+					}
+				}	
+			}
+		}
+	}
+	
 }
