@@ -63,7 +63,7 @@ public class Espacing_Ring implements PlugIn {
 		Volume workingVol = new Volume(imp); //will be erased
 		
 		Ring adjInitial = adjustFirstRing(initial, vol, step);
-		Branch firstBranch = new Branch(adjInitial, vol, test, workingVol, step);
+		Branch firstBranch = new Branch(network, adjInitial, vol, test, workingVol, step);
 		//drawMeasureArea(test, adjInitial, step);
 
 		
