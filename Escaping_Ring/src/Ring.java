@@ -93,7 +93,7 @@ public class Ring {
 				countOuter =+ mv.count[i];
 			}
 		}	
-		this.contrast = meanMembrane/countMembrane - (meanInner/countInner)/2 - (meanOuter/countOuter)/4;	
+		this.contrast = meanMembrane/countMembrane - ( (meanInner/countInner)/4 + (meanOuter/countOuter)/4 );	
 		//IJ.log("meanM: " + meanMembrane + " countM: " + countMembrane+
 		//		" meanI: " + meanInner + " countI: " + countInner+
 		//		" meanO: " + meanOuter + " countO: " + countOuter);

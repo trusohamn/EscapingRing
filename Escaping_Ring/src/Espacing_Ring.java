@@ -10,6 +10,8 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.swing.SwingUtilities;
+
 
 public class Espacing_Ring implements PlugIn {
 
@@ -43,8 +45,24 @@ public class Espacing_Ring implements PlugIn {
 		int yc = rect.y + rect.height/2;
 		int radius = (rect.width + rect.height) / 4;	
 		int zc = imp.getSlice();
+/*
+		Gui dialog;
+		SwingUtilities.invokeLater(() -> {
+			if (dialog == null) {
+				dialog = new Gui();
+			}
+			dialog.setVisible(true);
 
+			dialog.setOps(ops);
+			dialog.setLog(log);
+			dialog.setStatus(status);
+			dialog.setCommand(cmd);
+			dialog.setThread(thread);
+			dialog.setUi(ui); 
 
+		});
+		*/
+		
 
 		GenericDialog dlg = new GenericDialog("Espacing Ring");
 		dlg.addNumericField("Progression step (in pixels)", 20, 0);
@@ -63,10 +81,16 @@ public class Espacing_Ring implements PlugIn {
 		Volume workingVol = new Volume(imp); //will be erased
 		
 		Ring adjInitial = adjustFirstRing(initial, vol, step);
+		network.recalculateContrast(initial.contrast);
+		
 		Branch firstBranch = new Branch(network, adjInitial, vol, test, workingVol, step);
 		//drawMeasureArea(test, adjInitial, step);
 
-		
+		for(Branch branch : network) {
+			for(Ring ring : branch) {
+				ring.drawMeasureArea(test, step);
+			}
+		}
 		
 		vol.showTwoChannels("Result", test);
 		
