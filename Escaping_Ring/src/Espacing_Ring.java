@@ -15,12 +15,10 @@ import javax.swing.SwingUtilities;
 
 public class Espacing_Ring implements PlugIn {
 
-	Network network = new Network();
-
 	@Override
 	public void run(String arg0) {
 		IJ.log("start");
-
+		Network network = new Network();
 		ImagePlus imp = WindowManager.getCurrentImage();
 
 		if (imp == null) {
@@ -45,27 +43,15 @@ public class Espacing_Ring implements PlugIn {
 		int yc = rect.y + rect.height/2;
 		int radius = (rect.width + rect.height) / 4;	
 		int zc = imp.getSlice();
-/*
-		Gui dialog;
-		SwingUtilities.invokeLater(() -> {
-			if (dialog == null) {
-				dialog = new Gui();
-			}
-			dialog.setVisible(true);
-
-			dialog.setOps(ops);
-			dialog.setLog(log);
-			dialog.setStatus(status);
-			dialog.setCommand(cmd);
-			dialog.setThread(thread);
-			dialog.setUi(ui); 
-
-		});
-		*/
 		
-
+		/*
+		Gui dialog = new Gui();
+		dialog.setVisible(true);
+*/
+		
+		
 		GenericDialog dlg = new GenericDialog("Espacing Ring");
-		dlg.addNumericField("Progression step (in pixels)", 20, 0);
+		dlg.addNumericField("Progression step (in pixels)", 10, 0);
 		dlg.showDialog();
 		if (dlg.wasCanceled())
 			return;
@@ -80,7 +66,7 @@ public class Espacing_Ring implements PlugIn {
 		Volume vol = new Volume(imp);	
 		Volume workingVol = new Volume(imp); //will be erased
 		
-		Ring adjInitial = adjustFirstRing(initial, vol, step);
+		Ring adjInitial = initial.adjustFirstRing(vol, step);
 		network.recalculateContrast(initial.contrast);
 		
 		Branch firstBranch = new Branch(network, adjInitial, vol, test, workingVol, step);
@@ -94,44 +80,11 @@ public class Espacing_Ring implements PlugIn {
 		
 		vol.showTwoChannels("Result", test);
 		
-
+		
 	}
 
 
-	private Ring adjustFirstRing(Ring ring, Volume vol, double step) {
-		Ring bestCand = null;	
-		double maxContrast = -Double.MAX_VALUE;
-		double angleStep = Math.PI/12;
 
-		double initRadius = ring.radius;	
-		double maxRadius = 1.25;
-		double maxMeasurmentArea = 2;
-
-		for(double dt = -Math.PI; dt<=Math.PI; dt+=angleStep) {
-			for(double dp = -Math.PI/2; dp<=Math.PI/2; dp+=angleStep) {
-				//return the MeasurmentVolume
-				Ring maxRing = ring.duplicate();
-				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
-				maxRing.dir = maxRing.getDirectionFromSphericalAngles( dt,  dp);
-				MeasurmentVolume mv = new MeasurmentVolume(vol, maxRing, step);
-				//IJ.log(mv.toString());
-				for(double r = initRadius*0.90; r<initRadius*maxRadius; r+=0.05*initRadius) {
-					Ring cand = maxRing.duplicate();
-					cand.radius = r;
-					cand.calculateContrast(mv);
-					double contrast = cand.contrast;
-					//IJ.log(""+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
-					if(contrast > maxContrast) {
-						IJ.log("better >>>>>"+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
-						bestCand=cand;
-						maxContrast=contrast;
-					}
-				}
-			}
-		}	
-		IJ.log("best candidate: "+ maxContrast + " rad: " + bestCand.radius);
-		return bestCand;
-	}
 
 
 

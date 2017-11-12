@@ -24,7 +24,7 @@ public class Branch extends ArrayList<Ring>{
 		this.addAll(evolve(vol, ring.flippedRing(), step, test, evolveValue));
 		this.branchNo = 1;
 		this.drawBranch(test, step);
-		workingVol.showTwoChannels("First branch", test);
+		//workingVol.showTwoChannels("First branch", test);
 		this.regression(workingVol, test, step);
 	}
 	
@@ -37,7 +37,7 @@ public class Branch extends ArrayList<Ring>{
 		network.add(this);
 		this.branchNo = network.size();
 		this.drawBranch(test, step);
-		workingVol.showTwoChannels("Second round", test);
+		//workingVol.showTwoChannels("Second round", test);
 		this.regression(workingVol, test, step);
 	}
 
