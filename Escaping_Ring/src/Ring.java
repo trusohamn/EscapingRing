@@ -93,7 +93,7 @@ public class Ring {
 				countOuter =+ mv.count[i];
 			}
 		}	
-		this.contrast = meanMembrane/countMembrane - (meanInner/countInner)/2 - (meanOuter/countOuter)/4;	
+		this.contrast = meanMembrane/countMembrane - ( (meanInner/countInner)/4 + (meanOuter/countOuter)/4 );	
 		//IJ.log("meanM: " + meanMembrane + " countM: " + countMembrane+
 		//		" meanI: " + meanInner + " countI: " + countInner+
 		//		" meanO: " + meanOuter + " countO: " + countOuter);
@@ -169,6 +169,40 @@ public class Ring {
 				}	
 			}
 		}
+	}
+	public Ring adjustFirstRing( Volume vol, double step) {
+		Ring bestCand = null;	
+		double maxContrast = -Double.MAX_VALUE;
+		double angleStep = Math.PI/12;
+
+		double initRadius = this.radius;	
+		double maxRadius = 1.25;
+		double maxMeasurmentArea = 2;
+
+		for(double dt = -Math.PI; dt<=Math.PI; dt+=angleStep) {
+			for(double dp = -Math.PI/2; dp<=Math.PI/2; dp+=angleStep) {
+				//return the MeasurmentVolume
+				Ring maxRing = this.duplicate();
+				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
+				maxRing.dir = maxRing.getDirectionFromSphericalAngles( dt,  dp);
+				MeasurmentVolume mv = new MeasurmentVolume(vol, maxRing, step);
+				//IJ.log(mv.toString());
+				for(double r = initRadius*0.90; r<initRadius*maxRadius; r+=0.05*initRadius) {
+					Ring cand = maxRing.duplicate();
+					cand.radius = r;
+					cand.calculateContrast(mv);
+					double contrast = cand.contrast;
+					//IJ.log(""+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
+					if(contrast > maxContrast) {
+						IJ.log("better >>>>>"+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
+						bestCand=cand;
+						maxContrast=contrast;
+					}
+				}
+			}
+		}	
+		IJ.log("best candidate: "+ maxContrast + " rad: " + bestCand.radius);
+		return bestCand;
 	}
 	
 }
