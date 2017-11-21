@@ -1,31 +1,28 @@
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 
-import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
-import javax.swing.border.EmptyBorder;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.WindowManager;
-import ij.gui.GenericDialog;
-import ij.gui.OvalRoi;
-import ij.gui.Roi;
 
 public class Gui extends JDialog {
-	private final JPanel contentPanel = new JPanel();
 
-
+	DefaultListModel<String> branchList = new DefaultListModel<String>();
+	JList<String> list;
+	Network network = new Network(branchList);
+	double step;
 
 	public static void main(final String[] args) {
 		try {
@@ -42,22 +39,26 @@ public class Gui extends JDialog {
 	 * Create the dialog.
 	 */
 	public Gui() {
-
+		JPanel tab1;
+		JPanel tab2;
+		
+		
+		
 		setBounds(100, 100, 450, 300);
-		/*
-		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setLayout(new GridLayout(0,1));
-		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		 */
+		setTitle("VascRing3D");
+
+		/*TAB1*/	 
+		tab1 = new JPanel();
+		tab1.setLayout(new BorderLayout());
+
 
 		JPanel labelPane = new JPanel(new GridLayout(0,1));
-		labelPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		getContentPane().add(labelPane, BorderLayout.CENTER);
+		labelPane.setLayout(new FlowLayout(FlowLayout.LEFT));
+		tab1.add(labelPane, BorderLayout.WEST);
 		
 		JPanel fieldPane = new JPanel(new GridLayout(0,1));
-		fieldPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		getContentPane().add(fieldPane, BorderLayout.LINE_END);
+		fieldPane.setLayout(new FlowLayout(FlowLayout.LEFT));
+		tab1.add(fieldPane, BorderLayout.CENTER);
 		
 		//setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
@@ -73,65 +74,40 @@ public class Gui extends JDialog {
 		btn1.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				ImagePlus imp = WindowManager.getCurrentImage();
-				Network network = new Network();
-				if (imp == null) {
-					IJ.error("No open image.");
-					return;
-				}
-
-				Roi roi = imp.getRoi();
-				if (roi == null) {
-					IJ.error("No selected ROI.");
-					return;
-				}
-
-				if (roi.getType() != Roi.OVAL){
-					IJ.error("No selected Oval ROI.");
-					return;
-				}
-
-				OvalRoi oval = (OvalRoi)roi;
-				Rectangle rect = oval.getBounds();
-				int xc = rect.x + rect.width/2;
-				int yc = rect.y + rect.height/2;
-				int radius = (rect.width + rect.height) / 4;	
-				int zc = imp.getSlice();	
-				
-				double step = 10;
 				try {
 					step= Double.parseDouble(stepField.getText());
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
 				}
+				Espacing_Ring.start(network, step);
 				
-				Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius);
-				IJ.log(" Initial Ring " + initial);
-				Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
-				//drawMeasureArea(test, initial, step);
-				Volume vol = new Volume(imp);	
-				Volume workingVol = new Volume(imp); //will be erased
-				
-				Ring adjInitial = initial.adjustFirstRing(vol, step);
-				network.recalculateContrast(initial.contrast);
-				
-				Branch firstBranch = new Branch(network, adjInitial, vol, test, workingVol, step);
-				//drawMeasureArea(test, adjInitial, step);
-
-				for(Branch branch : network) {
-					for(Ring ring : branch) {
-						ring.drawMeasureArea(test, step);
-					}
-				}
-				
-				vol.showTwoChannels("Result", test);
-				
-
 			}
 		}); 
 
 		fieldPane.add(btn1);
+		
+		
 
+		fieldPane.add(btn1);
+		
+		/*TAB2*/
+		tab2 = new JPanel();
+		tab2.setLayout(new BorderLayout());
+
+		list = new JList<String>(branchList);
+		JPanel listPanel = new JPanel();
+		listPanel.add(list, BorderLayout.CENTER);
+		JScrollPane scrol = new JScrollPane(list);
+		tab2.add(scrol,BorderLayout.WEST);
+		tab2.add(listPanel);
+
+		
+		/*TABS*/
+		
+		JTabbedPane tabPane = new JTabbedPane();
+		tabPane.addTab( "Start", tab1);
+		tabPane.addTab( "Branches", tab2);
+		getContentPane().add(tabPane);
 
 
 		/* LOWER PANEL */
@@ -148,7 +124,27 @@ public class Gui extends JDialog {
 		final JButton cancelButton = new JButton("Cancel");
 		cancelButton.setActionCommand("Cancel");
 		buttonPane.add(cancelButton);
+		
+		final JButton showButton = new JButton("Show");
+		showButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Espacing_Ring.showResult(network, step);	
+			}
+		}); 
+		buttonPane.add(showButton);
+		
+		final JButton btn2= new JButton("Reset");
+		btn2.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				branchList.clear();
+				network.clear();	
+			}
+		}); 
+		buttonPane.add(btn2);
 
 	}
+	
 }
 

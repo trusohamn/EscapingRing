@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Escaping Ring" default="compile" basedir=".">
- 
-<property name="dest" value="C:/ImageJ/plugins"></property>
+
+<property name="dest" value="C:/USers/mlecz_000/Dropbox/ImageJ/plugins"></property>
 <target name="compile">
 <copy toDir="${dest}"><fileset dir="bin" includes="**/*.class"/></copy>
 </target>

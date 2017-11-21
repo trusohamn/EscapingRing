@@ -3,7 +3,7 @@ import java.util.Arrays;
 
 import ij.IJ;
 
-public class Branch extends ArrayList<Ring>{
+public class Branch extends ArrayList<Ring> {
 	Network network;
 	Volume vol;
 	Volume test;
@@ -18,16 +18,16 @@ public class Branch extends ArrayList<Ring>{
 		this.network = network;
 		this.vol = vol;
 		this.test = test;
-		this.workingVol = workingVol;
-		network.add(this);
+		this.workingVol = workingVol;	
 		this.addAll(evolve(vol, ring, step, test, evolveValue));
 		this.addAll(evolve(vol, ring.flippedRing(), step, test, evolveValue));
-		this.branchNo = 1;
-		this.drawBranch(test, step);
+		network.add(this);
+		this.branchNo = network.branchList.size();
+		//this.drawBranch(test, step);
 		//workingVol.showTwoChannels("First branch", test);
 		this.regression(workingVol, test, step);
 	}
-	
+
 	public Branch(Network network, ArrayList<Ring> branch, Volume vol, Volume test, Volume workingVol, double step){
 		this.addAll(branch);
 		this.network = network;
@@ -35,41 +35,51 @@ public class Branch extends ArrayList<Ring>{
 		this.test = test;
 		this.workingVol = workingVol;
 		network.add(this);
-		this.branchNo = network.size();
-		this.drawBranch(test, step);
+		this.branchNo = network.branchList.size();
+		//this.drawBranch(test, step);
 		//workingVol.showTwoChannels("Second round", test);
 		this.regression(workingVol, test, step);
 	}
 
 	public void regression(Volume workingVol, Volume test, double width){
-
-		//erase the whole branch
 		
-		for(Ring ring: this) {
-			ring.eraseVol(workingVol, width);
-		}
-		//workingVol.showTwoChannels("Working volume", test);
-
-		
-		Branch branchCopy = (Branch) this.clone();
-	
-		for(int i = branchCopy.size()-1; i >=0 ; i--){
-			IJ.log("checking ring: " + i);
-			Ring nextRing = branchCopy.get(i);
-			double step = width;
-			
-			ArrayList<Ring> ringsAround = sparseCandidates(nextRing, step, workingVol);
-			for(Ring r : ringsAround) {
-				//IJ.log("checking next from " + ringsAround.size());
-				ArrayList<Ring> branchCand = evolve(workingVol, r, step, test, evolveValue);
-				if(branchCand.size()>3) {
-					Branch newBranch = new Branch(network, branchCand, vol, test,  workingVol, step);
-				}	
+		class OneShotTask implements Runnable{
+			Branch branch;
+			OneShotTask(Branch branch) { 
+				this.branch = branch;
 			}
-			//test.showTwoChannels("t", workingVol);
-		}
-	}
+			
+			public void run() {
+				
+				//erase the whole branch
+				for(Ring ring: branch) {
+					ring.eraseVol(workingVol, width);
+				}
+				//workingVol.showTwoChannels("Working volume", test);
 
+
+				Branch branchCopy = (Branch) branch.clone();
+
+				for(int i = branchCopy.size()-1; i >=0 ; i--){
+					IJ.log("checking ring: " + i);
+					Ring nextRing = branchCopy.get(i);
+					double step = width;
+
+					ArrayList<Ring> ringsAround = sparseCandidates(nextRing, step, workingVol);
+					for(Ring r : ringsAround) {
+						//IJ.log("checking next from " + ringsAround.size());
+						ArrayList<Ring> branchCand = evolve(workingVol, r, step, test, evolveValue);
+						if(branchCand.size()>3) {
+							Branch newBranch = new Branch(network, branchCand, vol, test,  workingVol, step);
+						}	
+					}
+					//test.showTwoChannels("t", workingVol);
+				}
+			}
+		}
+	    Thread t = new Thread(new OneShotTask(this));
+	    t.start();
+	}
 	public ArrayList<Ring> evolve(Volume vol, Ring initial, double step, Volume test, double breakValue) {
 
 		Ring current = initial.duplicate();
@@ -116,10 +126,10 @@ public class Branch extends ArrayList<Ring>{
 
 				//adjust the first ring with more subtle parameter change
 
-				
+
 				//IJ.log("best: " + max);
 				double currentContrast = best.contrast;
-				
+
 				ArrayList<Ring> candidatesRefine = refineCandidate(best, step, vol);
 				for(Ring cand4 : candidatesRefine) {
 					if (cand4.contrast > currentContrast) {
@@ -128,7 +138,7 @@ public class Branch extends ArrayList<Ring>{
 						//IJ.log("refined: " + currentContrast);
 					}
 				}
-					
+
 				max = currentContrast + rest; 
 
 				//IJ.log("TotalContrast: " + max + "max: " + currentContrast + "rest: " + rest );
@@ -142,15 +152,15 @@ public class Branch extends ArrayList<Ring>{
 				//this.add(best); //what is it doing here? - for the first branch...
 
 				current = best.duplicate();
-					
-				
+
+
 				//erase ring 2 places backwards
 				if(newBranch.size()>3) {
 					network.recalculateContrast(currentContrast);
 					newBranch.get(newBranch.size()-2).eraseVol(workingVol, step);
 				}
 				prevMax = network.getMeanContrast()*3;
-				
+
 				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() );
 				iter++;
 			}
@@ -217,6 +227,7 @@ public class Branch extends ArrayList<Ring>{
 		}	
 		return cands;
 	}
+
 
 	private ArrayList<Ring> refineCandidate(Ring ring, double step, Volume volume) {
 		ArrayList<Ring> cands = new ArrayList<Ring>();	
@@ -290,11 +301,17 @@ public class Branch extends ArrayList<Ring>{
 			r.drawMeasureArea(volume, step);
 		}
 	}
-	
+
 	/*GETTERS AND SETTERS*/
-	
+
 	public int getBranchNo() {
 		return branchNo;
+	}
+
+	@Override
+	public String toString() {
+		//to solve the branchno
+		return "BranchNo=" + network.branchList.size()  + " branchSize= " + this.size();
 	}
 
 }

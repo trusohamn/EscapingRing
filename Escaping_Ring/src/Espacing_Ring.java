@@ -1,25 +1,33 @@
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
-import ij.gui.GenericDialog;
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.plugin.PlugIn;
 
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Arrays;
 
-import javax.swing.SwingUtilities;
 
 
 public class Espacing_Ring implements PlugIn {
-
+	static Volume vol;
+	static ImagePlus imp;
+	
 	@Override
 	public void run(String arg0) {
-		IJ.log("start");
-		Network network = new Network();
-		ImagePlus imp = WindowManager.getCurrentImage();
+			
+		
+		Gui dialog = new Gui();
+		dialog.setVisible(true);
+
+		//start();
+		
+	}
+	
+	public static void start(Network network, double step) {
+		IJ.log("start 21 nov 2017");
+		
+		imp = WindowManager.getCurrentImage();
 
 		if (imp == null) {
 			IJ.error("No open image.");
@@ -43,27 +51,13 @@ public class Espacing_Ring implements PlugIn {
 		int yc = rect.y + rect.height/2;
 		int radius = (rect.width + rect.height) / 4;	
 		int zc = imp.getSlice();
-		
-		/*
-		Gui dialog = new Gui();
-		dialog.setVisible(true);
-*/
-		
-		
-		GenericDialog dlg = new GenericDialog("Espacing Ring");
-		dlg.addNumericField("Progression step (in pixels)", 10, 0);
-		dlg.showDialog();
-		if (dlg.wasCanceled())
-			return;
-
-		double step = dlg.getNextNumber();
 
 
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius);
 		IJ.log(" Initial Ring " + initial);
 		Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		//drawMeasureArea(test, initial, step);
-		Volume vol = new Volume(imp);	
+		vol = new Volume(imp);	
 		Volume workingVol = new Volume(imp); //will be erased
 		
 		Ring adjInitial = initial.adjustFirstRing(vol, step);
@@ -72,19 +66,20 @@ public class Espacing_Ring implements PlugIn {
 		Branch firstBranch = new Branch(network, adjInitial, vol, test, workingVol, step);
 		//drawMeasureArea(test, adjInitial, step);
 
-		for(Branch branch : network) {
-			for(Ring ring : branch) {
-				ring.drawMeasureArea(test, step);
-			}
-		}
-		
-		vol.showTwoChannels("Result", test);
+
 		
 		
 	}
-
-
-
+	public static void showResult(Network network, double step){
+		Volume empty = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
+		for(Branch branch : network) {
+			for(Ring ring : branch) {
+				ring.drawMeasureArea(empty, step);
+			}
+		}
+		
+		vol.showTwoChannels("Result", empty);
+	}
 
 
 
