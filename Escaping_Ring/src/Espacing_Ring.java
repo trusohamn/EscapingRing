@@ -7,16 +7,26 @@ import ij.gui.Roi;
 import ij.plugin.PlugIn;
 
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Arrays;
 
-import javax.swing.SwingUtilities;
 
 
 public class Espacing_Ring implements PlugIn {
 
 	@Override
 	public void run(String arg0) {
+		
+		
+		/*
+		Gui dialog = new Gui();
+		dialog.setVisible(true);
+*/
+		start();
+		
+
+		
+	}
+	
+	public static void start() {
 		IJ.log("start");
 		Network network = new Network();
 		ImagePlus imp = WindowManager.getCurrentImage();
@@ -43,13 +53,6 @@ public class Espacing_Ring implements PlugIn {
 		int yc = rect.y + rect.height/2;
 		int radius = (rect.width + rect.height) / 4;	
 		int zc = imp.getSlice();
-		
-		/*
-		Gui dialog = new Gui();
-		dialog.setVisible(true);
-*/
-		
-		
 		GenericDialog dlg = new GenericDialog("Espacing Ring");
 		dlg.addNumericField("Progression step (in pixels)", 10, 0);
 		dlg.showDialog();
