@@ -310,8 +310,7 @@ public class Branch extends ArrayList<Ring> {
 
 	@Override
 	public String toString() {
-		//to solve the branchno
-		return "BranchNo=" + network.branchList.size()  + " branchSize= " + this.size();
+		return "BranchNo=" + branchNo  + " branchSize= " + this.size();
 	}
 
 }

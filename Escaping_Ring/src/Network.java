@@ -5,9 +5,9 @@ public class Network extends ArrayList<Branch> {
 	private int totalNumberRings = 0;
 	private double totalContrast = 0;
 	private double meanContrast = -Double.MAX_VALUE;
-	DefaultListModel<String> branchList;
+	DefaultListModel<Branch> branchList;
 
-	public Network(DefaultListModel<String> branchList){
+	public Network(DefaultListModel<Branch> branchList){
 		this.branchList = branchList;
 	}
 
@@ -34,7 +34,7 @@ public class Network extends ArrayList<Branch> {
 	}
 
 	@Override public boolean add(Branch branch) {
-		branchList.addElement(branch.toString());
+		branchList.addElement(branch);
 		return super.add(branch);
 	}
 
