@@ -68,24 +68,16 @@ public class Gui extends JDialog {
 		tab1.setLayout(new BorderLayout());
 		
 		JPanel leftPanel = new JPanel();
-		tab1.add(leftPanel, BorderLayout.NORTH);
-		leftPanel.setLayout(new FormLayout(new ColumnSpec[] {
-				FormSpecs.DEFAULT_COLSPEC,
-				FormSpecs.DEFAULT_COLSPEC,},
-			new RowSpec[] {
-				FormSpecs.MIN_ROWSPEC,
-				FormSpecs.MIN_ROWSPEC,
-				FormSpecs.MIN_ROWSPEC,
-				FormSpecs.MIN_ROWSPEC,
-				FormSpecs.DEFAULT_ROWSPEC,}));
+		tab1.add(leftPanel, BorderLayout.WEST);
+
 
 		JLabel stepLabel = new JLabel("Step size");
 		JFormattedTextField stepField = new JFormattedTextField(NumberFormat.getNumberInstance());
 		stepField.setColumns(10);
 		stepField.setText("10");
 		stepLabel.setLabelFor(stepField);
-		leftPanel.add(stepLabel, "1, 1, left, center");
-		leftPanel.add(stepField, "2, 1, left, center");
+		leftPanel.add(stepLabel);
+		leftPanel.add(stepField);
 
 		
 		JLabel impInsideLabel = new JLabel("Importance inside");
@@ -93,16 +85,16 @@ public class Gui extends JDialog {
 		impInsideField.setColumns(10);
 		impInsideField.setText("-0.25");
 		impInsideLabel.setLabelFor(impInsideField);
-		leftPanel.add(impInsideLabel, "1, 2, left, center");
-		leftPanel.add(impInsideField, "2, 2, left, center");
+		leftPanel.add(impInsideLabel);
+		leftPanel.add(impInsideField);
 		
 		JLabel impOutsideLabel = new JLabel("Importance outside");
 		JFormattedTextField impOutsideField = new JFormattedTextField(NumberFormat.getNumberInstance());
 		impOutsideField.setColumns(10);
 		impOutsideField.setText("-0.25");
 		impOutsideLabel.setLabelFor(impOutsideField);
-		leftPanel.add(impOutsideLabel, "1, 3, left, center");
-		leftPanel.add(impOutsideField, "2, 3, left, center");
+		leftPanel.add(impOutsideLabel);
+		leftPanel.add(impOutsideField);
 
 
 		final JButton btn1 = new JButton("Start");
