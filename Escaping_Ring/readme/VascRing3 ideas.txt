@@ -1,0 +1,6 @@
+deletion of chosen rings:
+-if the ring is in the middle of the branch - delete the branch and create two new ones
+-to solve - new naming of new branches
+
+deletion of chosen branches:
+-recalculate the workingVolume to restore the intensities in the place of deleted branch

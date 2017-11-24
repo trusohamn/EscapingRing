@@ -7,25 +7,37 @@ public class Ring {
 
 	public double radius;
 	public double thickness = 3; //??
-	public double length = 10; //??
+	public double length;
 	public double contrast;
+	private Branch branch = null;
 	
+	static private double impInside = -0.25;
+	static private double impOutside = -0.25;
+	
+
+
 	public Ring() {	
 	}
 	
-	public Ring(double x, double y, double z, double radius) {
+	public Ring(double x, double y, double z, double radius, double length) {
 		c = new Point3D(x, y, z);
 		this.radius = radius;
+		this.length = length;
 	}
 	
-	public Ring(double x, double y, double z, double dx, double dy, double dz, double radius) {
+	public Ring(double x, double y, double z, double dx, double dy, double dz, double radius, double length) {
 		c = new Point3D(x, y, z);
 		dir = new Point3D(dx, dy, dz);
 		this.radius = radius;
+		this.length = length;
 	}
 
 	public String toString() {
-		return "" + c.x + " " + c.y + " " + c.z;
+		String out = "" + dir.x + " " + dir.y + " " + dir.z;
+		if(branch != null){
+			out += " from: " + branch;
+		}
+		return out;
 	}
 	
 	public Ring duplicate() {
@@ -78,7 +90,7 @@ public class Ring {
 		for(int i=0; i<n; i++){
 			double curRadius = i*mv.bin;
 			//IJ.log("current radius: " + curRadius);
-			if (curRadius  < 0.7*radius) {
+			if (curRadius  < 0.8*radius) {
 				meanInner =+ mv.sumIntensity[i];
 				countInner =+ mv.count[i];
 			}
@@ -88,17 +100,17 @@ public class Ring {
 				countMembrane =+ mv.count[i];
 			}
 
-			if (curRadius  >= 1.3*radius && curRadius < 2*radius) {
+			if (curRadius  >= 1.2*radius && curRadius < 2*radius) {
 				meanOuter =+ mv.sumIntensity[i];
 				countOuter =+ mv.count[i];
 			}
 		}	
-		this.contrast = meanMembrane/countMembrane - ( (meanInner/countInner)/4 + (meanOuter/countOuter)/4 );	
+		this.contrast = (meanMembrane/countMembrane) +  impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter) ;	
 		//IJ.log("meanM: " + meanMembrane + " countM: " + countMembrane+
 		//		" meanI: " + meanInner + " countI: " + countInner+
 		//		" meanO: " + meanOuter + " countO: " + countOuter);
 	}
-	public void drawMeasureArea(Volume volume, double step) {
+	public void drawMeasureArea(Volume volume) {
 		int radius = (int)Math.ceil(this.radius);
 
 		double angles[] = this.getAnglesFromDirection();
@@ -111,7 +123,7 @@ public class Ring {
 					{sinp*cost, cosp, sinp*sint},
 					{-sint, 0, cost}};
 
-		for(int k=-(int)step/2; k<=(int)step/2; k++) {
+		for(int k=-(int)this.length/2; k<=(int)this.length/2; k++) {
 			for(int j=-radius*2; j<=radius*2; j++) {
 				for(int i=-radius*2; i<=radius*2; i++) {
 
@@ -204,5 +216,30 @@ public class Ring {
 		IJ.log("best candidate: "+ maxContrast + " rad: " + bestCand.radius);
 		return bestCand;
 	}
+	/*GETTERS SETTERS*/
 	
+	public Branch getBranch() {
+		return branch;
+	}
+
+	public void setBranch(Branch branch) {
+		this.branch = branch;
+	}
+	
+	public static double getImpInside() {
+		return impInside;
+	}
+
+	public static void setImpInside(double impInside) {
+		Ring.impInside = impInside;
+	}
+
+	public static double getImpOutside() {
+		return impOutside;
+	}
+
+	public static void setImpOutside(double impOutside) {
+		Ring.impOutside = impOutside;
+	}
+
 }

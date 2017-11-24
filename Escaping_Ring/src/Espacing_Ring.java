@@ -27,7 +27,7 @@ public class Espacing_Ring implements PlugIn {
 		
 	}
 	
-	public static void start(Network network, double step) {
+	public static void start(Network network, double step, double impInside, double impOutside) {
 		IJ.log("start 21 nov 2017");
 		
 		imp = WindowManager.getCurrentImage();
@@ -55,9 +55,12 @@ public class Espacing_Ring implements PlugIn {
 		int yc = rect.y + rect.height/2;
 		int radius = (rect.width + rect.height) / 4;	
 		int zc = imp.getSlice();
+		
+		Ring.setImpInside(impInside);
+		Ring.setImpOutside(impOutside);
 
 
-		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius);
+		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
 		IJ.log(" Initial Ring " + initial);
 		Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		//drawMeasureArea(test, initial, step);
@@ -78,7 +81,7 @@ public class Espacing_Ring implements PlugIn {
 		Volume empty = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(Branch branch : network) {
 			for(Ring ring : branch) {
-				ring.drawMeasureArea(empty, step);
+				ring.drawMeasureArea(empty);
 			}
 		}
 		
@@ -90,7 +93,7 @@ public class Espacing_Ring implements PlugIn {
 		for(int i=0; i< branchList.getSize(); i++){
 			Branch branch = branchList.getElementAt(i);
 			for(Ring ring : branch) {
-				ring.drawMeasureArea(empty, step);
+				ring.drawMeasureArea(empty);
 			}
 		}
 		

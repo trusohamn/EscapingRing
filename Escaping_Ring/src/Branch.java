@@ -11,7 +11,10 @@ public class Branch extends ArrayList<Ring> {
 	double step;
 	double evolveValue = 0.4; //for finishing the branch threshold
 	private int branchNo;
-
+	
+	public Branch(){
+		
+	}
 	public Branch(Network network, Ring ring, Volume vol, Volume test, Volume workingVol, double step){
 		//first branch
 		this.add(ring);
@@ -274,7 +277,6 @@ public class Branch extends ArrayList<Ring> {
 		double initRadius = ring.radius;
 		double maxRadius = 1.75;
 		double maxMeasurmentArea = 2;
-		double width = step;
 		step = 0;
 
 
@@ -296,13 +298,55 @@ public class Branch extends ArrayList<Ring> {
 		}	
 		return cands;
 	}
-	public void drawBranch(Volume volume, double step) {
+	public void drawBranch(Volume volume) {
 		for(Ring r:this) {
-			r.drawMeasureArea(volume, step);
+			r.drawMeasureArea(volume);
 		}
 	}
 
+	public Branch duplicateCrop(int start, int stop) {
+		ArrayList<Ring> n = new ArrayList<Ring>();
+		for(int i=start; i<=stop; i++){
+			n.add(this.get(i));
+		}
+		Branch newB = new Branch();
+		newB.addAll(n);
+		newB.network = network;
+		newB.vol = vol;
+		newB.test = test;
+		newB.workingVol = workingVol;
+		newB.step = step;
+		newB.evolveValue = evolveValue ; //for finishing the branch threshold
+		newB.branchNo = branchNo;
+		return newB;
+	}
+	public Branch createBranchBetweenTwoRings(Ring start, Ring end){
+		//creates a single long ring between centers of two rings
+		Point3D startPoint = start.c;
+		Point3D endPoint = end.c;
+		double startRadius = start.radius;
+		double endRadius = end.radius;
+		double avgRadius = (startRadius+endRadius)/2;
+		double distanceBetween = startPoint.distance(endPoint);
+		Point3D newMiddle = startPoint.middlePoint(endPoint);
+		Ring newRing =  new Ring(newMiddle.x, newMiddle.y, newMiddle.z, avgRadius, distanceBetween);
+		newRing.dir = startPoint.middlePointDir(endPoint);
+		
+		
+		
+		Branch newBranch = this.duplicateCrop(0, 0);
+		newBranch.remove(0);
+		newBranch.add(start);
+		newBranch.add(newRing);
+		newBranch.add(end);
+		network.add(newBranch);
+				
+		return newBranch;
+	}
+	
+
 	/*GETTERS AND SETTERS*/
+
 
 	public int getBranchNo() {
 		return branchNo;

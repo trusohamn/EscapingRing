@@ -1,6 +1,5 @@
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,7 +8,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.NumberFormat;
 
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -21,10 +19,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
 
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.FormSpecs;
+import com.jgoodies.forms.layout.RowSpec;
+
 import ij.IJ;
 import ij.WindowManager;
 import ij.gui.ImageCanvas;
-import ij.gui.ImageWindow;
 import ij.gui.StackWindow;
 
 
@@ -32,9 +34,12 @@ public class Gui extends JDialog {
 
 	DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
 	DefaultListModel<Branch> extraBranchList = new DefaultListModel<Branch>();
+	DefaultListModel<Ring> ringList = new DefaultListModel<Ring>();
 	JList<Branch> list;
 	Network network = new Network(branchList);
 	double step;
+	double impInside;
+	double impOutside;
 
 	public static void main(final String[] args) {
 		try {
@@ -55,33 +60,49 @@ public class Gui extends JDialog {
 		JPanel tab1;
 		JPanel tab2;
 		JPanel tab3;
-
-
-
 		setBounds(100, 100, 650, 300);
 		setTitle("VascRing3D");
 
 		/*TAB1*/	 
 		tab1 = new JPanel();
 		tab1.setLayout(new BorderLayout());
-
-
-		JPanel labelPane = new JPanel(new GridLayout(0,1));
-		labelPane.setLayout(new FlowLayout(FlowLayout.LEFT));
-		tab1.add(labelPane, BorderLayout.WEST);
-
-		JPanel fieldPane = new JPanel(new GridLayout(0,1));
-		fieldPane.setLayout(new FlowLayout(FlowLayout.LEFT));
-		tab1.add(fieldPane, BorderLayout.CENTER);
-
-		//setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		
+		JPanel leftPanel = new JPanel();
+		tab1.add(leftPanel, BorderLayout.NORTH);
+		leftPanel.setLayout(new FormLayout(new ColumnSpec[] {
+				FormSpecs.DEFAULT_COLSPEC,
+				FormSpecs.DEFAULT_COLSPEC,},
+			new RowSpec[] {
+				FormSpecs.MIN_ROWSPEC,
+				FormSpecs.MIN_ROWSPEC,
+				FormSpecs.MIN_ROWSPEC,
+				FormSpecs.MIN_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,}));
 
 		JLabel stepLabel = new JLabel("Step size");
 		JFormattedTextField stepField = new JFormattedTextField(NumberFormat.getNumberInstance());
 		stepField.setColumns(10);
+		stepField.setText("10");
 		stepLabel.setLabelFor(stepField);
-		fieldPane.add(stepField);
-		labelPane.add(stepLabel);
+		leftPanel.add(stepLabel, "1, 1, left, center");
+		leftPanel.add(stepField, "2, 1, left, center");
+
+		
+		JLabel impInsideLabel = new JLabel("Importance inside");
+		JFormattedTextField impInsideField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		impInsideField.setColumns(10);
+		impInsideField.setText("-0.25");
+		impInsideLabel.setLabelFor(impInsideField);
+		leftPanel.add(impInsideLabel, "1, 2, left, center");
+		leftPanel.add(impInsideField, "2, 2, left, center");
+		
+		JLabel impOutsideLabel = new JLabel("Importance outside");
+		JFormattedTextField impOutsideField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		impOutsideField.setColumns(10);
+		impOutsideField.setText("-0.25");
+		impOutsideLabel.setLabelFor(impOutsideField);
+		leftPanel.add(impOutsideLabel, "1, 3, left, center");
+		leftPanel.add(impOutsideField, "2, 3, left, center");
 
 
 		final JButton btn1 = new JButton("Start");
@@ -90,19 +111,18 @@ public class Gui extends JDialog {
 			public void actionPerformed(final ActionEvent arg0) {
 				try {
 					step= Double.parseDouble(stepField.getText());
+					impInside = Double.parseDouble(impInsideField.getText());
+					impOutside = Double.parseDouble(impOutsideField.getText());
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
 				}
-				Espacing_Ring.start(network, step);
+				Espacing_Ring.start(network, step, impInside, impOutside);
 
 			}
 		}); 
-
-		fieldPane.add(btn1);
-
+		leftPanel.add(btn1, "2, 4, left, center");
 
 
-		fieldPane.add(btn1);
 
 		/*TAB2*/
 		tab2 = new JPanel();
@@ -171,17 +191,17 @@ public class Gui extends JDialog {
 				iC.setVisible(true);
 				MouseListener mouseListenerImage = new MouseAdapter() {
 					public void mouseClicked(MouseEvent mouseEvent) {
-						//it does choose really weird branch...
-						Point location = mouseEvent.getPoint();
-						int y = location.x;
-						int x = location.y;
-						//z to solve
-						int z = WindowManager.getCurrentImage().getSlice();
+
+						Point location = iC.getCursorLoc();
+						int x = location.x;
+						int y = location.y;
+						//z to solve, it sets only after moving the slice
+						int z = iC.getImage().getSlice();
 						Point3D target = new Point3D(x, y, z);
-						
-					    double minDistance = Double.MAX_VALUE;
-					    Ring closestRing;
-					    Branch closestBranch = null;
+
+						double minDistance = Double.MAX_VALUE;
+						Ring closestRing;
+						Branch closestBranch = null;
 						for(Branch branch : network){
 							for(Ring ring : branch){
 								double thisDistance=target.distance(ring.c);
@@ -192,12 +212,12 @@ public class Gui extends JDialog {
 								}
 							}
 						}
-						
+
 						if(closestBranch.isEmpty()==false){
 							if(extraBranchList.contains(closestBranch)==false)
-							extraBranchList.addElement(closestBranch);
+								extraBranchList.addElement(closestBranch);
 						}
-	
+
 					}
 				};
 				iC.addMouseListener(mouseListenerImage);
@@ -236,10 +256,128 @@ public class Gui extends JDialog {
 			}
 		};
 		list2.addMouseListener(mouseListener2);
-		
+
 		/*TAB3*/	 
 		tab3 = new JPanel();
 		tab3.setLayout(new BorderLayout());
+
+		JList<Ring>listRing = new JList<Ring>(ringList);
+		JPanel ringPanel = new JPanel();
+		ringPanel.add(listRing, BorderLayout.CENTER);
+		JScrollPane scrolRing = new JScrollPane(listRing);
+		tab3.add(scrolRing,BorderLayout.WEST);
+		tab3.add(ringPanel);
+		JPanel actionPanel = new JPanel();
+		actionPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		tab3.add(actionPanel, BorderLayout.EAST);
+
+		MouseListener mouseListener3 = new MouseAdapter() {
+			//removes ring from the list
+			public void mouseClicked(MouseEvent mouseEvent) {
+				JList<Ring> theList = (JList<Ring>) mouseEvent.getSource();
+				if (mouseEvent.getClickCount() == 2) {
+					int index = theList.locationToIndex(mouseEvent.getPoint());
+					if (index >= 0) {
+						Ring o = theList.getModel().getElementAt(index);
+						ringList.removeElement(o);
+					}
+				}
+			}
+		};
+		listRing.addMouseListener(mouseListener3);
+
+		JPanel selectRingPanel = new JPanel();
+		selectRingPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		tab3.add(selectRingPanel, BorderLayout.SOUTH);
+
+		final JButton clickRings = new JButton("Select rings");
+		clickRings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+
+				final ImageCanvas iC = new ImageCanvas(WindowManager.getCurrentImage());
+				final StackWindow imgS = new StackWindow (WindowManager.getCurrentImage(), iC);
+				iC.setVisible(true);
+				MouseListener mouseListenerImage = new MouseAdapter() {
+					public void mouseClicked(MouseEvent mouseEvent) {
+						Point location = iC.getCursorLoc();
+						int x = location.x;
+						int y = location.y;
+						//z to solve, it sets only after moving the slice
+						int z = iC.getImage().getSlice();
+						Point3D target = new Point3D(x, y, z);
+
+						double minDistance = Double.MAX_VALUE;
+						Ring closestRing = null;
+						Branch closestBranch = null;
+						for(Branch branch : network){
+							for(Ring ring : branch){
+								double thisDistance=target.distance(ring.c);
+								if(thisDistance<minDistance){
+									minDistance = thisDistance;
+									closestRing = ring;
+									closestBranch = branch;
+								}
+							}
+						}
+
+						if(closestRing!=null){
+							if(ringList.contains(closestRing)==false)
+								closestRing.setBranch(closestBranch);
+							ringList.addElement(closestRing);
+						}
+					}
+				};
+				iC.addMouseListener(mouseListenerImage);
+			}
+		}); 
+		selectRingPanel.add(clickRings);
+
+
+		final JButton btnDeleteRing = new JButton("Delete rings");
+		btnDeleteRing.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				for(int i=0; i< ringList.getSize(); i++){
+					Ring toRemove = ringList.getElementAt(i);
+					Branch motherBranch = toRemove.getBranch();
+					int indexOfRingToRemove = motherBranch.indexOf(toRemove);
+					if(indexOfRingToRemove > 0 && indexOfRingToRemove < motherBranch.size()-1){
+						//divide the branch if the ring from the middle is removed
+						Branch newBranch1 = motherBranch.duplicateCrop(0, indexOfRingToRemove-1);
+						Branch newBranch2 = motherBranch.duplicateCrop(indexOfRingToRemove+1, motherBranch.size()-1);
+						network.remove(motherBranch);
+						network.add(newBranch1);
+						network.add(newBranch2);
+						branchList.removeElement(motherBranch);
+						extraBranchList.removeElement(motherBranch);
+					}
+					else{
+						//the ring is last of first of the branch
+						motherBranch.remove(toRemove);
+					}	
+					ringList.removeElement(toRemove);
+				}
+			}
+		}); 
+		actionPanel.add(btnDeleteRing);
+
+		final JButton btnJoinRings = new JButton("Join two rings");
+		btnJoinRings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				if(ringList.getSize()==2){
+					Ring start = ringList.getElementAt(0);
+					Ring end = ringList.getElementAt(1);
+					Branch motherBranch = start.getBranch();
+					motherBranch.createBranchBetweenTwoRings(start, end);
+				}
+				else{
+					IJ.log("something went wrong " + ringList.getElementAt(0) + ringList.getElementAt(1));
+				}
+			}
+		}); 
+		actionPanel.add(btnJoinRings);
 
 		/*TABS*/
 
@@ -280,6 +418,7 @@ public class Gui extends JDialog {
 			public void actionPerformed(final ActionEvent arg0) {
 				branchList.clear();
 				extraBranchList.clear();
+				ringList.clear();
 				network.clear();	
 			}
 		}); 

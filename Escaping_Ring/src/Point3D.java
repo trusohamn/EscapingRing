@@ -31,6 +31,22 @@ public class Point3D {
 		return new Point3D(x, y, z);
 	}
 	
+	public Point3D middlePoint(Point3D point){
+		double newx = (this.x + point.x)/2;
+		double newy = (this.y + point.y)/2;
+		double newz = (this.z + point.z)/2;
+		return new Point3D(newx, newy, newz);
+	}
+	
+	public Point3D middlePointDir(Point3D point){
+		double distance = this.distance(point);
+		double dirX = (point.x-this.x)/distance;
+		double dirY = (point.y-this.y)/distance;
+		double dirZ = (point.z-this.z)/distance;
+			
+		return new Point3D(dirX, dirY, dirZ);
+	}
+	
 	public String toString() {
 		return " " + x + " " + y  + " " + z;
 	}
