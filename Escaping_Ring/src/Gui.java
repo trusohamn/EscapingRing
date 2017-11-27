@@ -412,6 +412,7 @@ public class Gui extends JDialog {
 				extraBranchList.clear();
 				ringList.clear();
 				network.clear();	
+				network.resetContrast();
 			}
 		}); 
 		buttonPane.add(btn2);
