@@ -11,6 +11,8 @@ gui
 -reset the contrast value
 -show chosen rings (in 3rd channel?)
 -show chosen branches in the 3rd channel? 
+-keep the working and row volumes
+-refresh button to refresh the view
 
 processing
 -enable to stop processing unfinished branches
