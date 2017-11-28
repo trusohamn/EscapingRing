@@ -105,6 +105,13 @@ public class Volume {
 		RGBStackMerge.mergeChannels(new ImagePlus[] {first, second}, false).show();	
 	}
 	
+	public ImagePlus generateThreeChannels(String title, Volume vol2, Volume vol3) {
+		ImagePlus first = new ImagePlus("Raw", createImageStackFrom3DArray(this));
+		ImagePlus second = new ImagePlus("Segmented", createImageStackFrom3DArray(vol2));
+		ImagePlus third = new ImagePlus("Selected", createImageStackFrom3DArray(vol3));
+		return RGBStackMerge.mergeChannels(new ImagePlus[] {first, second, third}, false);	
+	}
+	
 	public ImageStack createImageStackFrom3DArray(Volume vol) {
 		ImageStack stack = new ImageStack(nx, ny);
 		for(int z=0; z<nz; z++) {

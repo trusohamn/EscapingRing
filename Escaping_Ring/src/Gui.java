@@ -41,6 +41,7 @@ public class Gui extends JDialog {
 	double impInside;
 	double impOutside;
 
+
 	public static void main(final String[] args) {
 		try {
 			final Gui dialog = new Gui();
@@ -60,7 +61,7 @@ public class Gui extends JDialog {
 		JPanel tab1;
 		JPanel tab2;
 		JPanel tab3;
-		setBounds(100, 100, 650, 300);
+		setBounds(100, 100, 750, 300);
 		setTitle("VascRing3D");
 
 		/*TAB1*/	 
@@ -178,17 +179,17 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
-				final ImageCanvas iC = new ImageCanvas(WindowManager.getCurrentImage());
-				final StackWindow imgS = new StackWindow (WindowManager.getCurrentImage(), iC);
-				iC.setVisible(true);
+				//iC = new ImageCanvas(Espacing_Ring.threeChannels);
+				//imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
+				//iC.setVisible(true);
 				MouseListener mouseListenerImage = new MouseAdapter() {
 					public void mouseClicked(MouseEvent mouseEvent) {
 
-						Point location = iC.getCursorLoc();
+						Point location = Espacing_Ring.iC.getCursorLoc();
 						int x = location.x;
 						int y = location.y;
 						//z to solve, it sets only after moving the slice
-						int z = iC.getImage().getSlice();
+						int z = Espacing_Ring.iC.getImage().getSlice();
 						Point3D target = new Point3D(x, y, z);
 
 						double minDistance = Double.MAX_VALUE;
@@ -212,7 +213,7 @@ public class Gui extends JDialog {
 
 					}
 				};
-				iC.addMouseListener(mouseListenerImage);
+				Espacing_Ring.iC.addMouseListener(mouseListenerImage);
 			}
 		}); 
 		buttonListPanel.add(clickBranches);
@@ -287,16 +288,16 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
-				final ImageCanvas iC = new ImageCanvas(WindowManager.getCurrentImage());
-				final StackWindow imgS = new StackWindow (WindowManager.getCurrentImage(), iC);
-				iC.setVisible(true);
+				//Espacing_Ring.iC = new ImageCanvas(Espacing_Ring.threeChannels);
+				//Espacing_Ring.imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
+				Espacing_Ring.iC.setVisible(true);
 				MouseListener mouseListenerImage = new MouseAdapter() {
 					public void mouseClicked(MouseEvent mouseEvent) {
-						Point location = iC.getCursorLoc();
+						Point location = Espacing_Ring.iC.getCursorLoc();
 						int x = location.x;
 						int y = location.y;
 						//z to solve, it sets only after moving the slice
-						int z = iC.getImage().getSlice();
+						int z = Espacing_Ring.iC.getImage().getSlice();
 						Point3D target = new Point3D(x, y, z);
 
 						double minDistance = Double.MAX_VALUE;
@@ -320,7 +321,7 @@ public class Gui extends JDialog {
 						}
 					}
 				};
-				iC.addMouseListener(mouseListenerImage);
+				Espacing_Ring.iC.addMouseListener(mouseListenerImage);
 			}
 		}); 
 		selectRingPanel.add(clickRings);
@@ -370,6 +371,15 @@ public class Gui extends JDialog {
 			}
 		}); 
 		actionPanel.add(btnJoinRings);
+		
+		final JButton showRings = new JButton("Show rings");
+		showRings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Espacing_Ring.showRings(ringList);	
+			}
+		}); 
+		actionPanel.add(showRings);
 
 		/*TABS*/
 
