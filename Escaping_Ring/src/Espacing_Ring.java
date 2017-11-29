@@ -45,7 +45,7 @@ public class Espacing_Ring implements PlugIn {
 			return;
 		}
 
-
+		
 		Roi roi = imp.getRoi();
 		if (roi == null) {
 			IJ.error("No selected ROI.");
@@ -66,6 +66,7 @@ public class Espacing_Ring implements PlugIn {
 		
 		Ring.setImpInside(impInside);
 		Ring.setImpOutside(impOutside);
+		Branch.stopAll(false);	
 
 
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
@@ -95,8 +96,9 @@ public class Espacing_Ring implements PlugIn {
 				ring.drawMeasureArea(segmented);
 			}
 		}
-		
-		generateView(false);
+		threeChannels = vol.generateThreeChannels("Result", segmented, selected);
+		iC.repaint();
+		//generateView(false);
 
 	}
 
@@ -158,9 +160,9 @@ public class Espacing_Ring implements PlugIn {
 		threeChannels = vol.generateThreeChannels("Result", segmented, selected);
 		//threeChannels.show();
 		iC = new ImageCanvas(Espacing_Ring.threeChannels);
-		if(setVisible) {
+		//if(setVisible) {
 			imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
 			iC.setVisible(true);
-		}
+		//}
 	}
 }

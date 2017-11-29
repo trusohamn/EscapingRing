@@ -8,7 +8,7 @@ deletion of chosen branches:
 gui
 -make default parameter choices for empty, dull, binary vessels
 -filter branches by length
--reset the contrast value
+-reset the contrast value after placing the new seed
 -show chosen rings (in 3rd channel?)
 -show chosen branches in the 3rd channel? 
 -keep the working and row volumes

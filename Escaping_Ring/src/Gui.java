@@ -32,14 +32,16 @@ import ij.gui.StackWindow;
 
 public class Gui extends JDialog {
 
-	DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
+	static DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
 	DefaultListModel<Branch> extraBranchList = new DefaultListModel<Branch>();
 	DefaultListModel<Ring> ringList = new DefaultListModel<Ring>();
 	JList<Branch> list;
-	Network network = new Network(branchList);
+	static Network network = new Network(branchList);
 	double step;
 	double impInside;
 	double impOutside;
+	static JLabel runningLabel;
+	static JLabel meanContrastLabel;
 
 
 	public static void main(final String[] args) {
@@ -395,14 +397,25 @@ public class Gui extends JDialog {
 		final JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		runningLabel = new JLabel("Running: " + Branch.running);
+		buttonPane.add(runningLabel);
+		
+		meanContrastLabel = new JLabel("Mean: " + network.getMeanContrast());
+		buttonPane.add(meanContrastLabel);
 
 		final JButton okButton = new JButton("OK");
 		okButton.setActionCommand("OK");
 		buttonPane.add(okButton);
 		getRootPane().setDefaultButton(okButton);
 
-		final JButton cancelButton = new JButton("Cancel");
-		cancelButton.setActionCommand("Cancel");
+		final JButton cancelButton = new JButton("StopAll");
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Branch.stopAll(true);	
+			}
+		}); 
 		buttonPane.add(cancelButton);
 
 		final JButton showButton = new JButton("Show");
@@ -428,6 +441,13 @@ public class Gui extends JDialog {
 		buttonPane.add(btn2);
 
 	}
+	
+	public static void updateRunning() {
+		runningLabel.setText("Running: " + Branch.running);
+	}
 
+	public static void updateMeanContrast() {
+		meanContrastLabel.setText("Mean: " + network.getMeanContrast());
+	}
 }
 
