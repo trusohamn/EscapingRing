@@ -6,14 +6,14 @@ deletion of chosen branches:
 -recalculate the workingVolume to restore the intensities in the place of deleted branch
 
 gui
--make default parameter choices for empty, dull, binary vessels
++make default parameter choices for empty, dull, binary vessels
 -filter branches by length
 -reset the contrast value after placing the new seed
--show chosen rings (in 3rd channel?)
--show chosen branches in the 3rd channel? 
++show chosen rings (in 3rd channel?)
++show chosen branches in the 3rd channel? 
 -keep the working and row volumes
 -refresh button to refresh the view
 
 processing
--enable to stop processing unfinished branches
++enable to stop processing unfinished branches
 -enable make isotropic in xyz
