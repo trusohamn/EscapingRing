@@ -483,6 +483,7 @@ public class Gui extends JDialog {
 		showButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
+
 				Espacing_Ring.showResult(network, step);	
 			}
 		}); 

@@ -96,9 +96,7 @@ public class Espacing_Ring implements PlugIn {
 				ring.drawMeasureArea(segmented);
 			}
 		}
-		threeChannels = vol.generateThreeChannels("Result", segmented, selected);
-		iC.repaint();
-		//generateView(false);
+		generateView(false);
 
 	}
 
@@ -160,9 +158,16 @@ public class Espacing_Ring implements PlugIn {
 		threeChannels = vol.generateThreeChannels("Result", segmented, selected);
 		//threeChannels.show();
 		iC = new ImageCanvas(Espacing_Ring.threeChannels);
-		//if(setVisible) {
+		if(setVisible || imgS.isVisible() == false) {
 			imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
 			iC.setVisible(true);
-		//}
+		}
+		else{
+			imgS.setImage(threeChannels);
+			//imgS.setVisible(true);
+			iC.setImageUpdated();
+			iC.setVisible(true);
+		}
+			
 	}
 }
