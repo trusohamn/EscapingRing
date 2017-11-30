@@ -17,3 +17,9 @@ gui
 processing
 +enable to stop processing unfinished branches
 -enable make isotropic in xyz
+
+output
+-skeleton
+
+to repair
+-selecting rings and branches doesnt work well after implementing refreshing of one window

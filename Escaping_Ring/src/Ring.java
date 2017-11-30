@@ -72,8 +72,8 @@ public class Ring {
 	
 	public double[] getAnglesFromDirection() {
 		double[] polar = new double[2];
-		polar[0] = Math.acos(dir.z); //(-pi/2,pi/2)
-		polar[1] = Math.atan2(dir.y, dir.x);//(-pi, pi)
+		polar[0] = Math.acos(dir.z);
+		polar[1] = Math.atan2(dir.y, dir.x);
 		return polar;
 	}
 	

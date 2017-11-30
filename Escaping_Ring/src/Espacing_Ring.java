@@ -20,7 +20,6 @@ public class Espacing_Ring implements PlugIn {
 	static Volume segmented;
 	static ImagePlus threeChannels;
 	static ImageCanvas iC;
-	
 	static ImagePlus imp;
 	static StackWindow imgS;
 	
@@ -120,8 +119,6 @@ public class Espacing_Ring implements PlugIn {
 		}
 		generateView(false);
 	}
-
-
 
 
 	private double[] unit(double[] u) {
