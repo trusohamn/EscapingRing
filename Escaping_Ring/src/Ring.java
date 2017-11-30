@@ -1,4 +1,6 @@
 import ij.IJ;
+import ij.ImagePlus;
+import ij.process.ImageProcessor;
 
 public class Ring {
 
@@ -72,8 +74,8 @@ public class Ring {
 	
 	public double[] getAnglesFromDirection() {
 		double[] polar = new double[2];
-		polar[0] = Math.acos(dir.z); //(-pi/2,pi/2)
-		polar[1] = Math.atan2(dir.y, dir.x);//(-pi, pi)
+		polar[0] = Math.acos(dir.z);
+		polar[1] = Math.atan2(dir.y, dir.x);
 		return polar;
 	}
 	
@@ -136,6 +138,40 @@ public class Ring {
 
 					if (d >= 0.8*radius && d <=1.2*radius) {
 						volume.setValue(this.c, dx, dy, dz, 150);
+					}
+				}	
+			}
+		}
+	}
+	
+	public void drawMeasureArea(ImagePlus img, java.awt.Color color) {
+		int radius = (int)Math.ceil(this.radius);
+
+		double angles[] = this.getAnglesFromDirection();
+		double sint = Math.sin(angles[0]);
+		double cost = Math.cos(angles[0]);
+		double sinp = Math.sin(angles[1]);
+		double cosp = Math.cos(angles[1]);
+		double R[][] = 
+			{{cosp*cost, -sinp, cosp*sint},
+					{sinp*cost, cosp, sinp*sint},
+					{-sint, 0, cost}};
+
+		for(int k=-(int)this.length/2; k<=(int)this.length/2; k++) {
+			for(int j=-radius*2; j<=radius*2; j++) {
+				for(int i=-radius*2; i<=radius*2; i++) {
+
+					int dx = (int) Math.round(this.c.x +  i*R[0][0] + j*R[0][1] + k*R[0][2]);
+					int dy = (int) Math.round(this.c.y + i*R[1][0] + j*R[1][1] + k*R[1][2]);
+					int dz = (int) Math.round(this.c.z + i*R[2][0]  + k*R[2][2]);
+
+					double d = Math.sqrt(i*i+j*j);
+					if(dx>=0 && dy>=0 && dz>=0 && dx<img.getWidth() && dy<img.getHeight() && dz< img.getImageStackSize()){
+						ImageProcessor ip = img.getStack().getProcessor(dz+1);
+						ip.setColor(color);
+						if (d >= 0.8*radius && d <=1.2*radius) {
+							ip.drawPixel(dx, dy);
+						}
 					}
 				}	
 			}

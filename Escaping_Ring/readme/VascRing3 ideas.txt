@@ -5,15 +5,29 @@ deletion of chosen rings:
 deletion of chosen branches:
 -recalculate the workingVolume to restore the intensities in the place of deleted branch
 
+joining of chosen rings:
+-enable to choose the width value
+
 gui
 +make default parameter choices for empty, dull, binary vessels
--filter branches by length
--reset the contrast value after placing the new seed
-+show chosen rings (in 3rd channel?)
-+show chosen branches in the 3rd channel? 
++filter branches by length
+-enable decrease of contrast value
++show chosen rings 
++show chosen branches 
 -keep the working and row volumes
 -refresh button to refresh the view
++view in rgb stack
+-selecting seed from rgb stack ??
+-clean button for branches and rings lists
+-display image properties and proposed ring width
+
 
 processing
 +enable to stop processing unfinished branches
 -enable make isotropic in xyz
+
+output
++skeleton
+
+to repair
++selecting rings and branches doesnt work well after implementing refreshing of one window

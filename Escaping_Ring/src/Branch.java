@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import ij.IJ;
 
@@ -25,11 +26,10 @@ public class Branch extends ArrayList<Ring> {
 		this.test = test;
 		this.workingVol = workingVol;	
 		this.addAll(evolve(vol, ring, step, test, evolveValue));
+		Collections.reverse(this);
 		this.addAll(evolve(vol, ring.flippedRing(), step, test, evolveValue));
 		network.add(this);
 		this.branchNo = network.branchList.size();
-		//this.drawBranch(test, step);
-		//workingVol.showTwoChannels("First branch", test);
 		this.regression(workingVol, test, step);
 	}
 

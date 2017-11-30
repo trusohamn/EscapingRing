@@ -31,7 +31,6 @@ import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
 
-
 public class Gui extends JDialog {
 
 	static DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
@@ -65,6 +64,7 @@ public class Gui extends JDialog {
 		JPanel tab1;
 		JPanel tab2;
 		JPanel tab3;
+		JPanel tab4;
 		setBounds(100, 100, 750, 300);
 		setTitle("VascRing3D");
 
@@ -121,6 +121,16 @@ public class Gui extends JDialog {
 			}
 		}); 
 		leftPanel.add(btn1);
+		
+		final JButton btnContrast = new JButton("ResetContrast");
+		btnContrast.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				network.resetContrast();
+				updateMeanContrast();
+			}
+		}); 
+		downPanel.add(btnContrast);
 
 		/*CHANGE PARAMETERS BETWEEN FILLED AND EMPTY VESSELS*/
 		
@@ -214,29 +224,21 @@ public class Gui extends JDialog {
 		clickBranches.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-
-				//iC = new ImageCanvas(Espacing_Ring.threeChannels);
-				//imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
-				//iC.setVisible(true);
 				MouseListener mouseListenerImage = new MouseAdapter() {
 					public void mouseClicked(MouseEvent mouseEvent) {
-
 						Point location = Espacing_Ring.iC.getCursorLoc();
 						int x = location.x;
 						int y = location.y;
-						//z to solve, it sets only after moving the slice
 						int z = Espacing_Ring.iC.getImage().getSlice();
 						Point3D target = new Point3D(x, y, z);
-
+						IJ.log("click! " + z+y+z);
 						double minDistance = Double.MAX_VALUE;
-						Ring closestRing;
 						Branch closestBranch = null;
 						for(Branch branch : network){
 							for(Ring ring : branch){
 								double thisDistance=target.distance(ring.c);
 								if(thisDistance<minDistance){
 									minDistance = thisDistance;
-									closestRing = ring;
 									closestBranch = branch;
 								}
 							}
@@ -249,10 +251,13 @@ public class Gui extends JDialog {
 
 					}
 				};
+				//Espacing_Ring.iC.setImageUpdated();
+				//Espacing_Ring.iC.setVisible(true);
 				Espacing_Ring.iC.addMouseListener(mouseListenerImage);
 			}
 		}); 
 		buttonListPanel.add(clickBranches); 
+		
 		MouseListener mouseListener = new MouseAdapter() {
 			//adds branch to the extra list
 			public void mouseClicked(MouseEvent mouseEvent) {
@@ -299,7 +304,7 @@ public class Gui extends JDialog {
 				try {
 					int filterSize= Integer.parseInt(filterField.getText());
 					for(int i=0; i< branchList.getSize(); i++){
-						Branch b = extraBranchList.getElementAt(i);
+						Branch b = branchList.getElementAt(i);
 						if(b.size()<=filterSize) {
 							extraBranchList.addElement(b);
 						}
@@ -443,6 +448,22 @@ public class Gui extends JDialog {
 			}
 		}); 
 		actionPanel.add(showRings);
+		
+		/*****TAB4*****/	 
+		tab4 = new JPanel();
+		tab4.setLayout(new BorderLayout());
+		
+		final JButton btnSkeleton = new JButton("Generate skeleton");
+		btnSkeleton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Volume skeleton = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
+				network.generateSkeleton(skeleton);
+				skeleton.show("Skeleton");
+
+			}
+		}); 
+		tab4.add(btnSkeleton, BorderLayout.NORTH);
 
 		/*TABS*/
 
@@ -450,6 +471,7 @@ public class Gui extends JDialog {
 		tabPane.addTab( "Start", tab1);
 		tabPane.addTab( "Branches", tab2);
 		tabPane.addTab( "Rings", tab3);
+		tabPane.addTab( "Export", tab4);
 		getContentPane().add(tabPane);
 
 
@@ -484,7 +506,14 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
-				Espacing_Ring.showResult(network, step);	
+				//Espacing_Ring.showResult(network, step);	
+				Espacing_Ring.drawNetwork(network);
+				if(Espacing_Ring.imgS.isVisible() == false) {
+					//doesnt work
+					IJ.log("trying to restore image");
+					Espacing_Ring.imgS = new StackWindow (Espacing_Ring.iC.getImage(), Espacing_Ring.iC);
+				}
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		buttonPane.add(showButton);
