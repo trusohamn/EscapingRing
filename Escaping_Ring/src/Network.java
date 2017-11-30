@@ -28,6 +28,12 @@ public class Network extends ArrayList<Branch> {
 	public double getMeanContrast() {
 		return this.meanContrast;
 	}
+	
+	public void resetContrast(){
+		this.meanContrast = -Double.MAX_VALUE;
+		this.totalContrast = 0;
+		this.totalNumberRings = 0;
+	}
 
 	public void lowerMeanContrast(double percent) {
 		this.meanContrast = meanContrast*percent;

@@ -4,6 +4,8 @@ import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
+import ij.gui.StackWindow;
+import ij.plugin.ChannelSplitter;
 import ij.plugin.PlugIn;
 
 import java.awt.Rectangle;
@@ -14,7 +16,13 @@ import javax.swing.DefaultListModel;
 
 public class Espacing_Ring implements PlugIn {
 	static Volume vol;
+	static Volume selected;
+	static Volume segmented;
+	static ImagePlus threeChannels;
+	static ImageCanvas iC;
+	
 	static ImagePlus imp;
+	static StackWindow imgS;
 	
 	@Override
 	public void run(String arg0) {
@@ -37,7 +45,7 @@ public class Espacing_Ring implements PlugIn {
 			return;
 		}
 
-
+		
 		Roi roi = imp.getRoi();
 		if (roi == null) {
 			IJ.error("No selected ROI.");
@@ -58,13 +66,17 @@ public class Espacing_Ring implements PlugIn {
 		
 		Ring.setImpInside(impInside);
 		Ring.setImpOutside(impOutside);
+		Branch.stopAll(false);	
 
 
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
 		IJ.log(" Initial Ring " + initial);
 		Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		//drawMeasureArea(test, initial, step);
-		vol = new Volume(imp);	
+		vol = new Volume(imp);
+		selected = new Volume(vol.nx, vol.ny, vol.nz);
+		segmented = new Volume(vol.nx, vol.ny, vol.nz);
+		generateView(true);
 		Volume workingVol = new Volume(imp); //will be erased
 		
 		Ring adjInitial = initial.adjustFirstRing(vol, step);
@@ -78,26 +90,35 @@ public class Espacing_Ring implements PlugIn {
 		
 	}
 	public static void showResult(Network network, double step){
-		Volume empty = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
+		segmented = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(Branch branch : network) {
 			for(Ring ring : branch) {
-				ring.drawMeasureArea(empty);
+				ring.drawMeasureArea(segmented);
 			}
 		}
-		
-		vol.showTwoChannels("Result", empty);
+		generateView(false);
+
 	}
 
 	public static void showResult(DefaultListModel<Branch> branchList, double step){
-		Volume empty = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
+		selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(int i=0; i< branchList.getSize(); i++){
 			Branch branch = branchList.getElementAt(i);
 			for(Ring ring : branch) {
-				ring.drawMeasureArea(empty);
+				ring.drawMeasureArea(selected);
 			}
 		}
+		generateView(false);
 		
-		vol.showTwoChannels("Result", empty);
+	}
+	
+	public static void showRings(DefaultListModel<Ring> ringList){
+		selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
+		for(int i=0; i< ringList.getSize(); i++){
+			Ring ring = ringList.getElementAt(i);
+			ring.drawMeasureArea(selected);
+		}
+		generateView(false);
 	}
 
 
@@ -130,5 +151,23 @@ public class Espacing_Ring implements PlugIn {
 			double dz = i*R[2][0]  + k*R[2][2];
 			volume.setValue(ring.c, dx, dy, dz, 1000);
 		}
+	}
+	
+	public static void generateView(boolean setVisible){
+
+		threeChannels = vol.generateThreeChannels("Result", segmented, selected);
+		//threeChannels.show();
+		iC = new ImageCanvas(Espacing_Ring.threeChannels);
+		if(setVisible || imgS.isVisible() == false) {
+			imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
+			iC.setVisible(true);
+		}
+		else{
+			imgS.setImage(threeChannels);
+			//imgS.setVisible(true);
+			iC.setImageUpdated();
+			iC.setVisible(true);
+		}
+			
 	}
 }

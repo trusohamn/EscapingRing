@@ -11,6 +11,8 @@ public class Branch extends ArrayList<Ring> {
 	double step;
 	double evolveValue = 0.4; //for finishing the branch threshold
 	private int branchNo;
+	static int running = 0;
+	private static boolean stopAll;
 	
 	public Branch(){
 		
@@ -53,7 +55,8 @@ public class Branch extends ArrayList<Ring> {
 			}
 			
 			public void run() {
-				
+				++running;
+				Gui.updateRunning();
 				//erase the whole branch
 				for(Ring ring: branch) {
 					ring.eraseVol(workingVol, width);
@@ -64,6 +67,7 @@ public class Branch extends ArrayList<Ring> {
 				Branch branchCopy = (Branch) branch.clone();
 
 				for(int i = branchCopy.size()-1; i >=0 ; i--){
+					if(stopAll) break;
 					IJ.log("checking ring: " + i);
 					Ring nextRing = branchCopy.get(i);
 					double step = width;
@@ -76,8 +80,9 @@ public class Branch extends ArrayList<Ring> {
 							Branch newBranch = new Branch(network, branchCand, vol, test,  workingVol, step);
 						}	
 					}
-					//test.showTwoChannels("t", workingVol);
 				}
+				--running;
+				Gui.updateRunning();
 			}
 		}
 	    Thread t = new Thread(new OneShotTask(this));
@@ -165,6 +170,7 @@ public class Branch extends ArrayList<Ring> {
 				prevMax = network.getMeanContrast()*3;
 
 				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() );
+				Gui.updateMeanContrast();
 				iter++;
 			}
 			while (true);
@@ -346,7 +352,9 @@ public class Branch extends ArrayList<Ring> {
 	
 
 	/*GETTERS AND SETTERS*/
-
+	public static void stopAll(boolean stop) {
+		stopAll = stop;
+	}
 
 	public int getBranchNo() {
 		return branchNo;

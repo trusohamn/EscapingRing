@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.NumberFormat;
 
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -15,6 +16,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
@@ -32,14 +34,17 @@ import ij.gui.StackWindow;
 
 public class Gui extends JDialog {
 
-	DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
+	static DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
 	DefaultListModel<Branch> extraBranchList = new DefaultListModel<Branch>();
 	DefaultListModel<Ring> ringList = new DefaultListModel<Ring>();
 	JList<Branch> list;
-	Network network = new Network(branchList);
+	static Network network = new Network(branchList);
 	double step;
 	double impInside;
 	double impOutside;
+	static JLabel runningLabel;
+	static JLabel meanContrastLabel;
+
 
 	public static void main(final String[] args) {
 		try {
@@ -60,15 +65,18 @@ public class Gui extends JDialog {
 		JPanel tab1;
 		JPanel tab2;
 		JPanel tab3;
-		setBounds(100, 100, 650, 300);
+		setBounds(100, 100, 750, 300);
 		setTitle("VascRing3D");
 
-		/*TAB1*/	 
+		/*****TAB1*****/	 
 		tab1 = new JPanel();
 		tab1.setLayout(new BorderLayout());
 		
 		JPanel leftPanel = new JPanel();
 		tab1.add(leftPanel, BorderLayout.WEST);
+		
+		JPanel downPanel = new JPanel();
+		tab1.add(downPanel, BorderLayout.SOUTH);
 
 
 		JLabel stepLabel = new JLabel("Step size");
@@ -112,19 +120,48 @@ public class Gui extends JDialog {
 
 			}
 		}); 
-		leftPanel.add(btn1, "2, 4, left, center");
+		leftPanel.add(btn1);
 
+		/*CHANGE PARAMETERS BETWEEN FILLED AND EMPTY VESSELS*/
+		
+		JRadioButton emptyButton = new JRadioButton("empty tube");
+	    emptyButton.setSelected(true);
+	    emptyButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				impInsideField.setText("-0.25");
+				impOutsideField.setText("-0.25");
+			}
+		}); 
+	    downPanel.add(emptyButton);
 
+	    JRadioButton filledButton = new JRadioButton("filled tube");
+	    filledButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				impInsideField.setText("1");
+				impOutsideField.setText("-2");
+			}
+		}); 
+	    downPanel.add(filledButton);
 
-		/*TAB2*/
+	    ButtonGroup group = new ButtonGroup();
+	    group.add(emptyButton);
+	    group.add(filledButton);
+
+	    
+		/*****TAB2*****/
 		tab2 = new JPanel();
 		tab2.setLayout(new BorderLayout());
 		JPanel tab2Left = new JPanel(); 
 		JPanel tab2Right = new JPanel();
+		JPanel tab2Down= new JPanel();
 		tab2Left.setLayout(new BorderLayout());
 		tab2Right.setLayout(new BorderLayout());
+		tab2Down.setLayout(new FlowLayout(FlowLayout.LEFT));
 		tab2.add(tab2Left,BorderLayout.WEST);
 		tab2.add(tab2Right,BorderLayout.EAST);
+		tab2.add(tab2Down,BorderLayout.SOUTH);
 
 		list = new JList<Branch>(branchList);
 		JPanel listPanel = new JPanel();
@@ -178,17 +215,17 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
-				final ImageCanvas iC = new ImageCanvas(WindowManager.getCurrentImage());
-				final StackWindow imgS = new StackWindow (WindowManager.getCurrentImage(), iC);
-				iC.setVisible(true);
+				//iC = new ImageCanvas(Espacing_Ring.threeChannels);
+				//imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
+				//iC.setVisible(true);
 				MouseListener mouseListenerImage = new MouseAdapter() {
 					public void mouseClicked(MouseEvent mouseEvent) {
 
-						Point location = iC.getCursorLoc();
+						Point location = Espacing_Ring.iC.getCursorLoc();
 						int x = location.x;
 						int y = location.y;
 						//z to solve, it sets only after moving the slice
-						int z = iC.getImage().getSlice();
+						int z = Espacing_Ring.iC.getImage().getSlice();
 						Point3D target = new Point3D(x, y, z);
 
 						double minDistance = Double.MAX_VALUE;
@@ -212,13 +249,10 @@ public class Gui extends JDialog {
 
 					}
 				};
-				iC.addMouseListener(mouseListenerImage);
+				Espacing_Ring.iC.addMouseListener(mouseListenerImage);
 			}
 		}); 
-		buttonListPanel.add(clickBranches);
-
-
-
+		buttonListPanel.add(clickBranches); 
 		MouseListener mouseListener = new MouseAdapter() {
 			//adds branch to the extra list
 			public void mouseClicked(MouseEvent mouseEvent) {
@@ -248,8 +282,38 @@ public class Gui extends JDialog {
 			}
 		};
 		list2.addMouseListener(mouseListener2);
+		
+		
+		/*FILTER BRANCHES*/
+		JLabel filterLabel = new JLabel("Filter size");
+		JFormattedTextField filterField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		filterField.setColumns(10);
+		filterField.setText("0");
+		tab2Down.add(filterLabel);
+		tab2Down.add(filterField);
+		
+		final JButton filterButton = new JButton("Filter");
+		filterButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				try {
+					int filterSize= Integer.parseInt(filterField.getText());
+					for(int i=0; i< branchList.getSize(); i++){
+						Branch b = extraBranchList.getElementAt(i);
+						if(b.size()<=filterSize) {
+							extraBranchList.addElement(b);
+						}
+					}
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				}
 
-		/*TAB3*/	 
+			}
+		}); 
+		tab2Down.add(filterButton);
+
+
+		/*****TAB3*****/	 
 		tab3 = new JPanel();
 		tab3.setLayout(new BorderLayout());
 
@@ -287,16 +351,16 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
-				final ImageCanvas iC = new ImageCanvas(WindowManager.getCurrentImage());
-				final StackWindow imgS = new StackWindow (WindowManager.getCurrentImage(), iC);
-				iC.setVisible(true);
+				//Espacing_Ring.iC = new ImageCanvas(Espacing_Ring.threeChannels);
+				//Espacing_Ring.imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
+				Espacing_Ring.iC.setVisible(true);
 				MouseListener mouseListenerImage = new MouseAdapter() {
 					public void mouseClicked(MouseEvent mouseEvent) {
-						Point location = iC.getCursorLoc();
+						Point location = Espacing_Ring.iC.getCursorLoc();
 						int x = location.x;
 						int y = location.y;
 						//z to solve, it sets only after moving the slice
-						int z = iC.getImage().getSlice();
+						int z = Espacing_Ring.iC.getImage().getSlice();
 						Point3D target = new Point3D(x, y, z);
 
 						double minDistance = Double.MAX_VALUE;
@@ -320,7 +384,7 @@ public class Gui extends JDialog {
 						}
 					}
 				};
-				iC.addMouseListener(mouseListenerImage);
+				Espacing_Ring.iC.addMouseListener(mouseListenerImage);
 			}
 		}); 
 		selectRingPanel.add(clickRings);
@@ -370,6 +434,15 @@ public class Gui extends JDialog {
 			}
 		}); 
 		actionPanel.add(btnJoinRings);
+		
+		final JButton showRings = new JButton("Show rings");
+		showRings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Espacing_Ring.showRings(ringList);	
+			}
+		}); 
+		actionPanel.add(showRings);
 
 		/*TABS*/
 
@@ -385,20 +458,32 @@ public class Gui extends JDialog {
 		final JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		runningLabel = new JLabel("Running: " + Branch.running);
+		buttonPane.add(runningLabel);
+		
+		meanContrastLabel = new JLabel("Mean: " + network.getMeanContrast());
+		buttonPane.add(meanContrastLabel);
 
 		final JButton okButton = new JButton("OK");
 		okButton.setActionCommand("OK");
 		buttonPane.add(okButton);
 		getRootPane().setDefaultButton(okButton);
 
-		final JButton cancelButton = new JButton("Cancel");
-		cancelButton.setActionCommand("Cancel");
+		final JButton cancelButton = new JButton("StopAll");
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Branch.stopAll(true);	
+			}
+		}); 
 		buttonPane.add(cancelButton);
 
 		final JButton showButton = new JButton("Show");
 		showButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
+
 				Espacing_Ring.showResult(network, step);	
 			}
 		}); 
@@ -412,11 +497,19 @@ public class Gui extends JDialog {
 				extraBranchList.clear();
 				ringList.clear();
 				network.clear();	
+				network.resetContrast();
 			}
 		}); 
 		buttonPane.add(btn2);
 
 	}
+	
+	public static void updateRunning() {
+		runningLabel.setText("Running: " + Branch.running);
+	}
 
+	public static void updateMeanContrast() {
+		meanContrastLabel.setText("Mean: " + network.getMeanContrast());
+	}
 }
 
