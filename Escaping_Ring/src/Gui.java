@@ -121,6 +121,16 @@ public class Gui extends JDialog {
 			}
 		}); 
 		leftPanel.add(btn1);
+		
+		final JButton btnContrast = new JButton("ResetContrast");
+		btnContrast.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				network.resetContrast();
+				updateMeanContrast();
+			}
+		}); 
+		downPanel.add(btnContrast);
 
 		/*CHANGE PARAMETERS BETWEEN FILLED AND EMPTY VESSELS*/
 		
@@ -216,23 +226,19 @@ public class Gui extends JDialog {
 			public void actionPerformed(final ActionEvent arg0) {
 				MouseListener mouseListenerImage = new MouseAdapter() {
 					public void mouseClicked(MouseEvent mouseEvent) {
-
 						Point location = Espacing_Ring.iC.getCursorLoc();
 						int x = location.x;
 						int y = location.y;
-						//z to solve, it sets only after moving the slice
 						int z = Espacing_Ring.iC.getImage().getSlice();
 						Point3D target = new Point3D(x, y, z);
-
+						IJ.log("click! " + z+y+z);
 						double minDistance = Double.MAX_VALUE;
-						//Ring closestRing;
 						Branch closestBranch = null;
 						for(Branch branch : network){
 							for(Ring ring : branch){
 								double thisDistance=target.distance(ring.c);
 								if(thisDistance<minDistance){
 									minDistance = thisDistance;
-									//closestRing = ring;
 									closestBranch = branch;
 								}
 							}
@@ -245,12 +251,13 @@ public class Gui extends JDialog {
 
 					}
 				};
-				Espacing_Ring.iC.setImageUpdated();
-				Espacing_Ring.iC.setVisible(true);
+				//Espacing_Ring.iC.setImageUpdated();
+				//Espacing_Ring.iC.setVisible(true);
 				Espacing_Ring.iC.addMouseListener(mouseListenerImage);
 			}
 		}); 
 		buttonListPanel.add(clickBranches); 
+		
 		MouseListener mouseListener = new MouseAdapter() {
 			//adds branch to the extra list
 			public void mouseClicked(MouseEvent mouseEvent) {
@@ -499,7 +506,14 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
-				Espacing_Ring.showResult(network, step);	
+				//Espacing_Ring.showResult(network, step);	
+				Espacing_Ring.drawNetwork(network);
+				if(Espacing_Ring.imgS.isVisible() == false) {
+					//doesnt work
+					IJ.log("trying to restore image");
+					Espacing_Ring.imgS = new StackWindow (Espacing_Ring.iC.getImage(), Espacing_Ring.iC);
+				}
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		buttonPane.add(showButton);

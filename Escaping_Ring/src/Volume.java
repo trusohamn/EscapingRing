@@ -3,6 +3,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.RGBStackMerge;
 import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
@@ -96,31 +97,32 @@ public class Volume {
 		new ImagePlus(title, stack).show();
 	}
 	public void show(String title) {
-		new ImagePlus(title, createImageStackFrom3DArray(this)).show();
+		new ImagePlus(title, createImageStackFrom3DArray()).show();
 	}
 	
 	public void showTwoChannels(String title, Volume vol2) {
-		ImagePlus first = new ImagePlus(title, createImageStackFrom3DArray(this));
-		ImagePlus second = new ImagePlus(title, createImageStackFrom3DArray(vol2));
+		ImagePlus first = new ImagePlus(title, this.createImageStackFrom3DArray());
+		ImagePlus second = new ImagePlus(title, vol2.createImageStackFrom3DArray());
 		RGBStackMerge.mergeChannels(new ImagePlus[] {first, second}, false).show();	
 	}
 	
 	public ImagePlus generateThreeChannels(String title, Volume vol2, Volume vol3) {
-		ImagePlus first = new ImagePlus("Raw", createImageStackFrom3DArray(this));
-		ImagePlus second = new ImagePlus("Segmented", createImageStackFrom3DArray(vol2));
-		ImagePlus third = new ImagePlus("Selected", createImageStackFrom3DArray(vol3));
+		ImagePlus first = new ImagePlus("Raw", this.createImageStackFrom3DArray());
+		ImagePlus second = new ImagePlus("Segmented", vol2.createImageStackFrom3DArray());
+		ImagePlus third = new ImagePlus("Selected", vol3.createImageStackFrom3DArray());
 		return RGBStackMerge.mergeChannels(new ImagePlus[] {first, second, third}, false);	
 	}
 	
-	public ImageStack createImageStackFrom3DArray(Volume vol) {
+	public ImageStack createImageStackFrom3DArray() {
 		ImageStack stack = new ImageStack(nx, ny);
 		for(int z=0; z<nz; z++) {
-			ByteProcessor fp = new ByteProcessor(nx, ny);
+			ColorProcessor fp = new ColorProcessor(nx, ny);
 			for(int x=0; x<nx; x++)
 				for(int y=0; y<ny; y++)
-					fp.putPixelValue(x, y, vol.data[x][y][z]);
+					fp.putPixelValue(x, y, this.data[x][y][z]);
 			stack.addSlice("", fp);
 		}
+		//stack.setColorModel(java.awt.image.ColorModel.getRGBdefault());
 		return stack;
 	}
 		

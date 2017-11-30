@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import javax.swing.DefaultListModel;
 
+import ij.ImagePlus;
+
 public class Network extends ArrayList<Branch> {
 	private int totalNumberRings = 0;
 	private double totalContrast = 0;
@@ -59,7 +61,7 @@ public class Network extends ArrayList<Branch> {
 				int i = 0;
 				int j = 0;
 				int maxK = (int)first.distance(second);
-				for(int k=0; k<=10; k++) {
+				for(int k=0; k<=maxK; k++) {
 					double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
 					double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
 					double dz = i*R[2][0]  + k*R[2][2];
@@ -69,6 +71,8 @@ public class Network extends ArrayList<Branch> {
 		}
 		
 	}
+	
+
 
 	@Override public boolean add(Branch branch) {
 		branchList.addElement(branch);

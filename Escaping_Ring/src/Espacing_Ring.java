@@ -16,9 +16,9 @@ import javax.swing.DefaultListModel;
 
 public class Espacing_Ring implements PlugIn {
 	static Volume vol;
-	static Volume selected;
-	static Volume segmented;
-	static ImagePlus threeChannels;
+	//static Volume selected;
+	//static Volume segmented;
+	//static ImagePlus threeChannels;
 	static ImageCanvas iC;
 	static ImagePlus imp;
 	static StackWindow imgS;
@@ -73,8 +73,8 @@ public class Espacing_Ring implements PlugIn {
 		Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		//drawMeasureArea(test, initial, step);
 		vol = new Volume(imp);
-		selected = new Volume(vol.nx, vol.ny, vol.nz);
-		segmented = new Volume(vol.nx, vol.ny, vol.nz);
+		//selected = new Volume(vol.nx, vol.ny, vol.nz);
+		//segmented = new Volume(vol.nx, vol.ny, vol.nz);
 		generateView(true);
 		Volume workingVol = new Volume(imp); //will be erased
 		
@@ -88,7 +88,7 @@ public class Espacing_Ring implements PlugIn {
 		
 		
 	}
-	public static void showResult(Network network, double step){
+/*	public static void showResult(Network network, double step){
 		segmented = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(Branch branch : network) {
 			for(Ring ring : branch) {
@@ -98,26 +98,36 @@ public class Espacing_Ring implements PlugIn {
 		generateView(false);
 
 	}
+*/
+	public static void drawNetwork(Network network){
+		
+		for(Branch branch : network) {
+			for(Ring ring : branch) {
+				ring.drawMeasureArea(iC.getImage(), java.awt.Color.BLUE);
+			}
+		}
+		
+	}
 
 	public static void showResult(DefaultListModel<Branch> branchList, double step){
-		selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
+		//selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(int i=0; i< branchList.getSize(); i++){
 			Branch branch = branchList.getElementAt(i);
 			for(Ring ring : branch) {
-				ring.drawMeasureArea(selected);
+				ring.drawMeasureArea(iC.getImage(), java.awt.Color.RED);
 			}
 		}
-		generateView(false);
+		//generateView(false);
 		
 	}
 	
 	public static void showRings(DefaultListModel<Ring> ringList){
-		selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
+		//selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(int i=0; i< ringList.getSize(); i++){
 			Ring ring = ringList.getElementAt(i);
-			ring.drawMeasureArea(selected);
+			ring.drawMeasureArea(iC.getImage(), java.awt.Color.YELLOW);
 		}
-		generateView(false);
+		//generateView(false);
 	}
 
 
@@ -151,17 +161,20 @@ public class Espacing_Ring implements PlugIn {
 	}
 	
 	public static void generateView(boolean setVisible){
-
-		threeChannels = vol.generateThreeChannels("Result", segmented, selected);
-		//threeChannels.show();
-		iC = new ImageCanvas(Espacing_Ring.threeChannels);
+		
+		
 		if(setVisible || imgS.isVisible() == false) {
-			imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
+			ImagePlus imp = new ImagePlus("VascRing3D", vol.createImageStackFrom3DArray());
+			imp.setDisplayMode(IJ.COLOR);
+			iC = new ImageCanvas(imp);
+			imgS = new StackWindow (imp, iC);
 			iC.setVisible(true);
 		}
 		else{
-			imgS.setImage(threeChannels);
+			//imgS.setImage(threeChannels);
+			//imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
 			//imgS.setVisible(true);
+			iC.repaint();
 			iC.setImageUpdated();
 			iC.setVisible(true);
 		}
