@@ -9,8 +9,8 @@ public class Ring {
 
 	public double radius;
 	public double thickness = 3; //??
-	public double length;
-	public double contrast;
+	private double length;
+	private double contrast;
 	private Branch branch = null;
 	
 	static private double impInside = -0.25;
@@ -187,7 +187,7 @@ public class Ring {
 		return newRing;
 	}
 	
-	public void eraseVol(Volume workingVol, double width){
+	public void eraseVol(Volume workingVol){
 		double plusErase = 2;
 		int radius = (int)Math.ceil(this.radius*plusErase);
 		
@@ -202,7 +202,7 @@ public class Ring {
 					{sinp*cost, cosp, sinp*sint},
 					{-sint, 0, cost}};
 
-		for(int k=-(int)width/2; k<=(int)width/2; k++) {
+		for(int k=-(int)length/2; k<=(int)length/2; k++) {
 			for(int j=-radius; j<=radius; j++) {
 				for(int i=-radius; i<=radius; i++) {
 
@@ -218,7 +218,41 @@ public class Ring {
 			}
 		}
 	}
-	public Ring adjustFirstRing( Volume vol, double step) {
+	
+	public void restoreVol(Volume workingVol, Volume vol){
+		double plusErase = 2;
+		int radius = (int)Math.ceil(this.radius*plusErase);
+		
+		
+		double angles[] = this.getAnglesFromDirection();
+		double sint = Math.sin(angles[0]);
+		double cost = Math.cos(angles[0]);
+		double sinp = Math.sin(angles[1]);
+		double cosp = Math.cos(angles[1]);
+		double R[][] = 
+			{{cosp*cost, -sinp, cosp*sint},
+					{sinp*cost, cosp, sinp*sint},
+					{-sint, 0, cost}};
+
+		for(int k=-(int)length/2; k<=(int)length/2; k++) {
+			for(int j=-radius; j<=radius; j++) {
+				for(int i=-radius; i<=radius; i++) {
+
+					double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
+					double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
+					double dz = i*R[2][0]  + k*R[2][2];
+
+					double d = Math.sqrt(i*i+j*j);	
+					if (d <=radius) {
+						int restoredPixel = (int) vol.getValue(this.c, dx, dy, dz);
+						workingVol.setValue(this.c, dx, dy, dz, restoredPixel );
+					}
+				}	
+			}
+		}
+	}
+	
+	public Ring adjustFirstRing( Volume vol) {
 		Ring bestCand = null;	
 		double maxContrast = -Double.MAX_VALUE;
 		double angleStep = Math.PI/12;
@@ -233,7 +267,7 @@ public class Ring {
 				Ring maxRing = this.duplicate();
 				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
 				maxRing.dir = maxRing.getDirectionFromSphericalAngles( dt,  dp);
-				MeasurmentVolume mv = new MeasurmentVolume(vol, maxRing, step);
+				MeasurmentVolume mv = new MeasurmentVolume(vol, maxRing);
 				//IJ.log(mv.toString());
 				for(double r = initRadius*0.90; r<initRadius*maxRadius; r+=0.05*initRadius) {
 					Ring cand = maxRing.duplicate();
@@ -256,6 +290,18 @@ public class Ring {
 	
 	public Branch getBranch() {
 		return branch;
+	}
+	
+	public double getContrast() {
+		return contrast;
+	}
+	
+	public void setContrast(double contrast) {
+		this.contrast = contrast;
+	}
+	
+	public double getLength(){
+		return length;
 	}
 
 	public void setBranch(Branch branch) {

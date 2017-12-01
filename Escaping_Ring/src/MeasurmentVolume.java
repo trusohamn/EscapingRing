@@ -7,11 +7,11 @@ public class MeasurmentVolume {
 	int[] count;
 	double bin;
 
-	public MeasurmentVolume(Volume volume, Ring ring, double width){
+	public MeasurmentVolume(Volume volume, Ring ring){
 		//Ring with maximum radius is passed
 
 		double angles[] =  ring.getAnglesFromDirection();
-
+		double width = ring.getLength();
 		float sint = (float) Math.sin(angles[0]);
 		float cost = (float) Math.cos(angles[0]);
 		float sinp = (float) Math.sin(angles[1]);

@@ -15,28 +15,27 @@ import javax.swing.DefaultListModel;
 
 
 public class Espacing_Ring implements PlugIn {
-	static Volume vol;
-	//static Volume selected;
-	//static Volume segmented;
-	//static ImagePlus threeChannels;
+	static Volume vol; //raw image, not changable in processing
+	static Volume workingVol; //raw image, changed during processing
 	static ImageCanvas iC;
-	static ImagePlus imp;
+	static ImagePlus imp; //display image
 	static StackWindow imgS;
-	
+
 	@Override
 	public void run(String arg0) {
-			
-		
+
+		vol = null;
+		workingVol = null;
 		Gui dialog = new Gui();
 		dialog.setVisible(true);
 
 		//start();
-		
+
 	}
-	
+
 	public static void start(Network network, double step, double impInside, double impOutside) {
 		IJ.log("start 21 nov 2017");
-		
+
 		imp = WindowManager.getCurrentImage();
 
 		if (imp == null) {
@@ -44,7 +43,7 @@ public class Espacing_Ring implements PlugIn {
 			return;
 		}
 
-		
+
 		Roi roi = imp.getRoi();
 		if (roi == null) {
 			IJ.error("No selected ROI.");
@@ -62,7 +61,7 @@ public class Espacing_Ring implements PlugIn {
 		int yc = rect.y + rect.height/2;
 		int radius = (rect.width + rect.height) / 4;	
 		int zc = imp.getSlice();
-		
+
 		Ring.setImpInside(impInside);
 		Ring.setImpOutside(impOutside);
 		Branch.stopAll(false);	
@@ -71,24 +70,22 @@ public class Espacing_Ring implements PlugIn {
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
 		IJ.log(" Initial Ring " + initial);
 		Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
-		//drawMeasureArea(test, initial, step);
-		vol = new Volume(imp);
-		//selected = new Volume(vol.nx, vol.ny, vol.nz);
-		//segmented = new Volume(vol.nx, vol.ny, vol.nz);
+
+		if(vol == null) vol = new Volume(imp);
+		if(workingVol == null) workingVol = new Volume(imp); 
+
 		generateView(true);
-		Volume workingVol = new Volume(imp); //will be erased
-		
-		Ring adjInitial = initial.adjustFirstRing(vol, step);
-		network.recalculateContrast(initial.contrast);
-		
+	
+		Ring adjInitial = initial.adjustFirstRing(vol);
+		network.recalculateContrast(adjInitial.getContrast());
+
 		Branch firstBranch = new Branch(network, adjInitial, vol, test, workingVol, step);
-		//drawMeasureArea(test, adjInitial, step);
 
 
-		
-		
+
+
 	}
-/*	public static void showResult(Network network, double step){
+	/*	public static void showResult(Network network, double step){
 		segmented = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(Branch branch : network) {
 			for(Ring ring : branch) {
@@ -98,15 +95,15 @@ public class Espacing_Ring implements PlugIn {
 		generateView(false);
 
 	}
-*/
+	 */
 	public static void drawNetwork(Network network){
-		
+
 		for(Branch branch : network) {
 			for(Ring ring : branch) {
 				ring.drawMeasureArea(iC.getImage(), java.awt.Color.BLUE);
 			}
 		}
-		
+
 	}
 
 	public static void showResult(DefaultListModel<Branch> branchList, double step){
@@ -118,9 +115,9 @@ public class Espacing_Ring implements PlugIn {
 			}
 		}
 		//generateView(false);
-		
+
 	}
-	
+
 	public static void showRings(DefaultListModel<Ring> ringList){
 		//selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(int i=0; i< ringList.getSize(); i++){
@@ -159,25 +156,14 @@ public class Espacing_Ring implements PlugIn {
 			volume.setValue(ring.c, dx, dy, dz, 1000);
 		}
 	}
-	
+
 	public static void generateView(boolean setVisible){
-		
-		
-		if(setVisible || imgS.isVisible() == false) {
-			ImagePlus imp = new ImagePlus("VascRing3D", vol.createImageStackFrom3DArray());
-			imp.setDisplayMode(IJ.COLOR);
-			iC = new ImageCanvas(imp);
-			imgS = new StackWindow (imp, iC);
-			iC.setVisible(true);
-		}
-		else{
-			//imgS.setImage(threeChannels);
-			//imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
-			//imgS.setVisible(true);
-			iC.repaint();
-			iC.setImageUpdated();
-			iC.setVisible(true);
-		}
-			
+		ImagePlus imp = new ImagePlus("VascRing3D", vol.createImageStackFrom3DArray());
+		imp.setDisplayMode(IJ.COLOR);
+		iC = new ImageCanvas(imp);
+		imgS = new StackWindow (imp, iC);
+		iC.setVisible(true);
+
+
 	}
 }

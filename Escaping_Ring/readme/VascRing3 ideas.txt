@@ -3,7 +3,7 @@ deletion of chosen rings:
 -to solve - new naming of new branches
 
 deletion of chosen branches:
--recalculate the workingVolume to restore the intensities in the place of deleted branch
++recalculate the workingVolume to restore the intensities in the place of deleted branch
 
 joining of chosen rings:
 -enable to choose the width value
@@ -11,13 +11,13 @@ joining of chosen rings:
 gui
 +make default parameter choices for empty, dull, binary vessels
 +filter branches by length
--enable decrease of contrast value
++enable restart of contrast value
 +show chosen rings 
 +show chosen branches 
--keep the working and row volumes
++keep the working and row volumes
 -refresh button to refresh the view
 +view in rgb stack
--selecting seed from rgb stack ??
++selecting seed from rgb stack 
 -clean button for branches and rings lists
 -display image properties and proposed ring width
 
@@ -28,6 +28,7 @@ processing
 
 output
 +skeleton
+-identification of branching points
 
 to repair
 +selecting rings and branches doesnt work well after implementing refreshing of one window
