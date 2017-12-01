@@ -4,8 +4,8 @@ import javax.swing.DefaultListModel;
 import ij.ImagePlus;
 
 public class Network extends ArrayList<Branch> {
-	private int totalNumberRings = 0;
-	private double totalContrast = 0;
+	int totalNumberRings = 0;
+	double totalContrast = 0;
 	private double meanContrast = -Double.MAX_VALUE;
 	DefaultListModel<Branch> branchList;
 

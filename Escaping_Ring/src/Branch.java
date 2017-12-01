@@ -25,9 +25,9 @@ public class Branch extends ArrayList<Ring> {
 		this.vol = vol;
 		this.test = test;
 		this.workingVol = workingVol;	
-		this.addAll(evolve(vol, ring, step, test, evolveValue));
+		this.addAll(evolve(workingVol, ring, step, test, evolveValue));
 		Collections.reverse(this);
-		this.addAll(evolve(vol, ring.flippedRing(), step, test, evolveValue));
+		this.addAll(evolve(workingVol, ring.flippedRing(), step, test, evolveValue));
 		network.add(this);
 		this.branchNo = network.branchList.size();
 		this.regression(workingVol, test, step);
@@ -46,7 +46,7 @@ public class Branch extends ArrayList<Ring> {
 		this.regression(workingVol, test, step);
 	}
 
-	public void regression(Volume workingVol, Volume test, double width){
+	public void regression(Volume workingVol, Volume test, double step){
 		
 		class OneShotTask implements Runnable{
 			Branch branch;
@@ -59,7 +59,7 @@ public class Branch extends ArrayList<Ring> {
 				Gui.updateRunning();
 				//erase the whole branch
 				for(Ring ring: branch) {
-					ring.eraseVol(workingVol, width);
+					ring.eraseVol(workingVol);
 				}
 				//workingVol.showTwoChannels("Working volume", test);
 
@@ -70,9 +70,8 @@ public class Branch extends ArrayList<Ring> {
 					if(stopAll) break;
 					IJ.log("checking ring: " + i);
 					Ring nextRing = branchCopy.get(i);
-					double step = width;
 
-					ArrayList<Ring> ringsAround = sparseCandidates(nextRing, step, workingVol);
+					ArrayList<Ring> ringsAround = sparseCandidates(nextRing, workingVol);
 					for(Ring r : ringsAround) {
 						//IJ.log("checking next from " + ringsAround.size());
 						ArrayList<Ring> branchCand = evolve(workingVol, r, step, test, evolveValue);
@@ -92,7 +91,7 @@ public class Branch extends ArrayList<Ring> {
 
 		Ring current = initial.duplicate();
 		int iter = 0;
-		double prevMax = network.getMeanContrast() == -Double.MAX_VALUE ? initial.contrast*3 : network.getMeanContrast()*3; //later the contrast value is a sum of three rings
+		double prevMax = network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*3 : network.getMeanContrast()*3; //later the contrast value is a sum of three rings
 		prevMax = prevMax*0.4; //to lower the threshold of starting the new branch
 		ArrayList<Ring> newBranch = new ArrayList<Ring>();
 		newBranch.add(current);
@@ -120,12 +119,12 @@ public class Branch extends ArrayList<Ring> {
 				double max = -Double.MAX_VALUE; //total contrast of three rings
 				double rest = -Double.MAX_VALUE; //sum of contrast of second and third ring
 				for(Ring[] cC : candidatesTriple) {
-					double c = cC[0].contrast + cC[1].contrast + cC[2].contrast;
+					double c = cC[0].getContrast() + cC[1].getContrast() + cC[2].getContrast();
 					//IJ.log(" c: " + c);
 					if (c > max) {
 						max = c;
 						best = cC[0];	
-						rest = cC[1].contrast + cC[2].contrast;
+						rest = cC[1].getContrast() + cC[2].getContrast();
 					}
 				}
 				//if the is no candidate, break
@@ -136,12 +135,12 @@ public class Branch extends ArrayList<Ring> {
 
 
 				//IJ.log("best: " + max);
-				double currentContrast = best.contrast;
+				double currentContrast = best.getContrast();
 
-				ArrayList<Ring> candidatesRefine = refineCandidate(best, step, vol);
+				ArrayList<Ring> candidatesRefine = refineCandidate(best, vol);
 				for(Ring cand4 : candidatesRefine) {
-					if (cand4.contrast > currentContrast) {
-						currentContrast = cand4.contrast;
+					if (cand4.getContrast() > currentContrast) {
+						currentContrast = cand4.getContrast();
 						best = cand4;
 						//IJ.log("refined: " + currentContrast);
 					}
@@ -164,12 +163,12 @@ public class Branch extends ArrayList<Ring> {
 
 				//erase ring 2 places backwards
 				if(newBranch.size()>3) {
-					network.recalculateContrast(currentContrast);
-					newBranch.get(newBranch.size()-2).eraseVol(workingVol, step);
+					network.recalculateContrast(best.getContrast());
+					newBranch.get(newBranch.size()-2).eraseVol(workingVol);
 				}
 				prevMax = network.getMeanContrast()*3;
 
-				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() );
+				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() + " nrRings: " + network.totalNumberRings + " totalContrast: " + network.totalContrast);
 				Gui.updateMeanContrast();
 				iter++;
 			}
@@ -184,7 +183,7 @@ public class Branch extends ArrayList<Ring> {
 		double[]contrasts = new double[rings.size()];
 		int i=0;
 		for(Ring ring : rings){
-			contrasts[i] = ring.contrast;
+			contrasts[i] = ring.getContrast();
 			i++;
 		}
 		Arrays.sort(contrasts);
@@ -193,7 +192,7 @@ public class Branch extends ArrayList<Ring> {
 		double cutOffContr = contrasts[cutOffPos];
 		//IJ.log("cutoff: "+cutOffContr);
 		for(Ring ring : rings){
-			if(ring.contrast>=cutOffContr)
+			if(ring.getContrast()>=cutOffContr)
 				bestCands.add(ring);
 		}
 		//IJ.log("cutoff: " + cutOffContr);
@@ -209,9 +208,6 @@ public class Branch extends ArrayList<Ring> {
 		double initRadius = ring.radius;
 		double maxRadius = 1.40;
 		double maxMeasurmentArea = 2;
-		double width = step;
-		step = step/2;
-
 
 		for(double dt = -angleRange*angleStep; dt<=angleRange*angleStep; dt+=angleStep) {
 			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+=angleStep) {	
@@ -221,7 +217,7 @@ public class Branch extends ArrayList<Ring> {
 				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.c = maxRing.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp);
 				maxRing.dir = new Point3D((maxRing.c.x-ring.c.x)/step, (maxRing.c.y-ring.c.y)/step, (maxRing.c.z-ring.c.z)/step);
-				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing, width);
+				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
@@ -238,7 +234,7 @@ public class Branch extends ArrayList<Ring> {
 	}
 
 
-	private ArrayList<Ring> refineCandidate(Ring ring, double step, Volume volume) {
+	private ArrayList<Ring> refineCandidate(Ring ring, Volume volume) {
 		ArrayList<Ring> cands = new ArrayList<Ring>();	
 		double angleStep = Math.PI/40;
 		int angleRange = 1;
@@ -246,8 +242,6 @@ public class Branch extends ArrayList<Ring> {
 		double initRadius = ring.radius;
 		double maxRadius = 1.01;
 		double maxMeasurmentArea = 2;
-		double width = step;
-		step = 0;
 
 
 		for(double dt = -angleRange*angleStep; dt<=angleRange*angleStep; dt+=angleStep) {
@@ -257,7 +251,7 @@ public class Branch extends ArrayList<Ring> {
 				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
 				maxRing.dir = maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp);
-				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing, width);
+				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
@@ -273,9 +267,9 @@ public class Branch extends ArrayList<Ring> {
 		return cands;
 	}
 
-	private ArrayList<Ring> sparseCandidates(Ring ring, double step, Volume volume) {
+	private ArrayList<Ring> sparseCandidates(Ring ring, Volume volume) {
 		//returns sparse rings in 3d space, which keep the initial contrast
-		double keepContrast = ring.contrast;
+		double keepContrast = ring.getContrast();
 		ArrayList<Ring> cands = new ArrayList<Ring>();	
 		double angleStep = Math.PI/2;
 		int angleRange = 1;
@@ -283,7 +277,6 @@ public class Branch extends ArrayList<Ring> {
 		double initRadius = ring.radius;
 		double maxRadius = 1.75;
 		double maxMeasurmentArea = 2;
-		step = 0;
 
 
 		for(double dt = -angleRange*angleStep; dt<=angleRange*angleStep; dt+= angleStep) {
@@ -296,7 +289,7 @@ public class Branch extends ArrayList<Ring> {
 				for(double r = initRadius*0.25; r<=initRadius*maxRadius; r+=0.75*initRadius) {
 					Ring cand = maxRing.duplicate();
 					cand.radius = r;
-					cand.contrast = keepContrast;
+					cand.setContrast(keepContrast) ;
 					//IJ.log("contrast: " + cand.contrast);
 					cands.add(cand);
 				}				
@@ -348,6 +341,12 @@ public class Branch extends ArrayList<Ring> {
 		network.add(newBranch);
 				
 		return newBranch;
+	}
+	
+	public void restoreBranch(){
+		for(Ring ring : this){
+			ring.restoreVol(Espacing_Ring.workingVol, Espacing_Ring.vol);
+		}
 	}
 	
 

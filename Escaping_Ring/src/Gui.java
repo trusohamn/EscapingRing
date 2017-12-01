@@ -206,7 +206,9 @@ public class Gui extends JDialog {
 					branchList.removeElement(toRemove);
 					network.remove(toRemove);
 					extraBranchList.removeElement(toRemove);
+					toRemove.restoreBranch();
 				}
+				//Espacing_Ring.workingVol.show("working");
 			}
 		}); 
 		buttonListPanel.add(btnDelete);
@@ -511,7 +513,8 @@ public class Gui extends JDialog {
 				if(Espacing_Ring.imgS.isVisible() == false) {
 					//doesnt work
 					IJ.log("trying to restore image");
-					Espacing_Ring.imgS = new StackWindow (Espacing_Ring.iC.getImage(), Espacing_Ring.iC);
+					Espacing_Ring.generateView(true);
+					Espacing_Ring.drawNetwork(network);
 				}
 				Espacing_Ring.iC.repaint();
 			}
@@ -527,6 +530,8 @@ public class Gui extends JDialog {
 				ringList.clear();
 				network.clear();	
 				network.resetContrast();
+				Espacing_Ring.vol = null;
+				Espacing_Ring.workingVol = null;
 			}
 		}); 
 		buttonPane.add(btn2);
