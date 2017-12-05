@@ -6,7 +6,10 @@ deletion of chosen branches:
 +recalculate the workingVolume to restore the intensities in the place of deleted branch
 
 joining of chosen rings:
--enable to choose the width value
++enable to choose the width value
+
+creation of burst between a ring and a free point
++enable to choose the width value
 
 gui
 +make default parameter choices for empty, dull, binary vessels
@@ -15,7 +18,7 @@ gui
 +show chosen rings 
 +show chosen branches 
 +keep the working and row volumes
--refresh button to refresh the view
++refresh button to refresh the view
 +view in rgb stack
 +selecting seed from rgb stack 
 -clean button for branches and rings lists

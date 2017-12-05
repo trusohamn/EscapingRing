@@ -15,6 +15,7 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -43,7 +44,7 @@ public class Gui extends JDialog {
 	double impOutside;
 	static JLabel runningLabel;
 	static JLabel meanContrastLabel;
-
+	Point3D end;
 
 	public static void main(final String[] args) {
 		try {
@@ -294,7 +295,7 @@ public class Gui extends JDialog {
 		/*FILTER BRANCHES*/
 		JLabel filterLabel = new JLabel("Filter size");
 		JFormattedTextField filterField = new JFormattedTextField(NumberFormat.getNumberInstance());
-		filterField.setColumns(10);
+		filterField.setColumns(5);
 		filterField.setText("0");
 		tab2Down.add(filterLabel);
 		tab2Down.add(filterField);
@@ -331,8 +332,14 @@ public class Gui extends JDialog {
 		tab3.add(scrolRing,BorderLayout.WEST);
 		tab3.add(ringPanel);
 		JPanel actionPanel = new JPanel();
-		actionPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		actionPanel.setLayout(new BorderLayout());
 		tab3.add(actionPanel, BorderLayout.EAST);
+		JPanel firstRow = new JPanel();
+		firstRow.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		JPanel secondRow = new JPanel();
+		secondRow.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		actionPanel.add(firstRow, BorderLayout.NORTH);
+		actionPanel.add(secondRow, BorderLayout.CENTER);
 
 		MouseListener mouseListener3 = new MouseAdapter() {
 			//removes ring from the list
@@ -396,6 +403,14 @@ public class Gui extends JDialog {
 		}); 
 		selectRingPanel.add(clickRings);
 
+		final JButton showRings = new JButton("Show rings");
+		showRings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Espacing_Ring.showRings(ringList);	
+			}
+		}); 
+		selectRingPanel.add(showRings);
 
 		final JButton btnDeleteRing = new JButton("Delete rings");
 		btnDeleteRing.addActionListener(new ActionListener() {
@@ -423,34 +438,78 @@ public class Gui extends JDialog {
 				}
 			}
 		}); 
-		actionPanel.add(btnDeleteRing);
+		firstRow.add(btnDeleteRing);
+		
+		JLabel widthLabel = new JLabel("Width of new branch");
+		JFormattedTextField widthField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		widthField.setColumns(5);
+		widthField.setText("0");
+		secondRow.add(widthLabel);
+		secondRow.add(widthField);
 
 		final JButton btnJoinRings = new JButton("Join two rings");
 		btnJoinRings.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				if(ringList.getSize()==2){
-					Ring start = ringList.getElementAt(0);
-					Ring end = ringList.getElementAt(1);
-					Branch motherBranch = start.getBranch();
-					motherBranch.createBranchBetweenTwoRings(start, end);
+					try {
+						double width= Double.parseDouble(widthField.getText());
+						Ring start = ringList.getElementAt(0);
+						Ring end = ringList.getElementAt(1);
+						Branch motherBranch = start.getBranch();
+						motherBranch.createBranchBetweenTwoRings(start, end, width);
+						
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					}				
 				}
 				else{
-					IJ.log("something went wrong " + ringList.getElementAt(0) + ringList.getElementAt(1));
+					IJ.log("Select only two rings");
 				}
 			}
 		}); 
-		actionPanel.add(btnJoinRings);
+		secondRow.add(btnJoinRings);
 		
-		final JButton showRings = new JButton("Show rings");
-		showRings.addActionListener(new ActionListener() {
+
+		
+		final JButton btnFreeBranch = new JButton("Join ring and a point");
+		btnFreeBranch.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				Espacing_Ring.showRings(ringList);	
+				if(ringList.getSize()==1){
+					Ring start = ringList.getElementAt(0);
+					JOptionPane.showMessageDialog(downPanel, "Select the end point in the image");
+					
+					MouseListener mouseListenerPoint = new MouseAdapter() {
+						public void mouseClicked(MouseEvent mouseEvent) {
+							Point location = Espacing_Ring.iC.getCursorLoc();
+							int x = location.x;
+							int y = location.y;
+							int z = Espacing_Ring.iC.getImage().getSlice();
+							end = new Point3D(x, y, z);
+							Branch motherBranch = start.getBranch();
+							try {
+								double width= Double.parseDouble(widthField.getText());
+								motherBranch.createBranchBetweenRingAndPoint(start, end, width);
+								
+							} catch (NumberFormatException e) {
+								e.printStackTrace();
+							}
+							
+						}
+					};
+					Espacing_Ring.iC.addMouseListener(mouseListenerPoint);
+					
+					
+				}
+				else{
+					JOptionPane.showMessageDialog(downPanel, "Select only one ring");
+				}
 			}
 		}); 
-		actionPanel.add(showRings);
+		secondRow.add(btnFreeBranch);
 		
+
 		/*****TAB4*****/	 
 		tab4 = new JPanel();
 		tab4.setLayout(new BorderLayout());
@@ -462,7 +521,7 @@ public class Gui extends JDialog {
 				Volume skeleton = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
 				network.generateSkeleton(skeleton);
 				skeleton.show("Skeleton");
-
+				
 			}
 		}); 
 		tab4.add(btnSkeleton, BorderLayout.NORTH);

@@ -319,33 +319,54 @@ public class Branch extends ArrayList<Ring> {
 		newB.branchNo = branchNo;
 		return newB;
 	}
-	public Branch createBranchBetweenTwoRings(Ring start, Ring end){
+	public Branch createBranchBetweenTwoRings(Ring start, Ring end, double width){
 		//creates a single long ring between centers of two rings
 		Point3D startPoint = start.c;
 		Point3D endPoint = end.c;
-		double startRadius = start.radius;
-		double endRadius = end.radius;
-		double avgRadius = (startRadius+endRadius)/2;
+		double avgRadius = width;
 		double distanceBetween = startPoint.distance(endPoint);
 		Point3D newMiddle = startPoint.middlePoint(endPoint);
 		Ring newRing =  new Ring(newMiddle.x, newMiddle.y, newMiddle.z, avgRadius, distanceBetween);
 		newRing.dir = startPoint.middlePointDir(endPoint);
-		
-		
-		
+			
 		Branch newBranch = this.duplicateCrop(0, 0);
 		newBranch.remove(0);
 		newBranch.add(start);
 		newBranch.add(newRing);
 		newBranch.add(end);
+		newBranch.eraseBranch();
 		network.add(newBranch);
 				
 		return newBranch;
 	}
 	
+	public Branch createBranchBetweenRingAndPoint(Ring start, Point3D endPoint, double width){
+		Point3D startPoint = start.c;
+		double avgRadius = width;
+		double distanceBetween = startPoint.distance(endPoint);
+		Point3D newMiddle = startPoint.middlePoint(endPoint);
+		Ring newRing =  new Ring(newMiddle.x, newMiddle.y, newMiddle.z, avgRadius, distanceBetween);
+		newRing.dir = startPoint.middlePointDir(endPoint);	
+		
+		Branch newBranch = this.duplicateCrop(0, 0);
+		newBranch.remove(0);
+		newBranch.add(start);
+		newBranch.add(newRing);
+		newBranch.eraseBranch();
+		network.add(newBranch);
+		return newBranch;
+		
+	}
+	
 	public void restoreBranch(){
 		for(Ring ring : this){
 			ring.restoreVol(Espacing_Ring.workingVol, Espacing_Ring.vol);
+		}
+	}
+	
+	public void eraseBranch(){
+		for(Ring ring: this) {
+			ring.eraseVol(workingVol);
 		}
 	}
 	
