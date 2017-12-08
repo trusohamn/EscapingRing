@@ -10,7 +10,13 @@ public class Branch extends ArrayList<Ring> {
 	Volume test;
 	Volume workingVol;
 	double step;
-	double evolveValue = 0.4; //for finishing the branch threshold
+	private static double evolveValue = 0.4; //for finishing the branch threshold
+	private static double branchFacilitator = 0.4;
+	private static double firstLoopElimination = 30;
+	private static double secondLoopElimination = 30;
+	private static double thirdLoopElimination = 100;
+	
+	
 	private int branchNo;
 	static int running = 0;
 	private static boolean stopAll;
@@ -92,22 +98,22 @@ public class Branch extends ArrayList<Ring> {
 		Ring current = initial.duplicate();
 		int iter = 0;
 		double prevMax = network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*3 : network.getMeanContrast()*3; //later the contrast value is a sum of three rings
-		prevMax = prevMax*0.4; //to lower the threshold of starting the new branch
+		prevMax = prevMax*branchFacilitator; //to lower the threshold of starting the new branch
 		ArrayList<Ring> newBranch = new ArrayList<Ring>();
 		newBranch.add(current);
 		MAINLOOP:
 			do {
 				ArrayList<Ring> candidates = proposeCandidates(current, step, vol);
 				//keep x% best
-				candidates = keepBestCandidates(candidates, 20);
+				candidates = keepBestCandidates(candidates, firstLoopElimination);
 				ArrayList<Ring[]> candidatesTriple = new ArrayList<Ring[]>();
 				for ( Ring cand : candidates){
 					ArrayList<Ring> candidates2 = proposeCandidates(cand, step, vol);
 					//keep x% best
-					candidates2 = keepBestCandidates(candidates2, 10);
+					candidates2 = keepBestCandidates(candidates2, secondLoopElimination);
 					for (Ring cand2 : candidates2){
 						ArrayList<Ring> candidates3 = proposeCandidates(cand2, step, vol);
-						candidates3 = keepBestCandidates(candidates3, 5);
+						candidates3 = keepBestCandidates(candidates3, thirdLoopElimination);
 						for (Ring cand3 : candidates3){
 							candidatesTriple.add(new Ring[]{cand,cand2, cand3});
 						}	
@@ -315,7 +321,7 @@ public class Branch extends ArrayList<Ring> {
 		newB.test = test;
 		newB.workingVol = workingVol;
 		newB.step = step;
-		newB.evolveValue = evolveValue ; //for finishing the branch threshold
+		//newB.evolveValue = evolveValue ; //for finishing the branch threshold
 		newB.branchNo = branchNo;
 		return newB;
 	}
@@ -379,6 +385,27 @@ public class Branch extends ArrayList<Ring> {
 	public int getBranchNo() {
 		return branchNo;
 	}
+	
+	public static void setEvolveValue(double value) {
+		evolveValue = value;
+	}
+	
+	public static void setBranchFacilitator(double value) {
+		branchFacilitator = value;
+	}
+	
+	public static void setFirstLoopElimination(double value){
+		firstLoopElimination = value;
+	}
+	
+	public static void setSecondLoopElimination(double value){
+		secondLoopElimination = value;
+	}
+	
+	public static void setThirdLoopElimination(double value){
+		thirdLoopElimination = value;
+	}
+	
 
 	@Override
 	public String toString() {

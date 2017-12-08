@@ -16,6 +16,8 @@ public class Ring {
 	static private double impInside = -0.25;
 	static private double impOutside = -0.25;
 	
+	static private double maxIn, minMem, maxMem, minOut, maxOut;
+	
 
 
 	public Ring() {	
@@ -92,17 +94,17 @@ public class Ring {
 		for(int i=0; i<n; i++){
 			double curRadius = i*mv.bin;
 			//IJ.log("current radius: " + curRadius);
-			if (curRadius  < 0.8*radius) {
+			if (curRadius  < maxIn *radius) {
 				meanInner =+ mv.sumIntensity[i];
 				countInner =+ mv.count[i];
 			}
 
-			if (curRadius  >= 0.8*radius && curRadius <=1.2*radius) {
+			if (curRadius  >= minMem *radius && curRadius <= maxMem*radius) {
 				meanMembrane =+ mv.sumIntensity[i];
 				countMembrane =+ mv.count[i];
 			}
 
-			if (curRadius  >= 1.2*radius && curRadius < 2*radius) {
+			if (curRadius  >= minOut *radius && curRadius < maxOut*radius) {
 				meanOuter =+ mv.sumIntensity[i];
 				countOuter =+ mv.count[i];
 			}
@@ -322,6 +324,15 @@ public class Ring {
 
 	public static void setImpOutside(double impOutside) {
 		Ring.impOutside = impOutside;
+	}
+	
+	public static void setParameters(double maxIn, double minMem, double maxMem, double minOut, double maxOut){
+		Ring.maxIn = maxIn;
+		Ring.minMem = minMem;
+		Ring.maxMem = maxMem;
+		Ring.minOut = minOut;
+		Ring.maxOut = maxOut;
+		
 	}
 
 }
