@@ -334,5 +334,8 @@ public class Ring {
 		Ring.maxOut = maxOut;
 		
 	}
+	public double getRadius() {
+		return radius;
+	}
 
 }

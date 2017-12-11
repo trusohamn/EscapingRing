@@ -6,12 +6,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Locale;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -97,30 +100,30 @@ public class Gui extends JDialog {
 
 
 		JLabel stepLabel = new JLabel("Step size");
-		JFormattedTextField stepField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		JFormattedTextField stepField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		stepField.setColumns(5);
-		stepField.setText("10");
+		stepField.setText("5");
 		stepLabel.setLabelFor(stepField);
 		leftPanel.add(stepLabel);
 		leftPanel.add(stepField);
 		
 		JLabel thresholdLabel = new JLabel("Threshold");
-		JFormattedTextField thresholdField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		JFormattedTextField thresholdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		thresholdField.setColumns(5);
 		thresholdField.setText("0.4");
 		leftPanel.add(thresholdLabel);
 		leftPanel.add(thresholdField);
 		
 		JLabel branchLabel = new JLabel("Branching");
-		JFormattedTextField branchField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		JFormattedTextField branchField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		branchField.setColumns(5);
-		branchField.setText("0.4");
+		branchField.setText("0.6");
 		leftPanel.add(branchLabel);
 		leftPanel.add(branchField);
 
 		
 		JLabel impInsideLabel = new JLabel("Importance inside");
-		JFormattedTextField impInsideField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		JFormattedTextField impInsideField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		impInsideField.setColumns(5);
 		impInsideField.setText("-0.25");
 		impInsideLabel.setLabelFor(impInsideField);
@@ -128,7 +131,7 @@ public class Gui extends JDialog {
 		downPanel.add(impInsideField);
 		
 		JLabel impOutsideLabel = new JLabel("outside");
-		JFormattedTextField impOutsideField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		JFormattedTextField impOutsideField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		impOutsideField.setColumns(5);
 		impOutsideField.setText("-0.25");
 		impOutsideLabel.setLabelFor(impOutsideField);
@@ -344,7 +347,7 @@ public class Gui extends JDialog {
 		
 		/*FILTER BRANCHES*/
 		JLabel filterLabel = new JLabel("Filter size");
-		JFormattedTextField filterField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		JFormattedTextField filterField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		filterField.setColumns(5);
 		filterField.setText("0");
 		tab2Down.add(filterLabel);
@@ -491,7 +494,7 @@ public class Gui extends JDialog {
 		firstRow.add(btnDeleteRing);
 		
 		JLabel widthLabel = new JLabel("Width of new branch");
-		JFormattedTextField widthField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		JFormattedTextField widthField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		widthField.setColumns(5);
 		widthField.setText("0");
 		secondRow.add(widthLabel);
@@ -562,7 +565,7 @@ public class Gui extends JDialog {
 
 		/*****TAB4*****/	 
 		tab4 = new JPanel();
-		tab4.setLayout(new BorderLayout());
+		tab4.setLayout(new FlowLayout(FlowLayout.LEFT));
 		
 		final JButton btnSkeleton = new JButton("Generate skeleton");
 		btnSkeleton.addActionListener(new ActionListener() {
@@ -574,7 +577,42 @@ public class Gui extends JDialog {
 				
 			}
 		}); 
-		tab4.add(btnSkeleton, BorderLayout.NORTH);
+		tab4.add(btnSkeleton);
+		
+		final JButton btnCSV = new JButton("Generate csv");
+		btnCSV.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+
+				try {
+					//IJ.log("trying to generate csv");
+					JFileChooser chooser = new JFileChooser(); 
+				    chooser.setCurrentDirectory(new java.io.File("."));
+				    chooser.setDialogTitle("Choose directory to save");
+				    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				    chooser.setAcceptAllFileFilterUsed(false);
+				    //    
+				    if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+				      System.out.println("getCurrentDirectory(): " 
+				         +  chooser.getCurrentDirectory());
+				      System.out.println("getSelectedFile() : " 
+				         +  chooser.getSelectedFile());
+				      network.exportData(chooser.getSelectedFile().getPath()+"/VascRing3_Output.csv");
+				      }
+				    else {
+				      System.out.println("No Selection ");
+				      }
+				    
+				    
+					
+					//IJ.log("Succes");
+				} catch (IOException e) {
+					//IJ.log("failed to generate csv");
+					e.printStackTrace();
+				}		
+			}
+		}); 
+		tab4.add(btnCSV);
 		
 		/***TAB5 Advanced Settings *****/
 		tab5 = new JPanel();
@@ -587,56 +625,56 @@ public class Gui extends JDialog {
 		tab5Center.setLayout(new FlowLayout(FlowLayout.LEFT));
 		
 		JLabel firstLabel = new JLabel("Keep after first loop");
-		firstField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		firstField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		firstField.setColumns(5);
-		firstField.setText("30");
+		firstField.setText("20");
 		tab5Upper.add(firstLabel);
 		tab5Upper.add(firstField);
 		
 		JLabel secondLabel = new JLabel("Keep after second loop");
-		secondField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		secondField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		secondField.setColumns(5);
-		secondField.setText("30");
+		secondField.setText("15");
 		tab5Upper.add(secondLabel);
 		tab5Upper.add(secondField);
 		
 		JLabel thirdLabel = new JLabel("Keep after third loop");
-		thirdField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		thirdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		thirdField.setColumns(5);
-		thirdField.setText("80");
+		thirdField.setText("20");
 		tab5Upper.add(thirdLabel);
 		tab5Upper.add(thirdField);
 		
 		JLabel maxInLabel = new JLabel("Max inside");
-		maxInField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		maxInField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		maxInField.setColumns(4);
 		maxInField.setText("0.8");
 		tab5Center.add(maxInLabel);
 		tab5Center.add(maxInField);
 		
 		JLabel minMemLabel = new JLabel("Min membrane");
-		minMemField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		minMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		minMemField.setColumns(4);
 		minMemField.setText("0.8");
 		tab5Center.add(minMemLabel);
 		tab5Center.add(minMemField);
 		
 		JLabel maxMemLabel = new JLabel("Max membrane");
-		maxMemField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		maxMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		maxMemField.setColumns(4);
 		maxMemField.setText("1.2");
 		tab5Center.add(maxMemLabel);
 		tab5Center.add(maxMemField);
 		
 		JLabel minOutLabel = new JLabel("Min outside");
-		minOutField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		minOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		minOutField.setColumns(4);
 		minOutField.setText("1.2");
 		tab5Center.add(minOutLabel);
 		tab5Center.add(minOutField);
 		
 		JLabel maxOutLabel = new JLabel("Max outside");
-		maxOutField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		maxOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		maxOutField.setColumns(4);
 		maxOutField.setText("2");
 		tab5Center.add(maxOutLabel);
