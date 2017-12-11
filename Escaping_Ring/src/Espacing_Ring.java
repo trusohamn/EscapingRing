@@ -33,7 +33,9 @@ public class Espacing_Ring implements PlugIn {
 
 	}
 
-	public static void start(Network network, double step, double impInside, double impOutside) {
+	public static void start(Network network, double step, double impInside, double impOutside, double threshold, double branchFacilitator,
+			double firstLoop, double secondLoop, double thirdLoop,
+			double maxIn, double minMem, double maxMem, double minOut, double maxOut) {
 		IJ.log("start 21 nov 2017");
 
 		imp = WindowManager.getCurrentImage();
@@ -64,7 +66,13 @@ public class Espacing_Ring implements PlugIn {
 
 		Ring.setImpInside(impInside);
 		Ring.setImpOutside(impOutside);
+		Branch.setEvolveValue(threshold);
+		Branch.setBranchFacilitator(branchFacilitator);
+		Branch.setFirstLoopElimination(firstLoop);
+		Branch.setSecondLoopElimination(secondLoop);
+		Branch.setThirdLoopElimination(thirdLoop);
 		Branch.stopAll(false);	
+		Ring.setParameters(maxIn, minMem, maxMem, minOut, maxOut);
 
 
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);

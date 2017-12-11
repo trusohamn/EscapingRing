@@ -6,15 +6,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Locale;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -41,9 +45,21 @@ public class Gui extends JDialog {
 	double step;
 	double impInside;
 	double impOutside;
+	double threshold;
+	double firstLoop, secondLoop, thirdLoop;
+	double maxIn, minMem, maxMem, minOut, maxOut;
+	double branchFacilitator;
 	static JLabel runningLabel;
 	static JLabel meanContrastLabel;
-
+	JFormattedTextField firstField = null;
+	JFormattedTextField secondField = null;
+	JFormattedTextField thirdField = null;
+	JFormattedTextField maxInField = null;
+	JFormattedTextField minMemField = null;
+	JFormattedTextField maxMemField = null;
+	JFormattedTextField minOutField = null;
+	JFormattedTextField maxOutField = null; 
+	Point3D end;
 
 	public static void main(final String[] args) {
 		try {
@@ -65,8 +81,12 @@ public class Gui extends JDialog {
 		JPanel tab2;
 		JPanel tab3;
 		JPanel tab4;
+		JPanel tab5;
 		setBounds(100, 100, 750, 300);
 		setTitle("VascRing3D");
+		
+
+
 
 		/*****TAB1*****/	 
 		tab1 = new JPanel();
@@ -80,29 +100,43 @@ public class Gui extends JDialog {
 
 
 		JLabel stepLabel = new JLabel("Step size");
-		JFormattedTextField stepField = new JFormattedTextField(NumberFormat.getNumberInstance());
-		stepField.setColumns(10);
-		stepField.setText("10");
+		JFormattedTextField stepField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		stepField.setColumns(5);
+		stepField.setText("5");
 		stepLabel.setLabelFor(stepField);
 		leftPanel.add(stepLabel);
 		leftPanel.add(stepField);
+		
+		JLabel thresholdLabel = new JLabel("Threshold");
+		JFormattedTextField thresholdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		thresholdField.setColumns(5);
+		thresholdField.setText("0.4");
+		leftPanel.add(thresholdLabel);
+		leftPanel.add(thresholdField);
+		
+		JLabel branchLabel = new JLabel("Branching");
+		JFormattedTextField branchField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		branchField.setColumns(5);
+		branchField.setText("0.6");
+		leftPanel.add(branchLabel);
+		leftPanel.add(branchField);
 
 		
 		JLabel impInsideLabel = new JLabel("Importance inside");
-		JFormattedTextField impInsideField = new JFormattedTextField(NumberFormat.getNumberInstance());
-		impInsideField.setColumns(10);
+		JFormattedTextField impInsideField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		impInsideField.setColumns(5);
 		impInsideField.setText("-0.25");
 		impInsideLabel.setLabelFor(impInsideField);
-		leftPanel.add(impInsideLabel);
-		leftPanel.add(impInsideField);
+		downPanel.add(impInsideLabel);
+		downPanel.add(impInsideField);
 		
-		JLabel impOutsideLabel = new JLabel("Importance outside");
-		JFormattedTextField impOutsideField = new JFormattedTextField(NumberFormat.getNumberInstance());
-		impOutsideField.setColumns(10);
+		JLabel impOutsideLabel = new JLabel("outside");
+		JFormattedTextField impOutsideField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		impOutsideField.setColumns(5);
 		impOutsideField.setText("-0.25");
 		impOutsideLabel.setLabelFor(impOutsideField);
-		leftPanel.add(impOutsideLabel);
-		leftPanel.add(impOutsideField);
+		downPanel.add(impOutsideLabel);
+		downPanel.add(impOutsideField);
 
 
 		final JButton btn1 = new JButton("Start");
@@ -113,10 +147,21 @@ public class Gui extends JDialog {
 					step= Double.parseDouble(stepField.getText());
 					impInside = Double.parseDouble(impInsideField.getText());
 					impOutside = Double.parseDouble(impOutsideField.getText());
+					threshold = Double.parseDouble(thresholdField.getText());
+					branchFacilitator = Double.parseDouble(branchField.getText());
+					firstLoop = Double.parseDouble(firstField.getText());
+					secondLoop = Double.parseDouble(secondField.getText());
+					thirdLoop = Double.parseDouble(thirdField.getText());
+					maxIn = Double.parseDouble(maxInField.getText());
+					minMem = Double.parseDouble(minMemField.getText());
+					maxMem = Double.parseDouble(maxMemField.getText());
+					minOut = Double.parseDouble(minOutField.getText());
+					maxOut = Double.parseDouble(maxOutField.getText());
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
 				}
-				Espacing_Ring.start(network, step, impInside, impOutside);
+				Espacing_Ring.start(network, step, impInside, impOutside, threshold, branchFacilitator, firstLoop, secondLoop, thirdLoop,
+						maxIn, minMem, maxMem, minOut, maxOut);
 
 			}
 		}); 
@@ -154,10 +199,19 @@ public class Gui extends JDialog {
 			}
 		}); 
 	    downPanel.add(filledButton);
+	    
+	    JRadioButton customButton = new JRadioButton("custom settings");
+	    filledButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+			}
+		}); 
+	    downPanel.add(customButton);
 
 	    ButtonGroup group = new ButtonGroup();
 	    group.add(emptyButton);
 	    group.add(filledButton);
+	    group.add(customButton);
 
 	    
 		/*****TAB2*****/
@@ -293,8 +347,8 @@ public class Gui extends JDialog {
 		
 		/*FILTER BRANCHES*/
 		JLabel filterLabel = new JLabel("Filter size");
-		JFormattedTextField filterField = new JFormattedTextField(NumberFormat.getNumberInstance());
-		filterField.setColumns(10);
+		JFormattedTextField filterField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		filterField.setColumns(5);
 		filterField.setText("0");
 		tab2Down.add(filterLabel);
 		tab2Down.add(filterField);
@@ -331,8 +385,14 @@ public class Gui extends JDialog {
 		tab3.add(scrolRing,BorderLayout.WEST);
 		tab3.add(ringPanel);
 		JPanel actionPanel = new JPanel();
-		actionPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		actionPanel.setLayout(new BorderLayout());
 		tab3.add(actionPanel, BorderLayout.EAST);
+		JPanel firstRow = new JPanel();
+		firstRow.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		JPanel secondRow = new JPanel();
+		secondRow.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		actionPanel.add(firstRow, BorderLayout.NORTH);
+		actionPanel.add(secondRow, BorderLayout.CENTER);
 
 		MouseListener mouseListener3 = new MouseAdapter() {
 			//removes ring from the list
@@ -396,6 +456,14 @@ public class Gui extends JDialog {
 		}); 
 		selectRingPanel.add(clickRings);
 
+		final JButton showRings = new JButton("Show rings");
+		showRings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Espacing_Ring.showRings(ringList);	
+			}
+		}); 
+		selectRingPanel.add(showRings);
 
 		final JButton btnDeleteRing = new JButton("Delete rings");
 		btnDeleteRing.addActionListener(new ActionListener() {
@@ -423,37 +491,81 @@ public class Gui extends JDialog {
 				}
 			}
 		}); 
-		actionPanel.add(btnDeleteRing);
+		firstRow.add(btnDeleteRing);
+		
+		JLabel widthLabel = new JLabel("Width of new branch");
+		JFormattedTextField widthField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		widthField.setColumns(5);
+		widthField.setText("0");
+		secondRow.add(widthLabel);
+		secondRow.add(widthField);
 
 		final JButton btnJoinRings = new JButton("Join two rings");
 		btnJoinRings.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				if(ringList.getSize()==2){
-					Ring start = ringList.getElementAt(0);
-					Ring end = ringList.getElementAt(1);
-					Branch motherBranch = start.getBranch();
-					motherBranch.createBranchBetweenTwoRings(start, end);
+					try {
+						double width= Double.parseDouble(widthField.getText());
+						Ring start = ringList.getElementAt(0);
+						Ring end = ringList.getElementAt(1);
+						Branch motherBranch = start.getBranch();
+						motherBranch.createBranchBetweenTwoRings(start, end, width);
+						
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					}				
 				}
 				else{
-					IJ.log("something went wrong " + ringList.getElementAt(0) + ringList.getElementAt(1));
+					IJ.log("Select only two rings");
 				}
 			}
 		}); 
-		actionPanel.add(btnJoinRings);
+		secondRow.add(btnJoinRings);
 		
-		final JButton showRings = new JButton("Show rings");
-		showRings.addActionListener(new ActionListener() {
+
+		
+		final JButton btnFreeBranch = new JButton("Join ring and a point");
+		btnFreeBranch.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				Espacing_Ring.showRings(ringList);	
+				if(ringList.getSize()==1){
+					Ring start = ringList.getElementAt(0);
+					JOptionPane.showMessageDialog(downPanel, "Select the end point in the image");
+					
+					MouseListener mouseListenerPoint = new MouseAdapter() {
+						public void mouseClicked(MouseEvent mouseEvent) {
+							Point location = Espacing_Ring.iC.getCursorLoc();
+							int x = location.x;
+							int y = location.y;
+							int z = Espacing_Ring.iC.getImage().getSlice();
+							end = new Point3D(x, y, z);
+							Branch motherBranch = start.getBranch();
+							try {
+								double width= Double.parseDouble(widthField.getText());
+								motherBranch.createBranchBetweenRingAndPoint(start, end, width);
+								
+							} catch (NumberFormatException e) {
+								e.printStackTrace();
+							}
+							
+						}
+					};
+					Espacing_Ring.iC.addMouseListener(mouseListenerPoint);
+					
+					
+				}
+				else{
+					JOptionPane.showMessageDialog(downPanel, "Select only one ring");
+				}
 			}
 		}); 
-		actionPanel.add(showRings);
+		secondRow.add(btnFreeBranch);
 		
+
 		/*****TAB4*****/	 
 		tab4 = new JPanel();
-		tab4.setLayout(new BorderLayout());
+		tab4.setLayout(new FlowLayout(FlowLayout.LEFT));
 		
 		final JButton btnSkeleton = new JButton("Generate skeleton");
 		btnSkeleton.addActionListener(new ActionListener() {
@@ -462,10 +574,111 @@ public class Gui extends JDialog {
 				Volume skeleton = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
 				network.generateSkeleton(skeleton);
 				skeleton.show("Skeleton");
-
+				
 			}
 		}); 
-		tab4.add(btnSkeleton, BorderLayout.NORTH);
+		tab4.add(btnSkeleton);
+		
+		final JButton btnCSV = new JButton("Generate csv");
+		btnCSV.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+
+				try {
+					//IJ.log("trying to generate csv");
+					JFileChooser chooser = new JFileChooser(); 
+				    chooser.setCurrentDirectory(new java.io.File("."));
+				    chooser.setDialogTitle("Choose directory to save");
+				    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				    chooser.setAcceptAllFileFilterUsed(false);
+				    //    
+				    if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+				      System.out.println("getCurrentDirectory(): " 
+				         +  chooser.getCurrentDirectory());
+				      System.out.println("getSelectedFile() : " 
+				         +  chooser.getSelectedFile());
+				      network.exportData(chooser.getSelectedFile().getPath()+"/VascRing3_Output.csv");
+				      }
+				    else {
+				      System.out.println("No Selection ");
+				      }
+				    
+				    
+					
+					//IJ.log("Succes");
+				} catch (IOException e) {
+					//IJ.log("failed to generate csv");
+					e.printStackTrace();
+				}		
+			}
+		}); 
+		tab4.add(btnCSV);
+		
+		/***TAB5 Advanced Settings *****/
+		tab5 = new JPanel();
+		tab5.setLayout(new BorderLayout());
+		JPanel tab5Upper = new JPanel();
+		tab5.add(tab5Upper, BorderLayout.NORTH);
+		tab5Upper.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JPanel tab5Center = new JPanel();
+		tab5.add(tab5Center, BorderLayout.CENTER);
+		tab5Center.setLayout(new FlowLayout(FlowLayout.LEFT));
+		
+		JLabel firstLabel = new JLabel("Keep after first loop");
+		firstField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		firstField.setColumns(5);
+		firstField.setText("20");
+		tab5Upper.add(firstLabel);
+		tab5Upper.add(firstField);
+		
+		JLabel secondLabel = new JLabel("Keep after second loop");
+		secondField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		secondField.setColumns(5);
+		secondField.setText("15");
+		tab5Upper.add(secondLabel);
+		tab5Upper.add(secondField);
+		
+		JLabel thirdLabel = new JLabel("Keep after third loop");
+		thirdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		thirdField.setColumns(5);
+		thirdField.setText("20");
+		tab5Upper.add(thirdLabel);
+		tab5Upper.add(thirdField);
+		
+		JLabel maxInLabel = new JLabel("Max inside");
+		maxInField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		maxInField.setColumns(4);
+		maxInField.setText("0.8");
+		tab5Center.add(maxInLabel);
+		tab5Center.add(maxInField);
+		
+		JLabel minMemLabel = new JLabel("Min membrane");
+		minMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		minMemField.setColumns(4);
+		minMemField.setText("0.8");
+		tab5Center.add(minMemLabel);
+		tab5Center.add(minMemField);
+		
+		JLabel maxMemLabel = new JLabel("Max membrane");
+		maxMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		maxMemField.setColumns(4);
+		maxMemField.setText("1.2");
+		tab5Center.add(maxMemLabel);
+		tab5Center.add(maxMemField);
+		
+		JLabel minOutLabel = new JLabel("Min outside");
+		minOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		minOutField.setColumns(4);
+		minOutField.setText("1.2");
+		tab5Center.add(minOutLabel);
+		tab5Center.add(minOutField);
+		
+		JLabel maxOutLabel = new JLabel("Max outside");
+		maxOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		maxOutField.setColumns(4);
+		maxOutField.setText("2");
+		tab5Center.add(maxOutLabel);
+		tab5Center.add(maxOutField);
 
 		/*TABS*/
 
@@ -474,6 +687,7 @@ public class Gui extends JDialog {
 		tabPane.addTab( "Branches", tab2);
 		tabPane.addTab( "Rings", tab3);
 		tabPane.addTab( "Export", tab4);
+		tabPane.addTab( "Advanced Settings", tab5);
 		getContentPane().add(tabPane);
 
 
