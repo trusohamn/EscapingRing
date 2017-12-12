@@ -84,17 +84,17 @@ public class Gui extends JDialog {
 		JPanel tab5;
 		setBounds(100, 100, 750, 300);
 		setTitle("VascRing3D");
-		
+
 
 
 
 		/*****TAB1*****/	 
 		tab1 = new JPanel();
 		tab1.setLayout(new BorderLayout());
-		
+
 		JPanel leftPanel = new JPanel();
 		tab1.add(leftPanel, BorderLayout.WEST);
-		
+
 		JPanel downPanel = new JPanel();
 		tab1.add(downPanel, BorderLayout.SOUTH);
 
@@ -106,14 +106,14 @@ public class Gui extends JDialog {
 		stepLabel.setLabelFor(stepField);
 		leftPanel.add(stepLabel);
 		leftPanel.add(stepField);
-		
+
 		JLabel thresholdLabel = new JLabel("Threshold");
 		JFormattedTextField thresholdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		thresholdField.setColumns(5);
 		thresholdField.setText("0.4");
 		leftPanel.add(thresholdLabel);
 		leftPanel.add(thresholdField);
-		
+
 		JLabel branchLabel = new JLabel("Branching");
 		JFormattedTextField branchField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		branchField.setColumns(5);
@@ -121,7 +121,7 @@ public class Gui extends JDialog {
 		leftPanel.add(branchLabel);
 		leftPanel.add(branchField);
 
-		
+
 		JLabel impInsideLabel = new JLabel("Importance inside");
 		JFormattedTextField impInsideField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		impInsideField.setColumns(5);
@@ -129,7 +129,7 @@ public class Gui extends JDialog {
 		impInsideLabel.setLabelFor(impInsideField);
 		downPanel.add(impInsideLabel);
 		downPanel.add(impInsideField);
-		
+
 		JLabel impOutsideLabel = new JLabel("outside");
 		JFormattedTextField impOutsideField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		impOutsideField.setColumns(5);
@@ -166,7 +166,7 @@ public class Gui extends JDialog {
 			}
 		}); 
 		leftPanel.add(btn1);
-		
+
 		final JButton btnContrast = new JButton("ResetContrast");
 		btnContrast.addActionListener(new ActionListener() {
 			@Override
@@ -178,42 +178,42 @@ public class Gui extends JDialog {
 		downPanel.add(btnContrast);
 
 		/*CHANGE PARAMETERS BETWEEN FILLED AND EMPTY VESSELS*/
-		
+
 		JRadioButton emptyButton = new JRadioButton("empty tube");
-	    emptyButton.setSelected(true);
-	    emptyButton.addActionListener(new ActionListener() {
+		emptyButton.setSelected(true);
+		emptyButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				impInsideField.setText("-0.25");
 				impOutsideField.setText("-0.25");
 			}
 		}); 
-	    downPanel.add(emptyButton);
+		downPanel.add(emptyButton);
 
-	    JRadioButton filledButton = new JRadioButton("filled tube");
-	    filledButton.addActionListener(new ActionListener() {
+		JRadioButton filledButton = new JRadioButton("filled tube");
+		filledButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				impInsideField.setText("1");
 				impOutsideField.setText("-2");
 			}
 		}); 
-	    downPanel.add(filledButton);
-	    
-	    JRadioButton customButton = new JRadioButton("custom settings");
-	    filledButton.addActionListener(new ActionListener() {
+		downPanel.add(filledButton);
+
+		JRadioButton customButton = new JRadioButton("custom settings");
+		filledButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 			}
 		}); 
-	    downPanel.add(customButton);
+		downPanel.add(customButton);
 
-	    ButtonGroup group = new ButtonGroup();
-	    group.add(emptyButton);
-	    group.add(filledButton);
-	    group.add(customButton);
+		ButtonGroup group = new ButtonGroup();
+		group.add(emptyButton);
+		group.add(filledButton);
+		group.add(customButton);
 
-	    
+
 		/*****TAB2*****/
 		tab2 = new JPanel();
 		tab2.setLayout(new BorderLayout());
@@ -313,7 +313,7 @@ public class Gui extends JDialog {
 			}
 		}); 
 		buttonListPanel.add(clickBranches); 
-		
+
 		MouseListener mouseListener = new MouseAdapter() {
 			//adds branch to the extra list
 			public void mouseClicked(MouseEvent mouseEvent) {
@@ -343,8 +343,8 @@ public class Gui extends JDialog {
 			}
 		};
 		list2.addMouseListener(mouseListener2);
-		
-		
+
+
 		/*FILTER BRANCHES*/
 		JLabel filterLabel = new JLabel("Filter size");
 		JFormattedTextField filterField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
@@ -352,7 +352,7 @@ public class Gui extends JDialog {
 		filterField.setText("0");
 		tab2Down.add(filterLabel);
 		tab2Down.add(filterField);
-		
+
 		final JButton filterButton = new JButton("Filter");
 		filterButton.addActionListener(new ActionListener() {
 			@Override
@@ -492,7 +492,7 @@ public class Gui extends JDialog {
 			}
 		}); 
 		firstRow.add(btnDeleteRing);
-		
+
 		JLabel widthLabel = new JLabel("Width of new branch");
 		JFormattedTextField widthField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		widthField.setColumns(5);
@@ -511,7 +511,7 @@ public class Gui extends JDialog {
 						Ring end = ringList.getElementAt(1);
 						Branch motherBranch = start.getBranch();
 						motherBranch.createBranchBetweenTwoRings(start, end, width);
-						
+
 					} catch (NumberFormatException e) {
 						e.printStackTrace();
 					}				
@@ -522,9 +522,9 @@ public class Gui extends JDialog {
 			}
 		}); 
 		secondRow.add(btnJoinRings);
-		
 
-		
+
+
 		final JButton btnFreeBranch = new JButton("Join ring and a point");
 		btnFreeBranch.addActionListener(new ActionListener() {
 			@Override
@@ -532,7 +532,7 @@ public class Gui extends JDialog {
 				if(ringList.getSize()==1){
 					Ring start = ringList.getElementAt(0);
 					JOptionPane.showMessageDialog(downPanel, "Select the end point in the image");
-					
+
 					MouseListener mouseListenerPoint = new MouseAdapter() {
 						public void mouseClicked(MouseEvent mouseEvent) {
 							Point location = Espacing_Ring.iC.getCursorLoc();
@@ -544,16 +544,16 @@ public class Gui extends JDialog {
 							try {
 								double width= Double.parseDouble(widthField.getText());
 								motherBranch.createBranchBetweenRingAndPoint(start, end, width);
-								
+
 							} catch (NumberFormatException e) {
 								e.printStackTrace();
 							}
-							
+
 						}
 					};
 					Espacing_Ring.iC.addMouseListener(mouseListenerPoint);
-					
-					
+
+
 				}
 				else{
 					JOptionPane.showMessageDialog(downPanel, "Select only one ring");
@@ -561,12 +561,12 @@ public class Gui extends JDialog {
 			}
 		}); 
 		secondRow.add(btnFreeBranch);
-		
+
 
 		/*****TAB4*****/	 
 		tab4 = new JPanel();
 		tab4.setLayout(new FlowLayout(FlowLayout.LEFT));
-		
+
 		final JButton btnSkeleton = new JButton("Generate skeleton");
 		btnSkeleton.addActionListener(new ActionListener() {
 			@Override
@@ -574,11 +574,11 @@ public class Gui extends JDialog {
 				Volume skeleton = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
 				network.generateSkeleton(skeleton);
 				skeleton.show("Skeleton");
-				
+
 			}
 		}); 
 		tab4.add(btnSkeleton);
-		
+
 		final JButton btnCSV = new JButton("Generate csv");
 		btnCSV.addActionListener(new ActionListener() {
 			@Override
@@ -587,24 +587,24 @@ public class Gui extends JDialog {
 				try {
 					//IJ.log("trying to generate csv");
 					JFileChooser chooser = new JFileChooser(); 
-				    chooser.setCurrentDirectory(new java.io.File("."));
-				    chooser.setDialogTitle("Choose directory to save");
-				    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				    chooser.setAcceptAllFileFilterUsed(false);
-				    //    
-				    if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
-				      System.out.println("getCurrentDirectory(): " 
-				         +  chooser.getCurrentDirectory());
-				      System.out.println("getSelectedFile() : " 
-				         +  chooser.getSelectedFile());
-				      network.exportData(chooser.getSelectedFile().getPath()+"/VascRing3_Output.csv");
-				      }
-				    else {
-				      System.out.println("No Selection ");
-				      }
-				    
-				    
-					
+					chooser.setCurrentDirectory(new java.io.File("."));
+					chooser.setDialogTitle("Choose directory to save");
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					chooser.setAcceptAllFileFilterUsed(false);
+					//    
+					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+						System.out.println("getCurrentDirectory(): " 
+								+  chooser.getCurrentDirectory());
+						System.out.println("getSelectedFile() : " 
+								+  chooser.getSelectedFile());
+						network.exportData(chooser.getSelectedFile().getPath()+"/VascRing3_Output.csv");
+					}
+					else {
+						System.out.println("No Selection ");
+					}
+
+
+
 					//IJ.log("Succes");
 				} catch (IOException e) {
 					//IJ.log("failed to generate csv");
@@ -613,7 +613,7 @@ public class Gui extends JDialog {
 			}
 		}); 
 		tab4.add(btnCSV);
-		
+
 		/***TAB5 Advanced Settings *****/
 		tab5 = new JPanel();
 		tab5.setLayout(new BorderLayout());
@@ -623,56 +623,56 @@ public class Gui extends JDialog {
 		JPanel tab5Center = new JPanel();
 		tab5.add(tab5Center, BorderLayout.CENTER);
 		tab5Center.setLayout(new FlowLayout(FlowLayout.LEFT));
-		
+
 		JLabel firstLabel = new JLabel("Keep after first loop");
 		firstField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		firstField.setColumns(5);
-		firstField.setText("20");
+		firstField.setText("100");
 		tab5Upper.add(firstLabel);
 		tab5Upper.add(firstField);
-		
+
 		JLabel secondLabel = new JLabel("Keep after second loop");
 		secondField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		secondField.setColumns(5);
-		secondField.setText("15");
+		secondField.setText("5");
 		tab5Upper.add(secondLabel);
 		tab5Upper.add(secondField);
-		
+
 		JLabel thirdLabel = new JLabel("Keep after third loop");
 		thirdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		thirdField.setColumns(5);
-		thirdField.setText("20");
+		thirdField.setText("10");
 		tab5Upper.add(thirdLabel);
 		tab5Upper.add(thirdField);
-		
+
 		JLabel maxInLabel = new JLabel("Max inside");
 		maxInField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		maxInField.setColumns(4);
 		maxInField.setText("0.8");
 		tab5Center.add(maxInLabel);
 		tab5Center.add(maxInField);
-		
+
 		JLabel minMemLabel = new JLabel("Min membrane");
 		minMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		minMemField.setColumns(4);
 		minMemField.setText("0.8");
 		tab5Center.add(minMemLabel);
 		tab5Center.add(minMemField);
-		
+
 		JLabel maxMemLabel = new JLabel("Max membrane");
 		maxMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		maxMemField.setColumns(4);
 		maxMemField.setText("1.2");
 		tab5Center.add(maxMemLabel);
 		tab5Center.add(maxMemField);
-		
+
 		JLabel minOutLabel = new JLabel("Min outside");
 		minOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		minOutField.setColumns(4);
 		minOutField.setText("1.2");
 		tab5Center.add(minOutLabel);
 		tab5Center.add(minOutField);
-		
+
 		JLabel maxOutLabel = new JLabel("Max outside");
 		maxOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		maxOutField.setColumns(4);
@@ -696,11 +696,12 @@ public class Gui extends JDialog {
 		final JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		
+
 		runningLabel = new JLabel("Running: " + Branch.running);
 		buttonPane.add(runningLabel);
-		
-		meanContrastLabel = new JLabel("Mean: " + network.getMeanContrast());
+		double meanContrast = network.getMeanContrast();
+		if(meanContrast== -Double.MAX_VALUE) meanContrastLabel = new JLabel( "Mean: None");
+		else meanContrastLabel = new JLabel( "Mean: " + String.format(Locale.US, "%.2f", meanContrast)  );
 		buttonPane.add(meanContrastLabel);
 
 		final JButton okButton = new JButton("OK");
@@ -751,13 +752,21 @@ public class Gui extends JDialog {
 		buttonPane.add(btn2);
 
 	}
-	
+
 	public static void updateRunning() {
 		runningLabel.setText("Running: " + Branch.running);
 	}
 
 	public static void updateMeanContrast() {
-		meanContrastLabel.setText("Mean: " + network.getMeanContrast());
+		double meanContrast = network.getMeanContrast();
+		
+		if(meanContrast== -Double.MAX_VALUE) {		
+			meanContrastLabel.setText( "Mean: None");
+		}
+		else {
+			meanContrastLabel.setText( "Mean: " + String.format(Locale.US, "%.2f", meanContrast) );
+		}
 	}
+
 }
 
