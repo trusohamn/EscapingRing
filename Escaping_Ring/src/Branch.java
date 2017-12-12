@@ -83,7 +83,7 @@ public class Branch extends ArrayList<Ring> {
 						//IJ.log("checking next from " + ringsAround.size());
 						ArrayList<Ring> branchCand = evolve(workingVol, r, step, evolveValue);
 						if(branchCand.size()>3) {
-							Branch newBranch = new Branch(network, branchCand, vol, test,  workingVol, step);
+							new Branch(network, branchCand, vol, test,  workingVol, step);
 						}	
 					}
 				}
@@ -94,6 +94,7 @@ public class Branch extends ArrayList<Ring> {
 	    Thread t = new Thread(new OneShotTask(this));
 	    t.start();
 	}
+	/*
 	public ArrayList<Ring> evolve(Volume vol, Ring initial, double step, double breakValue) {
 
 		Ring current = initial.duplicate();
@@ -104,7 +105,7 @@ public class Branch extends ArrayList<Ring> {
 		double maxRadius = 1.40;
 		double minRadius = 0.80;
 		
-		/* DO ONCE */
+		 DO ONCE 
 		ArrayList<Ring> candidates = proposeCandidates(current, step, vol, maxRadius, minRadius);
 		//keep x% best
 		candidates = keepBestCandidates(candidates, firstLoopElimination);
@@ -223,27 +224,30 @@ public class Branch extends ArrayList<Ring> {
 			while (true);
 		return newBranch;
 	}
-/*	
+*/
+
 	public ArrayList<Ring> evolve(Volume vol, Ring initial, double step, double breakValue) {
 
 		Ring current = initial.duplicate();
 		int iter = 0;
-		double prevMax = network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*3 : network.getMeanContrast()*3; //later the contrast value is a sum of three rings
+		double prevMax = network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*2 : network.getMeanContrast()*2; //later the contrast value is a sum of three rings
 		prevMax = prevMax*branchFacilitator; //to lower the threshold of starting the new branch
 		ArrayList<Ring> newBranch = new ArrayList<Ring>();
 		newBranch.add(current);
+		double maxRadius = 1.40;
+		double minRadius = 0.60;
 		MAINLOOP:
 			do {
-				ArrayList<Ring> candidates = proposeCandidates(current, step, vol);
+				ArrayList<Ring> candidates = proposeCandidates(current, step, vol,maxRadius, minRadius);
 				//keep x% best
 				candidates = keepBestCandidates(candidates, firstLoopElimination);
 				ArrayList<Ring[]> candidatesTriple = new ArrayList<Ring[]>();
 				for ( Ring cand : candidates){
-					ArrayList<Ring> candidates2 = proposeCandidates(cand, step, vol);
+					ArrayList<Ring> candidates2 = proposeCandidates(cand, step, vol, maxRadius, minRadius);
 					//keep x% best
 					candidates2 = keepBestCandidates(candidates2, secondLoopElimination);
 					for (Ring cand2 : candidates2){
-						ArrayList<Ring> candidates3 = proposeCandidates(cand2, step, vol);
+						ArrayList<Ring> candidates3 = proposeCandidates(cand2, step, vol, maxRadius, minRadius);
 						candidates3 = keepBestCandidates(candidates3, thirdLoopElimination);
 						for (Ring cand3 : candidates3){
 							candidatesTriple.add(new Ring[]{cand,cand2, cand3});
@@ -256,12 +260,12 @@ public class Branch extends ArrayList<Ring> {
 				double max = -Double.MAX_VALUE; //total contrast of three rings
 				double rest = -Double.MAX_VALUE; //sum of contrast of second and third ring
 				for(Ring[] cC : candidatesTriple) {
-					double c = cC[0].getContrast() + cC[1].getContrast() + cC[2].getContrast();
+					double c = cC[0].getContrast() + ( cC[1].getContrast() + cC[2].getContrast())/2;
 					//IJ.log(" c: " + c);
 					if (c > max) {
 						max = c;
 						best = cC[0];	
-						rest = cC[1].getContrast() + cC[2].getContrast();
+						rest = (cC[1].getContrast() + cC[2].getContrast())/2;
 					}
 				}
 				//if the is no candidate, break
@@ -303,7 +307,7 @@ public class Branch extends ArrayList<Ring> {
 					network.recalculateContrast(best.getContrast());
 					newBranch.get(newBranch.size()-2).eraseVol(workingVol);
 				}
-				prevMax = network.getMeanContrast()*3;
+				prevMax = network.getMeanContrast()*2;
 
 				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() + " nrRings: " + network.totalNumberRings + " totalContrast: " + network.totalContrast);
 				Gui.updateMeanContrast();
@@ -312,7 +316,7 @@ public class Branch extends ArrayList<Ring> {
 			while (true);
 		return newBranch;
 	}
-*/
+
 	private ArrayList<Ring> keepBestCandidates(ArrayList<Ring> rings, double percent) {
 		//keeps percent of best candidates
 		percent = 100 - percent;
@@ -422,14 +426,14 @@ public class Branch extends ArrayList<Ring> {
 				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
 				maxRing.dir = maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp);
-
-				for(double r = initRadius*0.25; r<=initRadius*maxRadius; r+=0.75*initRadius) {
+				double r = initRadius;
+				//for(double r = initRadius*0.25; r<=initRadius*maxRadius; r+=0.75*initRadius) {
 					Ring cand = maxRing.duplicate();
 					cand.radius = r;
 					cand.setContrast(keepContrast) ;
 					//IJ.log("contrast: " + cand.contrast);
 					cands.add(cand);
-				}				
+				//}				
 			}
 		}	
 		return cands;

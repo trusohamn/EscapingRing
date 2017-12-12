@@ -104,7 +104,7 @@ public class Ring {
 				countMembrane =+ mv.count[i];
 			}
 
-			if (curRadius  >= minOut *radius && curRadius < maxOut*radius) {
+			if (curRadius  >= minOut *radius && curRadius <= maxOut*radius) {
 				meanOuter =+ mv.sumIntensity[i];
 				countOuter =+ mv.count[i];
 			}
