@@ -3,18 +3,18 @@ package tests;
 public class MeasureField {
 
 	public static void main(String[] args) {
-		int radius = 7;
+		int i = 5;
+		double result = i/2.0
+				; 
+		System.out.println(""+result);
+		/*int radius = 7;
 		int step=20;
 		double angles[] = {0.4, 0.4};
 		double sint = Math.sin(angles[0]);
 		double cost = Math.cos(angles[0]);
 		double sinp = Math.sin(angles[1]);
 		double cosp = Math.cos(angles[1]);
-		/*double Ry[][] = {{cost, 0, sint}, {0, 1, 0}, {-sint, 0, cost}};
-		double Rz[][] = {{cosp, -sinp, 0}, {sinp, cosp, 0}, {0, 0, 1}};*/
-		// Rz*(Ry*v) = (Rz*Ry)*v
-		//multiplication RzxRy
-		double R[][] = 
+
 			{{cosp*cost, -sinp, cosp*sint},
 					{sinp*cost, cosp, sinp*sint},
 					{-sint, 0, cost}};
@@ -37,10 +37,11 @@ public class MeasureField {
 				double dz = i*R[2][0]  + k*R[2][2];
 
 				double d = Math.sqrt(i*i+j*j);
+*/
 
 
 
-			}
-		}
+			
+		
 	}
 }

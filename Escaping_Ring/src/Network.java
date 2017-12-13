@@ -77,6 +77,48 @@ public class Network extends ArrayList<Branch> {
 		}
 
 	}
+	
+	public void generateBinary(Volume vol) {
+		for(Branch branch : this) {
+			for(int n = 0; n<branch.size()-1; n++) {
+				double[] angles = new double[2];
+				Point3D first = branch.get(n).c;
+				Point3D second = branch.get(n+1).c;
+				Point3D dir = first.middlePointDir(second);
+				angles[0] = Math.acos(dir.z);
+				angles[1] = Math.atan2(dir.y, dir.x);
+				double sint = Math.sin(angles[0]);
+				double cost = Math.cos(angles[0]);
+				double sinp = Math.sin(angles[1]);
+				double cosp = Math.cos(angles[1]);
+				double R[][] = 
+					{{cosp*cost, -sinp, cosp*sint},
+							{sinp*cost, cosp, sinp*sint},
+							{-sint, 0, cost}};
+
+				int maxK = (int)Math.ceil(first.distance(second))+1; //without this +1 there is a gap in the binary
+				for(int ki=0; ki<=2*maxK; ki++) {
+					double k = ki/2.0;
+					double radius =  branch.get(n).getRadius();
+					int rad = (int) radius;
+					for(int ji=-4*rad; ji<=4*rad; ji++) {
+						for(int ii=-4*rad; ii<=4*rad; ii++) {
+							double j = ji/2.0;
+							double i = ii/2.0;
+							
+							double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
+							double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
+							double dz = i*R[2][0]  + k*R[2][2];
+							
+							double d = Math.sqrt(i*i+j*j);
+							if(d<=radius) vol.setValue(first, dx, dy, dz, 1000);
+						}
+					}
+				}
+			}
+		}
+
+	}
 
 	public void exportData(String csvFile) throws IOException{
 		List<String> header = Arrays.asList("BranchNo", "Length", "Width");

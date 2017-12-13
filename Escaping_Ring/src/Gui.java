@@ -578,6 +578,18 @@ public class Gui extends JDialog {
 			}
 		}); 
 		tab4.add(btnSkeleton);
+		
+		final JButton btnBinary = new JButton("Generate binary");
+		btnBinary.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Volume binary = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
+				network.generateBinary(binary);
+				binary.show("Binary");
+
+			}
+		}); 
+		tab4.add(btnBinary);
 
 		final JButton btnCSV = new JButton("Generate csv");
 		btnCSV.addActionListener(new ActionListener() {
