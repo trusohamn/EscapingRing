@@ -578,6 +578,18 @@ public class Gui extends JDialog {
 			}
 		}); 
 		tab4.add(btnSkeleton);
+		
+		final JButton btnBinary = new JButton("Generate binary");
+		btnBinary.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Volume binary = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
+				network.generateBinary(binary);
+				binary.show("Binary");
+
+			}
+		}); 
+		tab4.add(btnBinary);
 
 		final JButton btnCSV = new JButton("Generate csv");
 		btnCSV.addActionListener(new ActionListener() {
@@ -697,7 +709,7 @@ public class Gui extends JDialog {
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-		runningLabel = new JLabel("Running: " + Branch.running);
+		runningLabel = new JLabel("Running: " + Branch.ringsRunning.size());
 		buttonPane.add(runningLabel);
 		double meanContrast = network.getMeanContrast();
 		if(meanContrast== -Double.MAX_VALUE) meanContrastLabel = new JLabel( "Mean: None");
@@ -754,7 +766,7 @@ public class Gui extends JDialog {
 	}
 
 	public static void updateRunning() {
-		runningLabel.setText("Running: " + Branch.running);
+		runningLabel.setText("Running: " + Branch.ringsRunning.size());
 	}
 
 	public static void updateMeanContrast() {
