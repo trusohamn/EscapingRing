@@ -709,7 +709,7 @@ public class Gui extends JDialog {
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-		runningLabel = new JLabel("Running: " + Branch.running);
+		runningLabel = new JLabel("Running: " + Branch.ringsRunning.size());
 		buttonPane.add(runningLabel);
 		double meanContrast = network.getMeanContrast();
 		if(meanContrast== -Double.MAX_VALUE) meanContrastLabel = new JLabel( "Mean: None");
@@ -766,7 +766,7 @@ public class Gui extends JDialog {
 	}
 
 	public static void updateRunning() {
-		runningLabel.setText("Running: " + Branch.running);
+		runningLabel.setText("Running: " + Branch.ringsRunning.size());
 	}
 
 	public static void updateMeanContrast() {

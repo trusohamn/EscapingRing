@@ -6,9 +6,6 @@ import ij.IJ;
 
 public class Branch extends ArrayList<Ring> {
 	Network network;
-	Volume vol;
-	Volume test;
-	Volume workingVol;
 	double step;
 	private static double evolveValue = 0.4; //for finishing the branch threshold
 	private static double branchFacilitator = 0.4;
@@ -16,83 +13,79 @@ public class Branch extends ArrayList<Ring> {
 	private static double secondLoopElimination = 30;
 	private static double thirdLoopElimination = 100;
 	//private static boolean lookForward = true;
-	
-	
+
+
 	private int branchNo;
-	static int running = 0;
+	static ArrayList<Ring> ringsRunning = new ArrayList<Ring>();
 	private static boolean stopAll;
-	
+
 	public Branch(){
-		
+
 	}
-	public Branch(Network network, Ring ring, Volume vol, Volume test, Volume workingVol, double step){
+	public Branch(Network network, Ring ring, double step){
 		//first branch
 		this.add(ring);
 		this.network = network;
-		this.vol = vol;
-		this.test = test;
-		this.workingVol = workingVol;	
-		this.addAll(evolve(workingVol, ring, step, evolveValue));
+		this.addAll(evolve( ring, step, evolveValue));
 		Collections.reverse(this);
-		this.addAll(evolve(workingVol, ring.flippedRing(), step , evolveValue));
+		this.addAll(evolve( ring.flippedRing(), step , evolveValue));
 		network.add(this);
 		this.branchNo = network.getLastBranchNo();
-		this.regression(workingVol, test, step);
+		this.regression( step);
 	}
 
-	public Branch(Network network, ArrayList<Ring> branch, Volume vol, Volume test, Volume workingVol, double step){
+	public Branch(Network network, ArrayList<Ring> branch, double step){
 		this.addAll(branch);
 		this.network = network;
-		this.vol = vol;
-		this.test = test;
-		this.workingVol = workingVol;
 		network.add(this);
 		this.branchNo = network.getLastBranchNo();
 		//this.drawBranch(test, step);
 		//workingVol.showTwoChannels("Second round", test);
-		this.regression(workingVol, test, step);
+		this.regression( step);
 	}
 
-	public void regression(Volume workingVol, Volume test, double step){
-		
+	public void regression( double step){
 		class OneShotTask implements Runnable{
-			Branch branch;
-			OneShotTask(Branch branch) { 
-				this.branch = branch;
-			}
-			
+			Ring nextRing;
+			OneShotTask(Ring nextRing) { 
+				this.nextRing = nextRing;
+			}			
 			public void run() {
-				++running;
+				ringsRunning.add(nextRing);
 				Gui.updateRunning();
-				//erase the whole branch
-				for(Ring ring: branch) {
-					ring.eraseVol(workingVol);
-				}
-				//workingVol.showTwoChannels("Working volume", test);
 
-
-				Branch branchCopy = (Branch) branch.clone();
-
-				for(int i = branchCopy.size()-1; i >=0 ; i--){
+				ArrayList<Ring> ringsAround = sparseCandidates(nextRing);
+				for(Ring r : ringsAround) {
 					if(stopAll) break;
-					IJ.log("checking ring: " + i);
-					Ring nextRing = branchCopy.get(i);
-
-					ArrayList<Ring> ringsAround = sparseCandidates(nextRing, workingVol);
-					for(Ring r : ringsAround) {
-						//IJ.log("checking next from " + ringsAround.size());
-						ArrayList<Ring> branchCand = evolve(workingVol, r, step, evolveValue);
-						if(branchCand.size()>3) {
-							new Branch(network, branchCand, vol, test,  workingVol, step);
-						}	
-					}
+					//IJ.log("checking next from " + ringsAround.size());
+					ArrayList<Ring> branchCand = evolve( r, step, evolveValue);
+					if(branchCand.size()>3) {
+						new Branch(network, branchCand, step);
+					}	
 				}
-				--running;
+
+				ringsRunning.remove(nextRing);
 				Gui.updateRunning();
 			}
 		}
-	    Thread t = new Thread(new OneShotTask(this));
-	    t.start();
+
+
+		for(Ring ring: this) {
+			ring.eraseVol(Espacing_Ring.workingVol);
+		}
+
+		Branch branchCopy = (Branch) this.clone();
+
+		for(int i = branchCopy.size()-1; i >=0 ; i--){
+			if(stopAll) break;
+			IJ.log("checking ring: " + i);
+			Ring nextRing = branchCopy.get(i);
+			Thread t = new Thread(new OneShotTask(nextRing));
+			t.start();
+		}
+
+
+
 	}
 	/*
 	public ArrayList<Ring> evolve(Volume vol, Ring initial, double step, double breakValue) {
@@ -104,7 +97,7 @@ public class Branch extends ArrayList<Ring> {
 		newBranch.add(current);
 		double maxRadius = 1.40;
 		double minRadius = 0.80;
-		
+
 		 DO ONCE 
 		ArrayList<Ring> candidates = proposeCandidates(current, step, vol, maxRadius, minRadius);
 		//keep x% best
@@ -137,7 +130,7 @@ public class Branch extends ArrayList<Ring> {
 		}
 		//if the is no candidate, break
 		if(best == null) return newBranch;
-		
+
 		//adjust the first ring with more subtle parameter change
 
 		double currentContrast = best.getContrast();
@@ -161,7 +154,7 @@ public class Branch extends ArrayList<Ring> {
 		newBranch.add(best);
 		current = best.duplicate();
 
-		
+
 		maxRadius = 1.80;
 		minRadius = 0.60;
 		MAINLOOP:
@@ -224,9 +217,9 @@ public class Branch extends ArrayList<Ring> {
 			while (true);
 		return newBranch;
 	}
-*/
+	 */
 
-	public ArrayList<Ring> evolve(Volume vol, Ring initial, double step, double breakValue) {
+	public ArrayList<Ring> evolve( Ring initial, double step, double breakValue) {
 
 		Ring current = initial.duplicate();
 		int iter = 0;
@@ -238,16 +231,16 @@ public class Branch extends ArrayList<Ring> {
 		double minRadius = 0.60;
 		MAINLOOP:
 			do {
-				ArrayList<Ring> candidates = proposeCandidates(current, step, vol,maxRadius, minRadius);
+				ArrayList<Ring> candidates = proposeCandidates(current, step,maxRadius, minRadius);
 				//keep x% best
 				candidates = keepBestCandidates(candidates, firstLoopElimination);
 				ArrayList<Ring[]> candidatesTriple = new ArrayList<Ring[]>();
 				for ( Ring cand : candidates){
-					ArrayList<Ring> candidates2 = proposeCandidates(cand, step, vol, maxRadius, minRadius);
+					ArrayList<Ring> candidates2 = proposeCandidates(cand, step, maxRadius, minRadius);
 					//keep x% best
 					candidates2 = keepBestCandidates(candidates2, secondLoopElimination);
 					for (Ring cand2 : candidates2){
-						ArrayList<Ring> candidates3 = proposeCandidates(cand2, step, vol, maxRadius, minRadius);
+						ArrayList<Ring> candidates3 = proposeCandidates(cand2, step, maxRadius, minRadius);
 						candidates3 = keepBestCandidates(candidates3, thirdLoopElimination);
 						for (Ring cand3 : candidates3){
 							candidatesTriple.add(new Ring[]{cand,cand2, cand3});
@@ -278,7 +271,7 @@ public class Branch extends ArrayList<Ring> {
 				//IJ.log("best: " + max);
 				double currentContrast = best.getContrast();
 
-				ArrayList<Ring> candidatesRefine = refineCandidate(best, vol);
+				ArrayList<Ring> candidatesRefine = refineCandidate(best);
 				for(Ring cand4 : candidatesRefine) {
 					if (cand4.getContrast() > currentContrast) {
 						currentContrast = cand4.getContrast();
@@ -305,7 +298,7 @@ public class Branch extends ArrayList<Ring> {
 				//erase ring 2 places backwards
 				if(newBranch.size()>3) {
 					network.recalculateContrast(best.getContrast());
-					newBranch.get(newBranch.size()-2).eraseVol(workingVol);
+					newBranch.get(newBranch.size()-2).eraseVol(Espacing_Ring.workingVol);
 				}
 				prevMax = network.getMeanContrast()*2;
 
@@ -341,7 +334,7 @@ public class Branch extends ArrayList<Ring> {
 
 	}
 
-	private ArrayList<Ring> proposeCandidates(Ring ring, double step, Volume volume, double maxRadius, double minRadius) {
+	private ArrayList<Ring> proposeCandidates(Ring ring, double step, double maxRadius, double minRadius) {
 		ArrayList<Ring> cands = new ArrayList<Ring>();	
 		double angleStep = Math.PI/10;
 		int angleRange = 1;
@@ -358,7 +351,7 @@ public class Branch extends ArrayList<Ring> {
 				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.c = maxRing.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp);
 				maxRing.dir = new Point3D((maxRing.c.x-ring.c.x)/step, (maxRing.c.y-ring.c.y)/step, (maxRing.c.z-ring.c.z)/step);
-				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing);
+				MeasurmentVolume mv = new MeasurmentVolume(Espacing_Ring.workingVol, maxRing);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
@@ -375,7 +368,7 @@ public class Branch extends ArrayList<Ring> {
 	}
 
 
-	private ArrayList<Ring> refineCandidate(Ring ring, Volume volume) {
+	private ArrayList<Ring> refineCandidate(Ring ring) {
 		ArrayList<Ring> cands = new ArrayList<Ring>();	
 		double angleStep = Math.PI/40;
 		int angleRange = 1;
@@ -392,7 +385,7 @@ public class Branch extends ArrayList<Ring> {
 				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
 				maxRing.dir = maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp);
-				MeasurmentVolume mv = new MeasurmentVolume(volume, maxRing);
+				MeasurmentVolume mv = new MeasurmentVolume(Espacing_Ring.workingVol, maxRing);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
@@ -408,7 +401,7 @@ public class Branch extends ArrayList<Ring> {
 		return cands;
 	}
 
-	private ArrayList<Ring> sparseCandidates(Ring ring, Volume volume) {
+	private ArrayList<Ring> sparseCandidates(Ring ring) {
 		//returns sparse rings in 3d space, which keep the initial contrast
 		double keepContrast = ring.getContrast();
 		ArrayList<Ring> cands = new ArrayList<Ring>();	
@@ -428,11 +421,11 @@ public class Branch extends ArrayList<Ring> {
 				maxRing.dir = maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp);
 				double r = initRadius;
 				//for(double r = initRadius*0.25; r<=initRadius*maxRadius; r+=0.75*initRadius) {
-					Ring cand = maxRing.duplicate();
-					cand.radius = r;
-					cand.setContrast(keepContrast) ;
-					//IJ.log("contrast: " + cand.contrast);
-					cands.add(cand);
+				Ring cand = maxRing.duplicate();
+				cand.radius = r;
+				cand.setContrast(keepContrast) ;
+				//IJ.log("contrast: " + cand.contrast);
+				cands.add(cand);
 				//}				
 			}
 		}	
@@ -452,9 +445,6 @@ public class Branch extends ArrayList<Ring> {
 		Branch newB = new Branch();
 		newB.addAll(n);
 		newB.network = network;
-		newB.vol = vol;
-		newB.test = test;
-		newB.workingVol = workingVol;
 		newB.step = step;
 		//newB.evolveValue = evolveValue ; //for finishing the branch threshold
 		newB.branchNo = branchNo;
@@ -469,7 +459,7 @@ public class Branch extends ArrayList<Ring> {
 		Point3D newMiddle = startPoint.middlePoint(endPoint);
 		Ring newRing =  new Ring(newMiddle.x, newMiddle.y, newMiddle.z, avgRadius, distanceBetween);
 		newRing.dir = startPoint.middlePointDir(endPoint);
-			
+
 		Branch newBranch = this.duplicateCrop(0, 0);
 		newBranch.remove(0);
 		newBranch.add(start);
@@ -477,10 +467,10 @@ public class Branch extends ArrayList<Ring> {
 		newBranch.add(end);
 		newBranch.eraseBranch();
 		network.add(newBranch);
-				
+
 		return newBranch;
 	}
-	
+
 	public Branch createBranchBetweenRingAndPoint(Ring start, Point3D endPoint, double width){
 		Point3D startPoint = start.c;
 		double avgRadius = width;
@@ -488,7 +478,7 @@ public class Branch extends ArrayList<Ring> {
 		Point3D newMiddle = startPoint.middlePoint(endPoint);
 		Ring newRing =  new Ring(newMiddle.x, newMiddle.y, newMiddle.z, avgRadius, distanceBetween);
 		newRing.dir = startPoint.middlePointDir(endPoint);	
-		
+
 		Branch newBranch = this.duplicateCrop(0, 0);
 		newBranch.remove(0);
 		newBranch.add(start);
@@ -496,21 +486,21 @@ public class Branch extends ArrayList<Ring> {
 		newBranch.eraseBranch();
 		network.add(newBranch);
 		return newBranch;
-		
+
 	}
-	
+
 	public void restoreBranch(){
 		for(Ring ring : this){
 			ring.restoreVol(Espacing_Ring.workingVol, Espacing_Ring.vol);
 		}
 	}
-	
+
 	public void eraseBranch(){
 		for(Ring ring: this) {
-			ring.eraseVol(workingVol);
+			ring.eraseVol(Espacing_Ring.workingVol);
 		}
 	}
-	
+
 
 	/*GETTERS AND SETTERS*/
 	public static void stopAll(boolean stop) {
@@ -520,27 +510,27 @@ public class Branch extends ArrayList<Ring> {
 	public int getBranchNo() {
 		return branchNo;
 	}
-	
+
 	public static void setEvolveValue(double value) {
 		evolveValue = value;
 	}
-	
+
 	public static void setBranchFacilitator(double value) {
 		branchFacilitator = value;
 	}
-	
+
 	public static void setFirstLoopElimination(double value){
 		firstLoopElimination = value;
 	}
-	
+
 	public static void setSecondLoopElimination(double value){
 		secondLoopElimination = value;
 	}
-	
+
 	public static void setThirdLoopElimination(double value){
 		thirdLoopElimination = value;
 	}
-	
+
 
 	@Override
 	public String toString() {

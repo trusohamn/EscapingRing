@@ -87,7 +87,7 @@ public class Espacing_Ring implements PlugIn {
 		Ring adjInitial = initial.adjustFirstRing(vol);
 		network.recalculateContrast(adjInitial.getContrast());
 
-		Branch firstBranch = new Branch(network, adjInitial, vol, test, workingVol, step);
+		Branch firstBranch = new Branch(network, adjInitial, step);
 
 
 
