@@ -8,15 +8,19 @@ import javax.swing.DefaultListModel;
 
 
 public class Network extends ArrayList<Branch> {
-	int totalNumberRings = 0;
-	double totalContrast = 0;
+	private int totalNumberRings = 0;
+	private double totalContrast = 0;
 	private double meanContrast = -Double.MAX_VALUE;
-	DefaultListModel<Branch> branchList;
+	private DefaultListModel<Branch> branchList;
 	private int lastBranchNo = 0;
 
 	public Network(DefaultListModel<Branch> branchList){
 		this.branchList = branchList;
 		lastBranchNo = branchList.size();
+	}
+	
+	public Network(ArrayList<Branch> branchList){
+		this.addAll(branchList);
 	}
 
 	public void save(String filename) {
@@ -163,6 +167,36 @@ public class Network extends ArrayList<Branch> {
 	public int getLastBranchNo() {
 		return lastBranchNo;
 	}
+	public int getTotalNumberRings() {
+		return totalNumberRings;
+	}
 
+	public double getTotalContrast() {
+		return totalContrast;
+	}
+
+	public DefaultListModel<Branch> getBranchList() {
+		return branchList;
+	}
+
+	public void setBranchList(DefaultListModel<Branch> branchList) {
+		this.branchList = branchList;
+	}
+
+	public void setTotalNumberRings(int totalNumberRings) {
+		this.totalNumberRings = totalNumberRings;
+	}
+
+	public void setTotalContrast(double totalContrast) {
+		this.totalContrast = totalContrast;
+	}
+
+	public void setMeanContrast(double meanContrast) {
+		this.meanContrast = meanContrast;
+	}
+
+	public void setLastBranchNo(int lastBranchNo) {
+		this.lastBranchNo = lastBranchNo;
+	}
 
 }

@@ -6,6 +6,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -25,15 +31,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
 
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.FormSpecs;
-import com.jgoodies.forms.layout.RowSpec;
 
 import ij.IJ;
 import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
+
 
 public class Gui extends JDialog {
 
@@ -563,7 +566,7 @@ public class Gui extends JDialog {
 		secondRow.add(btnFreeBranch);
 
 
-		/*****TAB4*****/	 
+		/*****TAB4 Export Import *****/	 
 		tab4 = new JPanel();
 		tab4.setLayout(new FlowLayout(FlowLayout.LEFT));
 
@@ -625,6 +628,90 @@ public class Gui extends JDialog {
 			}
 		}); 
 		tab4.add(btnCSV);
+		
+		final JButton btnExportXML = new JButton("Export network");
+		btnExportXML.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				try {
+					//IJ.log("trying to generate csv");
+					JFileChooser chooser = new JFileChooser(); 
+					chooser.setCurrentDirectory(new java.io.File("."));
+					chooser.setDialogTitle("Choose directory to save");
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					chooser.setAcceptAllFileFilterUsed(false);
+					//    
+					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+						System.out.println("getCurrentDirectory(): " 
+								+  chooser.getCurrentDirectory());
+						System.out.println("getSelectedFile() : " 
+								+  chooser.getSelectedFile());								
+						String objectName = chooser.getSelectedFile().getPath()+"/name.xml";
+						XMLEncoder encoder=null;
+
+						encoder=new XMLEncoder(new BufferedOutputStream(new FileOutputStream(objectName)));
+
+						encoder.writeObject(network);
+						for(Branch branch : network){
+							encoder.writeObject(branch);
+						}
+						encoder.close();
+						
+
+						IJ.log("Succes");
+					}
+					else {
+						System.out.println("No Selection ");
+					}
+				}
+				 catch (IOException e) {
+					//IJ.log("failed to generate csv");
+					e.printStackTrace();				
+				}	
+			}
+		}); 
+		tab4.add(btnExportXML);
+		
+		
+		final JButton btnImportXML = new JButton("Importnetwork");
+		btnImportXML .addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				try {
+					//IJ.log("trying to generate csv");
+					JFileChooser chooser = new JFileChooser(); 
+					chooser.setCurrentDirectory(new java.io.File("."));
+					chooser.setDialogTitle("Choose .xml file");
+					//chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					//chooser.setAcceptAllFileFilterUsed(false);
+					//    
+					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+						System.out.println("getCurrentDirectory(): " 
+								+  chooser.getCurrentDirectory());
+						System.out.println("getSelectedFile() : " 
+								+  chooser.getSelectedFile());								
+						String objectName = chooser.getSelectedFile().getPath();
+						XMLDecoder decoder=new XMLDecoder(new BufferedInputStream(new FileInputStream(objectName)));
+
+						Network bourneSeries=(Network)decoder.readObject();
+						for(Branch branch :bourneSeries){
+							network.add(branch);
+						}
+						
+
+						IJ.log("Succes");
+					}
+					else {
+						System.out.println("No Selection ");
+					}
+				}
+				 catch (IOException e) {
+					//IJ.log("failed to generate csv");
+					e.printStackTrace();				
+				}	
+			}
+		}); 
+		tab4.add(btnImportXML );
 
 		/***TAB5 Advanced Settings *****/
 		tab5 = new JPanel();

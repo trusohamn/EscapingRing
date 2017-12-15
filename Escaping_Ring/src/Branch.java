@@ -302,7 +302,7 @@ public class Branch extends ArrayList<Ring> {
 				}
 				prevMax = network.getMeanContrast()*2;
 
-				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() + " nrRings: " + network.totalNumberRings + " totalContrast: " + network.totalContrast);
+				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() + " nrRings: " + network.getTotalNumberRings() + " totalContrast: " + network.getTotalContrast());
 				Gui.updateMeanContrast();
 				iter++;
 			}
