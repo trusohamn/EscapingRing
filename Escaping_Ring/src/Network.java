@@ -1,5 +1,6 @@
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,13 +8,19 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 
 
-public class Network extends ArrayList<Branch> {
+public class Network extends ArrayList<Branch> implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 	private int totalNumberRings = 0;
 	private double totalContrast = 0;
 	private double meanContrast = -Double.MAX_VALUE;
-	private DefaultListModel<Branch> branchList;
+	protected DefaultListModel<Branch> branchList = null;
+
 	private int lastBranchNo = 0;
 
+	public Network(){	
+	}
+	
 	public Network(DefaultListModel<Branch> branchList){
 		this.branchList = branchList;
 		lastBranchNo = branchList.size();
@@ -24,11 +31,9 @@ public class Network extends ArrayList<Branch> {
 	}
 
 	public void save(String filename) {
-
 	}
 
 	public void load(String filename) {
-
 	}
 
 	public void recalculateContrast(double c) {
@@ -55,11 +60,11 @@ public class Network extends ArrayList<Branch> {
 		for(Branch branch : this) {
 			for(int n = 0; n<branch.size()-1; n++) {
 				double[] angles = new double[2];
-				Point3D first = branch.get(n).c;
-				Point3D second = branch.get(n+1).c;
+				Point3D first = branch.get(n).getC();
+				Point3D second = branch.get(n+1).getC();
 				Point3D dir = first.middlePointDir(second);
-				angles[0] = Math.acos(dir.z);
-				angles[1] = Math.atan2(dir.y, dir.x);
+				angles[0] = Math.acos(dir.getZ());
+				angles[1] = Math.atan2(dir.getY(), dir.getX());
 				double sint = Math.sin(angles[0]);
 				double cost = Math.cos(angles[0]);
 				double sinp = Math.sin(angles[1]);
@@ -79,18 +84,17 @@ public class Network extends ArrayList<Branch> {
 				}
 			}
 		}
-
 	}
 	
 	public void generateBinary(Volume vol) {
 		for(Branch branch : this) {
 			for(int n = 0; n<branch.size()-1; n++) {
 				double[] angles = new double[2];
-				Point3D first = branch.get(n).c;
-				Point3D second = branch.get(n+1).c;
+				Point3D first = branch.get(n).getC();
+				Point3D second = branch.get(n+1).getC();
 				Point3D dir = first.middlePointDir(second);
-				angles[0] = Math.acos(dir.z);
-				angles[1] = Math.atan2(dir.y, dir.x);
+				angles[0] = Math.acos(dir.getZ());
+				angles[1] = Math.atan2(dir.getY(), dir.getX());
 				double sint = Math.sin(angles[0]);
 				double cost = Math.cos(angles[0]);
 				double sinp = Math.sin(angles[1]);
@@ -121,7 +125,6 @@ public class Network extends ArrayList<Branch> {
 				}
 			}
 		}
-
 	}
 
 	public void exportData(String csvFile) throws IOException{
@@ -138,7 +141,7 @@ public class Network extends ArrayList<Branch> {
 			for(int n = 0; n<branch.size()-1; n++) {
 				++ringNumber;
 				if(n>0){
-					branchLength += branch.get(n-1).c.distance(branch.get(n).c);
+					branchLength += branch.get(n-1).getC().distance(branch.get(n).getC());
 				}
 				totalBranchWidth += branch.get(n).getRadius();
 
@@ -175,14 +178,6 @@ public class Network extends ArrayList<Branch> {
 		return totalContrast;
 	}
 
-	public DefaultListModel<Branch> getBranchList() {
-		return branchList;
-	}
-
-	public void setBranchList(DefaultListModel<Branch> branchList) {
-		this.branchList = branchList;
-	}
-
 	public void setTotalNumberRings(int totalNumberRings) {
 		this.totalNumberRings = totalNumberRings;
 	}
@@ -198,5 +193,17 @@ public class Network extends ArrayList<Branch> {
 	public void setLastBranchNo(int lastBranchNo) {
 		this.lastBranchNo = lastBranchNo;
 	}
+	public DefaultListModel<Branch> getBranchList() {
+		return branchList;
+	}
+
+	public void setBranchList(DefaultListModel<Branch> branchList) {
+		this.branchList = branchList;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
 
 }

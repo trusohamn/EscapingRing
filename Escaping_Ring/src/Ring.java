@@ -1,16 +1,20 @@
+import java.io.Serializable;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
 
-public class Ring {
+public class Ring  implements Serializable {
 
-	public Point3D c;
-	public Point3D dir = new Point3D(0, 0, 1);
+	private static final long serialVersionUID = 1L;
+	private Point3D c;
+	private Point3D dir = new Point3D(0, 0, 1);
 
-	public double radius;
-	public double thickness = 3; //??
+	private double radius;
+	private double thickness = 3; //??
 	private double length;
 	private double contrast;
+	
 	private Branch branch = null;
 	
 	static private double impInside = -0.25;
@@ -37,7 +41,7 @@ public class Ring {
 	}
 
 	public String toString() {
-		String out = "" + dir.x + " " + dir.y + " " + dir.z;
+		String out = "" + dir.getX() + " " + dir.getY() + " " + dir.getZ();
 		if(branch != null){
 			out += " from: " + branch;
 		}
@@ -46,8 +50,8 @@ public class Ring {
 	
 	public Ring duplicate() {
 		Ring r = new Ring();
-		r.c = new Point3D(c.x, c.y, c.z);
-		r.dir = new Point3D(dir.x, dir.y, dir.z);
+		r.c = new Point3D(c.getX(), c.getY(), c.getZ());
+		r.dir = new Point3D(dir.getX(), dir.getY(), dir.getZ());
 		r.radius = radius;
 		r.thickness = thickness;
 		r.length = length;
@@ -60,9 +64,9 @@ public class Ring {
 	// 2 phi XY
 	public Point3D getPositionFromSphericalAngles(double step, double theta, double phi) {	
 		double st = Math.sin(theta);
-		double xp = c.x + step * st * Math.cos(phi);
-		double yp = c.y + step * st * Math.sin(phi);
-		double zp = c.z + step * Math.cos(theta);	
+		double xp = c.getX() + step * st * Math.cos(phi);
+		double yp = c.getY() + step * st * Math.sin(phi);
+		double zp = c.getZ() + step * Math.cos(theta);	
 		return new Point3D(xp, yp, zp);
 	}
 	
@@ -76,8 +80,8 @@ public class Ring {
 	
 	public double[] getAnglesFromDirection() {
 		double[] polar = new double[2];
-		polar[0] = Math.acos(dir.z);
-		polar[1] = Math.atan2(dir.y, dir.x);
+		polar[0] = Math.acos(dir.getZ());
+		polar[1] = Math.atan2(dir.getY(), dir.getX());
 		return polar;
 	}
 	
@@ -163,9 +167,9 @@ public class Ring {
 			for(int j=-radius*2; j<=radius*2; j++) {
 				for(int i=-radius*2; i<=radius*2; i++) {
 
-					int dx = (int) Math.round(this.c.x +  i*R[0][0] + j*R[0][1] + k*R[0][2]);
-					int dy = (int) Math.round(this.c.y + i*R[1][0] + j*R[1][1] + k*R[1][2]);
-					int dz = (int) Math.round(this.c.z + i*R[2][0]  + k*R[2][2]);
+					int dx = (int) Math.round(this.c.getX() +  i*R[0][0] + j*R[0][1] + k*R[0][2]);
+					int dy = (int) Math.round(this.c.getY() + i*R[1][0] + j*R[1][1] + k*R[1][2]);
+					int dz = (int) Math.round(this.c.getZ() + i*R[2][0]  + k*R[2][2]);
 
 					double d = Math.sqrt(i*i+j*j);
 					if(dx>=0 && dy>=0 && dz>=0 && dx<img.getWidth() && dy<img.getHeight() && dz< img.getImageStackSize()){
@@ -182,10 +186,10 @@ public class Ring {
 	
 	public Ring flippedRing() {
 		Ring newRing = this.duplicate();
-		newRing.dir.x = -this.dir.x;
-		newRing.dir.y = -this.dir.y;
-		newRing.dir.z = -this.dir.z;
-		newRing.contrast = this.contrast;
+		newRing.getDir().setX( -this.dir.getX());
+		newRing.getDir().setY( -this.dir.getY());
+		newRing.getDir().setZ( -this.dir.getZ());
+		newRing.setContrast( this.contrast);
 		return newRing;
 	}
 	
@@ -267,18 +271,18 @@ public class Ring {
 			for(double dp = -Math.PI/2; dp<=Math.PI/2; dp+=angleStep) {
 				//return the MeasurmentVolume
 				Ring maxRing = this.duplicate();
-				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
-				maxRing.dir = maxRing.getDirectionFromSphericalAngles( dt,  dp);
+				maxRing.setRadius(initRadius*maxRadius*maxMeasurmentArea);
+				maxRing.setDir(maxRing.getDirectionFromSphericalAngles( dt,  dp));
 				MeasurmentVolume mv = new MeasurmentVolume(vol, maxRing);
 				//IJ.log(mv.toString());
 				for(double r = initRadius*0.90; r<initRadius*maxRadius; r+=0.05*initRadius) {
 					Ring cand = maxRing.duplicate();
-					cand.radius = r;
+					cand.setRadius(r);
 					cand.calculateContrast(mv);
 					double contrast = cand.contrast;
 					//IJ.log(""+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
 					if(contrast > maxContrast) {
-						IJ.log("better >>>>>"+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
+						IJ.log("better >>>>>"+ contrast + " ( " + cand.getDir().getX() + " , " +cand.getDir().getY() + ", " + cand.getDir().getZ() );
 						bestCand=cand;
 						maxContrast=contrast;
 					}
@@ -336,6 +340,77 @@ public class Ring {
 	}
 	public double getRadius() {
 		return radius;
+	}
+	public Point3D getC() {
+		return c;
+	}
+
+	public void setC(Point3D c) {
+		this.c = c;
+	}
+
+	public Point3D getDir() {
+		return dir;
+	}
+
+	public void setDir(Point3D dir) {
+		this.dir = dir;
+	}
+
+	public double getThickness() {
+		return thickness;
+	}
+
+	public void setThickness(double thickness) {
+		this.thickness = thickness;
+	}
+
+	public static double getMaxIn() {
+		return maxIn;
+	}
+
+	public static void setMaxIn(double maxIn) {
+		Ring.maxIn = maxIn;
+	}
+
+	public static double getMinMem() {
+		return minMem;
+	}
+
+	public static void setMinMem(double minMem) {
+		Ring.minMem = minMem;
+	}
+
+	public static double getMaxMem() {
+		return maxMem;
+	}
+
+	public static void setMaxMem(double maxMem) {
+		Ring.maxMem = maxMem;
+	}
+
+	public static double getMinOut() {
+		return minOut;
+	}
+
+	public static void setMinOut(double minOut) {
+		Ring.minOut = minOut;
+	}
+
+	public static double getMaxOut() {
+		return maxOut;
+	}
+
+	public static void setMaxOut(double maxOut) {
+		Ring.maxOut = maxOut;
+	}
+
+	public void setRadius(double radius) {
+		this.radius = radius;
+	}
+
+	public void setLength(double length) {
+		this.length = length;
 	}
 
 }

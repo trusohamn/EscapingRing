@@ -11,8 +11,11 @@ import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -33,6 +36,7 @@ import javax.swing.WindowConstants;
 
 
 import ij.IJ;
+import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
@@ -40,6 +44,7 @@ import ij.gui.StackWindow;
 
 public class Gui extends JDialog {
 
+	private static final long serialVersionUID = 1L;
 	static DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
 	DefaultListModel<Branch> extraBranchList = new DefaultListModel<Branch>();
 	DefaultListModel<Ring> ringList = new DefaultListModel<Ring>();
@@ -295,7 +300,7 @@ public class Gui extends JDialog {
 						Branch closestBranch = null;
 						for(Branch branch : network){
 							for(Ring ring : branch){
-								double thisDistance=target.distance(ring.c);
+								double thisDistance=target.distance(ring.getC());
 								if(thisDistance<minDistance){
 									minDistance = thisDistance;
 									closestBranch = branch;
@@ -438,7 +443,7 @@ public class Gui extends JDialog {
 						Branch closestBranch = null;
 						for(Branch branch : network){
 							for(Ring ring : branch){
-								double thisDistance=target.distance(ring.c);
+								double thisDistance=target.distance(ring.getC());
 								if(thisDistance<minDistance){
 									minDistance = thisDistance;
 									closestRing = ring;
@@ -581,7 +586,7 @@ public class Gui extends JDialog {
 			}
 		}); 
 		tab4.add(btnSkeleton);
-		
+
 		final JButton btnBinary = new JButton("Generate binary");
 		btnBinary.addActionListener(new ActionListener() {
 			@Override
@@ -628,87 +633,84 @@ public class Gui extends JDialog {
 			}
 		}); 
 		tab4.add(btnCSV);
-		
+
 		final JButton btnExportXML = new JButton("Export network");
 		btnExportXML.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
+				/*
 				try {
-					//IJ.log("trying to generate csv");
+ 
+					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+						encoder=new XMLEncoder(new BufferedOutputStream(new FileOutputStream(objectName)));
+						encoder.writeObject(network);
+						encoder.close();
+					}
+				}
+				catch (IOException e) {			
+				}	
+				 */
+				try{
 					JFileChooser chooser = new JFileChooser(); 
 					chooser.setCurrentDirectory(new java.io.File("."));
 					chooser.setDialogTitle("Choose directory to save");
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setAcceptAllFileFilterUsed(false);
-					//    
-					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
-						System.out.println("getCurrentDirectory(): " 
-								+  chooser.getCurrentDirectory());
-						System.out.println("getSelectedFile() : " 
-								+  chooser.getSelectedFile());								
-						String objectName = chooser.getSelectedFile().getPath()+"/name.xml";
-						XMLEncoder encoder=null;
-
-						encoder=new XMLEncoder(new BufferedOutputStream(new FileOutputStream(objectName)));
-
-						encoder.writeObject(network);
-						for(Branch branch : network){
-							encoder.writeObject(branch);
-						}
-						encoder.close();
-						
-
-						IJ.log("Succes");
-					}
-					else {
-						System.out.println("No Selection ");
-					}
-				}
-				 catch (IOException e) {
-					//IJ.log("failed to generate csv");
-					e.printStackTrace();				
-				}	
-			}
+					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION){
+						String objectName = chooser.getSelectedFile().getPath()+"/name.ser";
+						FileOutputStream fileOut =new FileOutputStream(objectName);
+						ObjectOutputStream out = new ObjectOutputStream(fileOut);
+						out.writeObject(network);
+						out.close();
+						fileOut.close();
+						System.out.printf("Serialized data is saved ");}
+				} catch (Exception e) {
+					IJ.log(e.toString());
+					e.printStackTrace();
+				}}
 		}); 
 		tab4.add(btnExportXML);
-		
-		
-		final JButton btnImportXML = new JButton("Importnetwork");
-		btnImportXML .addActionListener(new ActionListener() {
+
+
+		final JButton btnImportXML = new JButton("Import network");
+		btnImportXML.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				try {
-					//IJ.log("trying to generate csv");
-					JFileChooser chooser = new JFileChooser(); 
-					chooser.setCurrentDirectory(new java.io.File("."));
-					chooser.setDialogTitle("Choose .xml file");
-					//chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					//chooser.setAcceptAllFileFilterUsed(false);
-					//    
-					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
-						System.out.println("getCurrentDirectory(): " 
-								+  chooser.getCurrentDirectory());
-						System.out.println("getSelectedFile() : " 
-								+  chooser.getSelectedFile());								
-						String objectName = chooser.getSelectedFile().getPath();
+				/*try {
 						XMLDecoder decoder=new XMLDecoder(new BufferedInputStream(new FileInputStream(objectName)));
+						try{
+							Network imported =(Network) decoder.readObject();
+							decoder.close();
+				}
+				catch (Exception e){
+					IJ.log("other exception");
+					IJ.log(e.toString());
+					e.printStackTrace();
+				}
+				 */
+				JFileChooser chooser = new JFileChooser(); 
+				chooser.setCurrentDirectory(new java.io.File("."));
+				chooser.setDialogTitle("Choose .xml file");
+				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+					String objectName = chooser.getSelectedFile().getPath();
+					FileInputStream fileIn = null;
+					try {
+						fileIn = new FileInputStream(objectName);
 
-						Network bourneSeries=(Network)decoder.readObject();
-						for(Branch branch :bourneSeries){
-							network.add(branch);
+						ObjectInputStream in = new ObjectInputStream(fileIn);
+						Network n = (Network) in.readObject();
+						IJ.log(n.toString());
+						in.close();
+						fileIn.close();
+						for(Branch b : n){
+							network.add(b);
 						}
-						
-
-						IJ.log("Succes");
 					}
-					else {
-						System.out.println("No Selection ");
+					catch (Exception e) {
+						IJ.log(e.toString());
+						e.printStackTrace();
 					}
 				}
-				 catch (IOException e) {
-					//IJ.log("failed to generate csv");
-					e.printStackTrace();				
-				}	
 			}
 		}); 
 		tab4.add(btnImportXML );
@@ -823,13 +825,22 @@ public class Gui extends JDialog {
 			public void actionPerformed(final ActionEvent arg0) {
 
 				//Espacing_Ring.showResult(network, step);	
-				Espacing_Ring.drawNetwork(network);
+				if(Espacing_Ring.vol == null){
+					IJ.log("Saving the volume");
+					Espacing_Ring.imp = WindowManager.getCurrentImage();
+					Espacing_Ring.vol = new Volume(Espacing_Ring.imp );
+					Espacing_Ring.imp  = new ImagePlus("VascRing3D", Espacing_Ring.vol.createImageStackFrom3DArray());
+					Espacing_Ring.imp.setDisplayMode(IJ.COLOR);
+					Espacing_Ring.iC = new ImageCanvas(Espacing_Ring.imp);
+					Espacing_Ring.imgS = new StackWindow (Espacing_Ring.imp, Espacing_Ring.iC);
+					Espacing_Ring.iC.setVisible(true);
+				}
 				if(Espacing_Ring.imgS.isVisible() == false) {
 					//doesnt work
 					IJ.log("trying to restore image");
 					Espacing_Ring.generateView(true);
-					Espacing_Ring.drawNetwork(network);
 				}
+				Espacing_Ring.drawNetwork(network);
 				Espacing_Ring.iC.repaint();
 			}
 		}); 
@@ -858,7 +869,7 @@ public class Gui extends JDialog {
 
 	public static void updateMeanContrast() {
 		double meanContrast = network.getMeanContrast();
-		
+
 		if(meanContrast== -Double.MAX_VALUE) {		
 			meanContrastLabel.setText( "Mean: None");
 		}

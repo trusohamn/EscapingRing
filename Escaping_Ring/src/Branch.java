@@ -1,18 +1,18 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
 import ij.IJ;
 
-public class Branch extends ArrayList<Ring> {
-	Network network;
-	double step;
+public class Branch extends ArrayList<Ring>  implements Serializable {
+	private static final long serialVersionUID = 1L;
+	private double step;
 	private static double evolveValue = 0.4; //for finishing the branch threshold
 	private static double branchFacilitator = 0.4;
 	private static double firstLoopElimination = 30;
 	private static double secondLoopElimination = 30;
 	private static double thirdLoopElimination = 100;
-	//private static boolean lookForward = true;
 
 
 	private int branchNo;
@@ -22,29 +22,28 @@ public class Branch extends ArrayList<Ring> {
 	public Branch(){
 
 	}
-	public Branch(Network network, Ring ring, double step){
+	public Branch(Ring ring, double step){
 		//first branch
+		IJ.log("first branch");
+		this.step = step;
 		this.add(ring);
-		this.network = network;
-		this.addAll(evolve( ring, step, evolveValue));
+		this.addAll(evolve( ring));
 		Collections.reverse(this);
-		this.addAll(evolve( ring.flippedRing(), step , evolveValue));
-		network.add(this);
-		this.branchNo = network.getLastBranchNo();
-		this.regression( step);
+		this.addAll(evolve( ring.flippedRing()));
+		Gui.network.add(this);
+		this.branchNo = Gui.network.getLastBranchNo();
+		this.regression();
 	}
 
-	public Branch(Network network, ArrayList<Ring> branch, double step){
+	public Branch(ArrayList<Ring> branch, double step){
+		this.step = step;
 		this.addAll(branch);
-		this.network = network;
-		network.add(this);
-		this.branchNo = network.getLastBranchNo();
-		//this.drawBranch(test, step);
-		//workingVol.showTwoChannels("Second round", test);
-		this.regression( step);
+		Gui.network.add(this);
+		this.branchNo = Gui.network.getLastBranchNo();
+		this.regression();
 	}
 
-	public void regression( double step){
+	public void regression(){
 		class OneShotTask implements Runnable{
 			Ring nextRing;
 			OneShotTask(Ring nextRing) { 
@@ -58,9 +57,9 @@ public class Branch extends ArrayList<Ring> {
 				for(Ring r : ringsAround) {
 					if(stopAll) break;
 					//IJ.log("checking next from " + ringsAround.size());
-					ArrayList<Ring> branchCand = evolve( r, step, evolveValue);
+					ArrayList<Ring> branchCand = evolve( r);
 					if(branchCand.size()>3) {
-						new Branch(network, branchCand, step);
+						new Branch(branchCand, step);
 					}	
 				}
 
@@ -219,11 +218,11 @@ public class Branch extends ArrayList<Ring> {
 	}
 	 */
 
-	public ArrayList<Ring> evolve( Ring initial, double step, double breakValue) {
+	public ArrayList<Ring> evolve( Ring initial) {
 
 		Ring current = initial.duplicate();
 		int iter = 0;
-		double prevMax = network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*2 : network.getMeanContrast()*2; //later the contrast value is a sum of three rings
+		double prevMax = Gui.network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*2 : Gui.network.getMeanContrast()*2; //later the contrast value is a sum of three rings
 		prevMax = prevMax*branchFacilitator; //to lower the threshold of starting the new branch
 		ArrayList<Ring> newBranch = new ArrayList<Ring>();
 		newBranch.add(current);
@@ -285,7 +284,7 @@ public class Branch extends ArrayList<Ring> {
 				//IJ.log("TotalContrast: " + max + "max: " + currentContrast + "rest: " + rest );
 
 
-				if(max<prevMax*breakValue || max==0) break MAINLOOP;
+				if(max<prevMax*evolveValue || max==0) break MAINLOOP;
 
 				newBranch.add(best);
 				//best.drawMeasureArea(test, step);
@@ -297,12 +296,12 @@ public class Branch extends ArrayList<Ring> {
 
 				//erase ring 2 places backwards
 				if(newBranch.size()>3) {
-					network.recalculateContrast(best.getContrast());
+					Gui.network.recalculateContrast(best.getContrast());
 					newBranch.get(newBranch.size()-2).eraseVol(Espacing_Ring.workingVol);
 				}
-				prevMax = network.getMeanContrast()*2;
+				prevMax = Gui.network.getMeanContrast()*2;
 
-				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() + " nrRings: " + network.getTotalNumberRings() + " totalContrast: " + network.getTotalContrast());
+				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + Gui.network.getMeanContrast() + " nrRings: " + Gui.network.getTotalNumberRings() + " totalContrast: " + Gui.network.getTotalContrast());
 				Gui.updateMeanContrast();
 				iter++;
 			}
@@ -310,6 +309,7 @@ public class Branch extends ArrayList<Ring> {
 		return newBranch;
 	}
 
+	
 	private ArrayList<Ring> keepBestCandidates(ArrayList<Ring> rings, double percent) {
 		//keeps percent of best candidates
 		percent = 100 - percent;
@@ -339,7 +339,7 @@ public class Branch extends ArrayList<Ring> {
 		double angleStep = Math.PI/10;
 		int angleRange = 1;
 
-		double initRadius = ring.radius;
+		double initRadius = ring.getRadius();
 		//double maxRadius = 1.40;
 		double maxMeasurmentArea = 2;
 
@@ -347,17 +347,17 @@ public class Branch extends ArrayList<Ring> {
 			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+=angleStep) {	
 				//return the MeasurmentVolume
 				Ring maxRing = ring.duplicate();
-				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
+				maxRing.setRadius(initRadius*maxRadius*maxMeasurmentArea);
 				double polar[] = maxRing.getAnglesFromDirection();
-				maxRing.c = maxRing.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp);
-				maxRing.dir = new Point3D((maxRing.c.x-ring.c.x)/step, (maxRing.c.y-ring.c.y)/step, (maxRing.c.z-ring.c.z)/step);
+				maxRing.setC(maxRing.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp));
+				maxRing.setDir(new Point3D((maxRing.getC().getX() - ring.getC().getX()) / step, (maxRing.getC().getY()-ring.getC().getY())/step, (maxRing.getC().getZ()-ring.getC().getZ())/step));
 				MeasurmentVolume mv = new MeasurmentVolume(Espacing_Ring.workingVol, maxRing);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
 				for(double r = initRadius*minRadius; r<initRadius*maxRadius; r+=0.20*initRadius) {
 					Ring cand = maxRing.duplicate();
-					cand.radius = r;
+					cand.setRadius(r);
 					cand.calculateContrast(mv);
 					//IJ.log("contrast: " + cand.contrast);
 					cands.add(cand);
@@ -373,7 +373,7 @@ public class Branch extends ArrayList<Ring> {
 		double angleStep = Math.PI/40;
 		int angleRange = 1;
 
-		double initRadius = ring.radius;
+		double initRadius = ring.getRadius();
 		double maxRadius = 1.01;
 		double maxMeasurmentArea = 2;
 
@@ -383,15 +383,15 @@ public class Branch extends ArrayList<Ring> {
 				//return the MeasurmentVolume
 				Ring maxRing = ring.duplicate();
 				double polar[] = maxRing.getAnglesFromDirection();
-				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
-				maxRing.dir = maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp);
+				maxRing.setRadius(initRadius*maxRadius*maxMeasurmentArea);
+				maxRing.setDir(maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp));
 				MeasurmentVolume mv = new MeasurmentVolume(Espacing_Ring.workingVol, maxRing);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
 				for(double r = initRadius*0.99; r<initRadius*maxRadius; r+=0.01*initRadius) {
 					Ring cand = maxRing.duplicate();
-					cand.radius = r;
+					cand.setRadius(r);
 					cand.calculateContrast(mv);
 					//IJ.log("contrast: " + cand.contrast);
 					cands.add(cand);
@@ -408,7 +408,7 @@ public class Branch extends ArrayList<Ring> {
 		double angleStep = Math.PI/2;
 		int angleRange = 1;
 
-		double initRadius = ring.radius;
+		double initRadius = ring.getRadius();
 		double maxRadius = 1.75;
 		double maxMeasurmentArea = 2;
 
@@ -417,12 +417,12 @@ public class Branch extends ArrayList<Ring> {
 			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+= angleStep) {	
 				Ring maxRing = ring.duplicate();
 				double polar[] = maxRing.getAnglesFromDirection();
-				maxRing.radius = initRadius*maxRadius*maxMeasurmentArea;
-				maxRing.dir = maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp);
+				maxRing.setRadius (initRadius*maxRadius*maxMeasurmentArea);
+				maxRing.setDir (maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp));
 				double r = initRadius;
 				//for(double r = initRadius*0.25; r<=initRadius*maxRadius; r+=0.75*initRadius) {
 				Ring cand = maxRing.duplicate();
-				cand.radius = r;
+				cand.setRadius(r);
 				cand.setContrast(keepContrast) ;
 				//IJ.log("contrast: " + cand.contrast);
 				cands.add(cand);
@@ -444,7 +444,6 @@ public class Branch extends ArrayList<Ring> {
 		}
 		Branch newB = new Branch();
 		newB.addAll(n);
-		newB.network = network;
 		newB.step = step;
 		//newB.evolveValue = evolveValue ; //for finishing the branch threshold
 		newB.branchNo = branchNo;
@@ -452,13 +451,13 @@ public class Branch extends ArrayList<Ring> {
 	}
 	public Branch createBranchBetweenTwoRings(Ring start, Ring end, double width){
 		//creates a single long ring between centers of two rings
-		Point3D startPoint = start.c;
-		Point3D endPoint = end.c;
+		Point3D startPoint = start.getC();
+		Point3D endPoint = end.getC();
 		double avgRadius = width;
 		double distanceBetween = startPoint.distance(endPoint);
 		Point3D newMiddle = startPoint.middlePoint(endPoint);
-		Ring newRing =  new Ring(newMiddle.x, newMiddle.y, newMiddle.z, avgRadius, distanceBetween);
-		newRing.dir = startPoint.middlePointDir(endPoint);
+		Ring newRing =  new Ring(newMiddle.getX(), newMiddle.getY(), newMiddle.getZ(), avgRadius, distanceBetween);
+		newRing.setDir(startPoint.middlePointDir(endPoint));
 
 		Branch newBranch = this.duplicateCrop(0, 0);
 		newBranch.remove(0);
@@ -466,25 +465,25 @@ public class Branch extends ArrayList<Ring> {
 		newBranch.add(newRing);
 		newBranch.add(end);
 		newBranch.eraseBranch();
-		network.add(newBranch);
+		Gui.network.add(newBranch);
 
 		return newBranch;
 	}
 
 	public Branch createBranchBetweenRingAndPoint(Ring start, Point3D endPoint, double width){
-		Point3D startPoint = start.c;
+		Point3D startPoint = start.getC();
 		double avgRadius = width;
 		double distanceBetween = startPoint.distance(endPoint);
 		Point3D newMiddle = startPoint.middlePoint(endPoint);
-		Ring newRing =  new Ring(newMiddle.x, newMiddle.y, newMiddle.z, avgRadius, distanceBetween);
-		newRing.dir = startPoint.middlePointDir(endPoint);	
+		Ring newRing =  new Ring(newMiddle.getX(), newMiddle.getY(), newMiddle.getZ(), avgRadius, distanceBetween);
+		newRing.setDir(startPoint.middlePointDir(endPoint));	
 
 		Branch newBranch = this.duplicateCrop(0, 0);
 		newBranch.remove(0);
 		newBranch.add(start);
 		newBranch.add(newRing);
 		newBranch.eraseBranch();
-		network.add(newBranch);
+		Gui.network.add(newBranch);
 		return newBranch;
 
 	}
@@ -529,6 +528,30 @@ public class Branch extends ArrayList<Ring> {
 
 	public static void setThirdLoopElimination(double value){
 		thirdLoopElimination = value;
+	}
+	public double getStep() {
+		return step;
+	}
+	public void setStep(double step) {
+		this.step = step;
+	}
+	public static double getEvolveValue() {
+		return evolveValue;
+	}
+	public static double getBranchFacilitator() {
+		return branchFacilitator;
+	}
+	public static double getFirstLoopElimination() {
+		return firstLoopElimination;
+	}
+	public static double getSecondLoopElimination() {
+		return secondLoopElimination;
+	}
+	public static double getThirdLoopElimination() {
+		return thirdLoopElimination;
+	}
+	public void setBranchNo(int branchNo) {
+		this.branchNo = branchNo;
 	}
 
 
