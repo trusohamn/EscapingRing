@@ -1,6 +1,5 @@
 import java.util.Arrays;
 
-import ij.IJ;
 
 public class MeasurmentVolume {
 	double[] sumIntensity; //in the cilinder with wall with bin and length of the step/width
@@ -25,7 +24,7 @@ public class MeasurmentVolume {
 					{sinp*cost, cosp, sinp*sint},
 					{-sint, 0, cost}};
 
-		int maxR = (int)Math.ceil(ring.radius); // maximal needed radius - the maximum radius and more
+		int maxR = (int)Math.ceil(ring.getRadius()); // maximal needed radius - the maximum radius and more
 		bin =  1; //with bin 1 it properly aligns first ring
 		int noBins = (int) Math.ceil(maxR/bin)+1;
 		//IJ.log("no of bins: "+ noBins+" radius: " + maxR);
@@ -44,7 +43,7 @@ public class MeasurmentVolume {
 					if(d<=maxR){
 						int binIndex = (int) Math.round(d/bin); 
 						//IJ.log("bin : " + binIndex +" radius: " + d);
-						sumIntensity[binIndex] += volume.getValue(ring.c, dx, dy, dz);
+						sumIntensity[binIndex] += volume.getValue(ring.getC(), dx, dy, dz);
 						++count[binIndex];
 					}
 				}

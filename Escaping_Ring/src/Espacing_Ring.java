@@ -5,7 +5,6 @@ import ij.gui.ImageCanvas;
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
-import ij.plugin.ChannelSplitter;
 import ij.plugin.PlugIn;
 
 import java.awt.Rectangle;
@@ -20,6 +19,7 @@ public class Espacing_Ring implements PlugIn {
 	static ImageCanvas iC;
 	static ImagePlus imp; //display image
 	static StackWindow imgS;
+	static String imageName;
 
 	@Override
 	public void run(String arg0) {
@@ -76,34 +76,29 @@ public class Espacing_Ring implements PlugIn {
 
 
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
-		IJ.log(" Initial Ring " + initial);
-		Volume test = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 
-		if(vol == null) vol = new Volume(imp);
+		if(vol == null) {
+			vol = new Volume(imp);
+			imageName = imp.getTitle();
+			Gui.updateLoadedImage();
+		}
 		if(workingVol == null) workingVol = new Volume(imp); 
 
+		Parameters params = new Parameters(imageName, xc, yc, zc, radius,  step,  impInside,
+				 impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
+				thirdLoop, maxIn, minMem,  maxMem, minOut, maxOut);
+		Gui.usedParameters.add(params);
+		
 		generateView(true);
-	
-		Ring adjInitial = initial.adjustFirstRing(vol);
+
+		Ring adjInitial = initial.adjustFirstRing(workingVol);
+		IJ.log(" Initial Ring " + adjInitial.getContrast());
 		network.recalculateContrast(adjInitial.getContrast());
 
-		Branch firstBranch = new Branch(network, adjInitial, step);
 
-
-
-
+		new Branch(adjInitial, step);
 	}
-	/*	public static void showResult(Network network, double step){
-		segmented = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
-		for(Branch branch : network) {
-			for(Ring ring : branch) {
-				ring.drawMeasureArea(segmented);
-			}
-		}
-		generateView(false);
 
-	}
-	 */
 	public static void drawNetwork(Network network){
 
 		for(Branch branch : network) {
@@ -111,31 +106,25 @@ public class Espacing_Ring implements PlugIn {
 				ring.drawMeasureArea(iC.getImage(), java.awt.Color.BLUE);
 			}
 		}
-
 	}
 
-	public static void showResult(DefaultListModel<Branch> branchList, double step){
-		//selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
+	public static void showResult(DefaultListModel<Branch> branchList){
 		for(int i=0; i< branchList.getSize(); i++){
 			Branch branch = branchList.getElementAt(i);
 			for(Ring ring : branch) {
 				ring.drawMeasureArea(iC.getImage(), java.awt.Color.RED);
 			}
 		}
-		//generateView(false);
-
 	}
 
 	public static void showRings(DefaultListModel<Ring> ringList){
-		//selected = new Volume(imp.getWidth(), imp.getHeight(), imp.getNSlices());
 		for(int i=0; i< ringList.getSize(); i++){
 			Ring ring = ringList.getElementAt(i);
 			ring.drawMeasureArea(iC.getImage(), java.awt.Color.YELLOW);
 		}
-		//generateView(false);
 	}
 
-
+	/*
 	private double[] unit(double[] u) {
 		double norm = 0.0;
 		for(int i=0; i<u.length; i++)
@@ -143,6 +132,7 @@ public class Espacing_Ring implements PlugIn {
 		norm = Math.sqrt(norm);
 		return new double[] {u[0]/norm, u[1]/norm, u[2]/norm};	
 	}
+	 */
 
 	public void drawCenterLine(Volume volume, Ring ring) {
 
@@ -161,17 +151,18 @@ public class Espacing_Ring implements PlugIn {
 			double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
 			double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
 			double dz = i*R[2][0]  + k*R[2][2];
-			volume.setValue(ring.c, dx, dy, dz, 1000);
+			volume.setValue(ring.getC(), dx, dy, dz, 1000);
 		}
 	}
 
 	public static void generateView(boolean setVisible){
-		ImagePlus imp = new ImagePlus("VascRing3D", vol.createImageStackFrom3DArray());
-		imp.setDisplayMode(IJ.COLOR);
-		iC = new ImageCanvas(imp);
-		imgS = new StackWindow (imp, iC);
+		if(iC==null || Espacing_Ring.imgS.isVisible() == false){
+			imp = new ImagePlus("VascRing3D", vol.createImageStackFrom3DArray());
+			imp.setDisplayMode(IJ.COLOR);
+			iC = new ImageCanvas(imp);
+			imgS = new StackWindow (imp, iC);			
+		}
 		iC.setVisible(true);
-
 
 	}
 }
