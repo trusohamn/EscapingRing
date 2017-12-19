@@ -13,6 +13,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	private static double firstLoopElimination = 30;
 	private static double secondLoopElimination = 30;
 	private static double thirdLoopElimination = 100;
+	private static int minLengthBranch = 4;
 
 
 	private int branchNo;
@@ -20,8 +21,11 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	private static boolean stopAll;
 
 	public Branch(){
-
+		for(Ring r: this){
+			r.addBranch(this);
+		}
 	}
+
 	public Branch(Ring ring, double step){
 		//first branch
 		IJ.log("first branch");
@@ -33,6 +37,9 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		Gui.network.add(this);
 		this.branchNo = Gui.network.getLastBranchNo();
 		this.regression();
+		for(Ring r: this){
+			r.addBranch(this);
+		}
 	}
 
 	public Branch(ArrayList<Ring> branch, double step){
@@ -41,6 +48,9 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		Gui.network.add(this);
 		this.branchNo = Gui.network.getLastBranchNo();
 		this.regression();
+		for(Ring r: this){
+			r.addBranch(this);
+		}
 	}
 
 	public void regression(){
@@ -54,11 +64,14 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 				Gui.updateRunning();
 
 				ArrayList<Ring> ringsAround = sparseCandidates(nextRing);
+				//sparseCandidate is not added to the branch, init is
 				for(Ring r : ringsAround) {
 					if(stopAll) break;
-					//IJ.log("checking next from " + ringsAround.size());
-					ArrayList<Ring> branchCand = evolve( r);
-					if(branchCand.size()>3) {
+					ArrayList<Ring> branchCand = new ArrayList<Ring>();
+					branchCand.add(nextRing);
+					branchCand.addAll(evolve( r));
+
+					if(branchCand.size()>=minLengthBranch) {
 						new Branch(branchCand, step);
 					}	
 				}
@@ -72,151 +85,15 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		for(Ring ring: this) {
 			ring.eraseVol(Espacing_Ring.workingVol);
 		}
-
-		Branch branchCopy = (Branch) this.clone();
-
-		for(int i = branchCopy.size()-1; i >=0 ; i--){
+		ArrayList<Ring> sortedBranchCopy = this.sortLowestContrastFirst();
+		for(int i = 0; i < sortedBranchCopy.size(); i++){
 			if(stopAll) break;
 			IJ.log("checking ring: " + i);
-			Ring nextRing = branchCopy.get(i);
+			Ring nextRing = sortedBranchCopy.get(i);
 			Thread t = new Thread(new OneShotTask(nextRing));
 			t.start();
 		}
-
-
-
 	}
-	/*
-	public ArrayList<Ring> evolve(Volume vol, Ring initial, double step, double breakValue) {
-
-		Ring current = initial.duplicate();
-		int iter = 0;
-		double prevMax = network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*branchFacilitator : network.getMeanContrast()*branchFacilitator; 
-		ArrayList<Ring> newBranch = new ArrayList<Ring>();
-		newBranch.add(current);
-		double maxRadius = 1.40;
-		double minRadius = 0.80;
-
-		 DO ONCE 
-		ArrayList<Ring> candidates = proposeCandidates(current, step, vol, maxRadius, minRadius);
-		//keep x% best
-		candidates = keepBestCandidates(candidates, firstLoopElimination);
-		ArrayList<Ring[]> candidatesTriple = new ArrayList<Ring[]>();
-		for ( Ring cand : candidates){
-			ArrayList<Ring> candidates2 = proposeCandidates(cand, step, vol, maxRadius, minRadius);
-			//keep x% best
-			candidates2 = keepBestCandidates(candidates2, secondLoopElimination);
-			for (Ring cand2 : candidates2){
-				ArrayList<Ring> candidates3 = proposeCandidates(cand2, step, vol, maxRadius, minRadius);
-				candidates3 = keepBestCandidates(candidates3, thirdLoopElimination);
-				for (Ring cand3 : candidates3){
-					candidatesTriple.add(new Ring[]{cand,cand2, cand3});
-				}	
-			}
-		}
-		//calculating the best contrast out of those [three rings]
-		Ring best = null; //first ring of triple
-		double max = -Double.MAX_VALUE; //total contrast of three rings
-		double rest = -Double.MAX_VALUE; //sum of contrast of second and third ring
-		for(Ring[] cC : candidatesTriple) {
-			double c = cC[0].getContrast() + cC[1].getContrast() + cC[2].getContrast();
-			//IJ.log(" c: " + c);
-			if (c > max) {
-				max = c;
-				best = cC[0];	
-				rest = cC[1].getContrast() + cC[2].getContrast();
-			}
-		}
-		//if the is no candidate, break
-		if(best == null) return newBranch;
-
-		//adjust the first ring with more subtle parameter change
-
-		double currentContrast = best.getContrast();
-
-		ArrayList<Ring> candidatesRefine = refineCandidate(best, vol);
-		for(Ring cand4 : candidatesRefine) {
-			if (cand4.getContrast() > currentContrast) {
-				currentContrast = cand4.getContrast();
-				best = cand4;
-				//IJ.log("refined: " + currentContrast);
-			}
-		}
-
-		max = currentContrast + rest; 
-
-		//IJ.log("TotalContrast: " + max + "max: " + currentContrast + "rest: " + rest );
-
-
-		if(max<prevMax*breakValue*3 || max==0) return newBranch;
-
-		newBranch.add(best);
-		current = best.duplicate();
-
-
-		maxRadius = 1.80;
-		minRadius = 0.60;
-		MAINLOOP:
-			do {
-				candidates = proposeCandidates(current, step, vol, maxRadius, minRadius);
-
-				//calculating the best contrast out of those [three rings]
-				best = null; //first ring of triple
-				max = -Double.MAX_VALUE; //total contrast of three rings
-				for(Ring cC : candidates) {
-					double c = cC.getContrast();
-					//IJ.log(" c: " + c);
-					if (c > max) {
-						max = c;
-						best = cC;	
-					}
-				}
-				//if the is no candidate, break
-				if(best == null) break MAINLOOP;
-
-				//adjust the first ring with more subtle parameter change
-
-				currentContrast = best.getContrast();
-
-				candidatesRefine = refineCandidate(best, vol);
-				for(Ring cand4 : candidatesRefine) {
-					if (cand4.getContrast() > currentContrast) {
-						currentContrast = cand4.getContrast();
-						best = cand4;
-						//IJ.log("refined: " + currentContrast);
-					}
-				}
-
-				max = currentContrast; 
-
-				//IJ.log("TotalContrast: " + max + "max: " + currentContrast + "rest: " + rest );
-
-
-				if(max<prevMax*breakValue || max==0) break MAINLOOP;
-
-				newBranch.add(best);
-				//best.drawMeasureArea(test, step);
-				//drawCenterLine(vol, best);
-				//this.add(best); //what is it doing here? - for the first branch...
-
-				current = best.duplicate();
-
-
-				//erase ring 2 places backwards
-				if(newBranch.size()>3) {
-					network.recalculateContrast(best.getContrast());
-					newBranch.get(newBranch.size()-2).eraseVol(workingVol);
-				}
-				prevMax = network.getMeanContrast();
-
-				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + network.getMeanContrast() + " nrRings: " + network.totalNumberRings + " totalContrast: " + network.totalContrast);
-				Gui.updateMeanContrast();
-				iter++;
-			}
-			while (true);
-		return newBranch;
-	}
-	 */
 
 	public ArrayList<Ring> evolve( Ring initial) {
 
@@ -225,7 +102,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		double prevMax = Gui.network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*2 : Gui.network.getMeanContrast()*2; //later the contrast value is a sum of three rings
 		prevMax = prevMax*branchFacilitator; //to lower the threshold of starting the new branch
 		ArrayList<Ring> newBranch = new ArrayList<Ring>();
-		newBranch.add(current);
+		//newBranch.add(current);
 		double maxRadius = 1.40;
 		double minRadius = 0.60;
 		MAINLOOP:
@@ -266,8 +143,6 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 				//adjust the first ring with more subtle parameter change
 
-
-				//IJ.log("best: " + max);
 				double currentContrast = best.getContrast();
 
 				ArrayList<Ring> candidatesRefine = refineCandidate(best);
@@ -275,27 +150,28 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 					if (cand4.getContrast() > currentContrast) {
 						currentContrast = cand4.getContrast();
 						best = cand4;
-						//IJ.log("refined: " + currentContrast);
 					}
 				}
 
 				max = currentContrast + rest; 
 
-				//IJ.log("TotalContrast: " + max + "max: " + currentContrast + "rest: " + rest );
-
-
-				if(max<prevMax*evolveValue || max==0) break MAINLOOP;
+				if(max<prevMax*evolveValue || max==0) {
+					//check if there is a branching point, always break
+					Ring closestRing = current.getClosestRing();
+					//IJ.log("Closest:" + closestRing);
+					if(closestRing!= null && current.getC().distance(closestRing.getC())<step*3){
+						newBranch.add(closestRing);
+					}
+					break MAINLOOP;
+				}
 
 				newBranch.add(best);
-				//best.drawMeasureArea(test, step);
-				//drawCenterLine(vol, best);
-				//this.add(best); //what is it doing here? - for the first branch...
 
 				current = best.duplicate();
 
 
 				//erase ring 2 places backwards
-				if(newBranch.size()>3) {
+				if(newBranch.size()>=2  && newBranch.size()>= minLengthBranch-1) {
 					Gui.network.recalculateContrast(best.getContrast());
 					newBranch.get(newBranch.size()-2).eraseVol(Espacing_Ring.workingVol);
 				}
@@ -309,7 +185,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		return newBranch;
 	}
 
-	
+
 	private ArrayList<Ring> keepBestCandidates(ArrayList<Ring> rings, double percent) {
 		//keeps percent of best candidates
 		percent = 100 - percent;
@@ -449,7 +325,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		newB.branchNo = branchNo;
 		return newB;
 	}
-	public Branch createBranchBetweenTwoRings(Ring start, Ring end, double width){
+	public static Branch createBranchBetweenTwoRings(Ring start, Ring end, double width){
 		//creates a single long ring between centers of two rings
 		Point3D startPoint = start.getC();
 		Point3D endPoint = end.getC();
@@ -459,8 +335,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		Ring newRing =  new Ring(newMiddle.getX(), newMiddle.getY(), newMiddle.getZ(), avgRadius, distanceBetween);
 		newRing.setDir(startPoint.middlePointDir(endPoint));
 
-		Branch newBranch = this.duplicateCrop(0, 0);
-		newBranch.remove(0);
+		Branch newBranch = new Branch();
 		newBranch.add(start);
 		newBranch.add(newRing);
 		newBranch.add(end);
@@ -470,7 +345,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		return newBranch;
 	}
 
-	public Branch createBranchBetweenRingAndPoint(Ring start, Point3D endPoint, double width){
+	public static Branch createBranchBetweenRingAndPoint(Ring start, Point3D endPoint, double width){
 		Point3D startPoint = start.getC();
 		double avgRadius = width;
 		double distanceBetween = startPoint.distance(endPoint);
@@ -478,7 +353,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		Ring newRing =  new Ring(newMiddle.getX(), newMiddle.getY(), newMiddle.getZ(), avgRadius, distanceBetween);
 		newRing.setDir(startPoint.middlePointDir(endPoint));	
 
-		Branch newBranch = this.duplicateCrop(0, 0);
+		Branch newBranch = new Branch();
 		newBranch.remove(0);
 		newBranch.add(start);
 		newBranch.add(newRing);
@@ -498,6 +373,27 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		for(Ring ring: this) {
 			ring.eraseVol(Espacing_Ring.workingVol);
 		}
+	}
+
+	public ArrayList<Ring> sortLowestContrastFirst(){
+		ArrayList<Ring> output = new ArrayList<Ring>();
+		ArrayList<Ring> input = new ArrayList<Ring>();
+		input.addAll(this);
+
+		while(input.size()>0){
+			double minContrast = Double.MAX_VALUE;
+			Ring minRing = null;
+			for(Ring r : input){
+				if(r.getContrast()<minContrast){
+					minContrast = r.getContrast();
+					minRing = r;
+				}
+			}
+			output.add(minRing);
+			input.remove(minRing);
+		}
+		return output;
+
 	}
 
 

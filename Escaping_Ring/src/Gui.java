@@ -13,10 +13,14 @@ import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.ButtonGroup;
@@ -59,6 +63,7 @@ public class Gui extends JDialog {
 	double branchFacilitator;
 	static JLabel runningLabel;
 	static JLabel meanContrastLabel;
+	static JLabel loadedImageLabel;
 	JFormattedTextField firstField = null;
 	JFormattedTextField secondField = null;
 	JFormattedTextField thirdField = null;
@@ -68,32 +73,29 @@ public class Gui extends JDialog {
 	JFormattedTextField minOutField = null;
 	JFormattedTextField maxOutField = null; 
 	Point3D end;
+	static ArrayList<Parameters> usedParameters = new ArrayList<Parameters>();
 
 	public static void main(final String[] args) {
 		try {
 			final Gui dialog = new Gui();
 			dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
-
 		}
 		catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	/**
-	 * Create the dialog.
-	 */
+
 	public Gui() {
 		JPanel tab1;
 		JPanel tab2;
 		JPanel tab3;
 		JPanel tab4;
 		JPanel tab5;
+		JButton showButton = new JButton("Show");;
 		setBounds(100, 100, 750, 300);
 		setTitle("VascRing3D");
-
-
 
 
 		/*****TAB1*****/	 
@@ -222,7 +224,7 @@ public class Gui extends JDialog {
 		group.add(customButton);
 
 
-		/*****TAB2*****/
+		/*****TAB2 Branches*****/
 		tab2 = new JPanel();
 		tab2.setLayout(new BorderLayout());
 		JPanel tab2Left = new JPanel(); 
@@ -252,7 +254,6 @@ public class Gui extends JDialog {
 		JLabel listLabel = new JLabel("Branches to delete");
 		JPanel listLabelPanel = new JPanel();
 		listLabelPanel.add(listLabel);
-		//listLabel.setLabelFor(listPanel2);
 		tab2Right.add(listLabelPanel, BorderLayout.NORTH);
 
 		JPanel buttonListPanel = new JPanel();
@@ -270,7 +271,6 @@ public class Gui extends JDialog {
 					extraBranchList.removeElement(toRemove);
 					toRemove.restoreBranch();
 				}
-				//Espacing_Ring.workingVol.show("working");
 			}
 		}); 
 		buttonListPanel.add(btnDelete);
@@ -279,7 +279,8 @@ public class Gui extends JDialog {
 		showBranches.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				Espacing_Ring.showResult(extraBranchList, step);	
+				Espacing_Ring.showResult(extraBranchList);
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		buttonListPanel.add(showBranches);
@@ -309,14 +310,16 @@ public class Gui extends JDialog {
 						}
 
 						if(closestBranch.isEmpty()==false){
-							if(extraBranchList.contains(closestBranch)==false)
+							if(extraBranchList.contains(closestBranch)==false){
 								extraBranchList.addElement(closestBranch);
+								Espacing_Ring.showResult(extraBranchList);
+								Espacing_Ring.iC.repaint();
+							}
 						}
 
 					}
 				};
-				//Espacing_Ring.iC.setImageUpdated();
-				//Espacing_Ring.iC.setVisible(true);
+
 				Espacing_Ring.iC.addMouseListener(mouseListenerImage);
 			}
 		}); 
@@ -382,7 +385,7 @@ public class Gui extends JDialog {
 		tab2Down.add(filterButton);
 
 
-		/*****TAB3*****/	 
+		/*****TAB3 Rings*****/	 
 		tab3 = new JPanel();
 		tab3.setLayout(new BorderLayout());
 
@@ -440,22 +443,25 @@ public class Gui extends JDialog {
 
 						double minDistance = Double.MAX_VALUE;
 						Ring closestRing = null;
-						Branch closestBranch = null;
+						//Branch closestBranch = null;
 						for(Branch branch : network){
 							for(Ring ring : branch){
 								double thisDistance=target.distance(ring.getC());
 								if(thisDistance<minDistance){
 									minDistance = thisDistance;
 									closestRing = ring;
-									closestBranch = branch;
+									//closestBranch = branch;
 								}
 							}
 						}
 
 						if(closestRing!=null){
-							if(ringList.contains(closestRing)==false)
-								closestRing.setBranch(closestBranch);
-							ringList.addElement(closestRing);
+							if(ringList.contains(closestRing)==false){
+								//closestRing.setBranch(closestBranch);
+								ringList.addElement(closestRing);
+								Espacing_Ring.showRings(ringList);	
+								Espacing_Ring.iC.repaint();
+							}
 						}
 					}
 				};
@@ -467,8 +473,9 @@ public class Gui extends JDialog {
 		final JButton showRings = new JButton("Show rings");
 		showRings.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(final ActionEvent arg0) {
+			public void actionPerformed(final ActionEvent arg0) {	
 				Espacing_Ring.showRings(ringList);	
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		selectRingPanel.add(showRings);
@@ -477,24 +484,26 @@ public class Gui extends JDialog {
 		btnDeleteRing.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
+				IJ.log(""+ringList.getSize());
 				for(int i=0; i< ringList.getSize(); i++){
 					Ring toRemove = ringList.getElementAt(i);
-					Branch motherBranch = toRemove.getBranch();
-					int indexOfRingToRemove = motherBranch.indexOf(toRemove);
-					if(indexOfRingToRemove > 0 && indexOfRingToRemove < motherBranch.size()-1){
-						//divide the branch if the ring from the middle is removed
-						Branch newBranch1 = motherBranch.duplicateCrop(0, indexOfRingToRemove-1);
-						Branch newBranch2 = motherBranch.duplicateCrop(indexOfRingToRemove+1, motherBranch.size()-1);
-						network.remove(motherBranch);
-						network.add(newBranch1);
-						network.add(newBranch2);
-						branchList.removeElement(motherBranch);
-						extraBranchList.removeElement(motherBranch);
-					}
-					else{
-						//the ring is last of first of the branch
-						motherBranch.remove(toRemove);
-					}	
+					ArrayList<Branch> motherBranches = toRemove.getBranches();
+					for(Branch motherBranch : motherBranches){
+						int indexOfRingToRemove = motherBranch.indexOf(toRemove);
+						if(indexOfRingToRemove > 0 && indexOfRingToRemove < motherBranch.size()-1){
+							//divide the branch if the ring from the middle is removed
+							Branch newBranch1 = motherBranch.duplicateCrop(0, indexOfRingToRemove-1);
+							Branch newBranch2 = motherBranch.duplicateCrop(indexOfRingToRemove+1, motherBranch.size()-1);
+							network.remove(motherBranch);
+							network.add(newBranch1);
+							network.add(newBranch2);
+							branchList.removeElement(motherBranch);
+							extraBranchList.removeElement(motherBranch);
+						}
+						else{
+							//the ring is last of first of the branch
+							motherBranch.remove(toRemove);
+						}}	
 					ringList.removeElement(toRemove);
 				}
 			}
@@ -517,8 +526,7 @@ public class Gui extends JDialog {
 						double width= Double.parseDouble(widthField.getText());
 						Ring start = ringList.getElementAt(0);
 						Ring end = ringList.getElementAt(1);
-						Branch motherBranch = start.getBranch();
-						motherBranch.createBranchBetweenTwoRings(start, end, width);
+						Branch.createBranchBetweenTwoRings(start, end, width);
 
 					} catch (NumberFormatException e) {
 						e.printStackTrace();
@@ -548,20 +556,16 @@ public class Gui extends JDialog {
 							int y = location.y;
 							int z = Espacing_Ring.iC.getImage().getSlice();
 							end = new Point3D(x, y, z);
-							Branch motherBranch = start.getBranch();
 							try {
 								double width= Double.parseDouble(widthField.getText());
-								motherBranch.createBranchBetweenRingAndPoint(start, end, width);
+								Branch.createBranchBetweenRingAndPoint(start, end, width);
 
 							} catch (NumberFormatException e) {
 								e.printStackTrace();
 							}
-
 						}
 					};
 					Espacing_Ring.iC.addMouseListener(mouseListenerPoint);
-
-
 				}
 				else{
 					JOptionPane.showMessageDialog(downPanel, "Select only one ring");
@@ -605,7 +609,6 @@ public class Gui extends JDialog {
 			public void actionPerformed(final ActionEvent arg0) {
 
 				try {
-					//IJ.log("trying to generate csv");
 					JFileChooser chooser = new JFileChooser(); 
 					chooser.setCurrentDirectory(new java.io.File("."));
 					chooser.setDialogTitle("Choose directory to save");
@@ -623,11 +626,8 @@ public class Gui extends JDialog {
 						System.out.println("No Selection ");
 					}
 
-
-
-					//IJ.log("Succes");
 				} catch (IOException e) {
-					//IJ.log("failed to generate csv");
+					IJ.log("failed to generate csv");
 					e.printStackTrace();
 				}		
 			}
@@ -640,7 +640,7 @@ public class Gui extends JDialog {
 			public void actionPerformed(final ActionEvent arg0) {
 				/*
 				try {
- 
+
 					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
 						encoder=new XMLEncoder(new BufferedOutputStream(new FileOutputStream(objectName)));
 						encoder.writeObject(network);
@@ -688,6 +688,7 @@ public class Gui extends JDialog {
 					e.printStackTrace();
 				}
 				 */
+
 				JFileChooser chooser = new JFileChooser(); 
 				chooser.setCurrentDirectory(new java.io.File("."));
 				chooser.setDialogTitle("Choose .xml file");
@@ -705,16 +706,48 @@ public class Gui extends JDialog {
 						for(Branch b : n){
 							network.add(b);
 						}
+						network.recalcualteContrast();
+						updateMeanContrast();
+						network.assignBranchesToRing();
+						showButton.doClick();
+						network.eraseNetworkVolume(Espacing_Ring.workingVol);
 					}
 					catch (Exception e) {
+						JOptionPane.showMessageDialog(downPanel, "Make sure that the proper image is opened before loading the network");
 						IJ.log(e.toString());
 						e.printStackTrace();
+						
 					}
 				}
 			}
 		}); 
 		tab4.add(btnImportXML );
-
+		
+		final JButton btnExportParams = new JButton("Show parameters");
+		btnExportParams .addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				JFileChooser chooser = new JFileChooser(); 
+				chooser.setCurrentDirectory(new java.io.File("."));
+				chooser.setDialogTitle("Choose directory to save");
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				chooser.setAcceptAllFileFilterUsed(false);
+   
+				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+					try {
+						exportParams(chooser.getSelectedFile().getPath()+"/VascRing3_Params.csv");
+					} catch (IOException e) {
+						
+						e.printStackTrace();
+					}
+				}
+				else {
+					System.out.println("No Selection ");
+				}
+			}
+		}); 
+			
+		tab4.add(btnExportParams);
 		/***TAB5 Advanced Settings *****/
 		tab5 = new JPanel();
 		tab5.setLayout(new BorderLayout());
@@ -798,8 +831,12 @@ public class Gui extends JDialog {
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
+		loadedImageLabel = new JLabel("Loaded image: " + Espacing_Ring.imageName);
+		buttonPane.add(loadedImageLabel);
+		
 		runningLabel = new JLabel("Running: " + Branch.ringsRunning.size());
 		buttonPane.add(runningLabel);
+		
 		double meanContrast = network.getMeanContrast();
 		if(meanContrast== -Double.MAX_VALUE) meanContrastLabel = new JLabel( "Mean: None");
 		else meanContrastLabel = new JLabel( "Mean: " + String.format(Locale.US, "%.2f", meanContrast)  );
@@ -819,16 +856,19 @@ public class Gui extends JDialog {
 		}); 
 		buttonPane.add(cancelButton);
 
-		final JButton showButton = new JButton("Show");
+		
 		showButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
 				//Espacing_Ring.showResult(network, step);	
 				if(Espacing_Ring.vol == null){
-					IJ.log("Saving the volume");
+					IJ.log("Saving the image as volume");
 					Espacing_Ring.imp = WindowManager.getCurrentImage();
 					Espacing_Ring.vol = new Volume(Espacing_Ring.imp );
+					Espacing_Ring.imageName = Espacing_Ring.imp.getTitle();
+					Gui.updateLoadedImage();
+					Espacing_Ring.workingVol = new Volume(Espacing_Ring.imp );
 					Espacing_Ring.imp  = new ImagePlus("VascRing3D", Espacing_Ring.vol.createImageStackFrom3DArray());
 					Espacing_Ring.imp.setDisplayMode(IJ.COLOR);
 					Espacing_Ring.iC = new ImageCanvas(Espacing_Ring.imp);
@@ -836,8 +876,7 @@ public class Gui extends JDialog {
 					Espacing_Ring.iC.setVisible(true);
 				}
 				if(Espacing_Ring.imgS.isVisible() == false) {
-					//doesnt work
-					IJ.log("trying to restore image");
+					IJ.log("Restoring image");
 					Espacing_Ring.generateView(true);
 				}
 				Espacing_Ring.drawNetwork(network);
@@ -857,6 +896,9 @@ public class Gui extends JDialog {
 				network.resetContrast();
 				Espacing_Ring.vol = null;
 				Espacing_Ring.workingVol = null;
+				Espacing_Ring.imp = null;
+				Espacing_Ring.imageName = null;
+				Gui.updateLoadedImage();
 			}
 		}); 
 		buttonPane.add(btn2);
@@ -876,6 +918,31 @@ public class Gui extends JDialog {
 		else {
 			meanContrastLabel.setText( "Mean: " + String.format(Locale.US, "%.2f", meanContrast) );
 		}
+	}
+	
+	public static void updateLoadedImage(){
+		loadedImageLabel.setText("Loaded image: " + Espacing_Ring.imageName);
+	}
+	
+	public void exportParams(String csvFile) throws IOException{
+		List<String> header = Arrays.asList("imageName", "xc", "yc", "zc", "radius", "step",  "impInside", 
+				"impOutside",  "threshold", "branchFacilitator","firstLoop",  "secondLoop",  "thirdLoop",
+				"maxIn", "minMem",  "maxMem",  "minOut",  "maxOut");
+		List<List<String>> data = new ArrayList<List<String>>();
+
+		FileWriter writer = new FileWriter(csvFile);
+
+		for(Parameters p : Gui.usedParameters) {
+			List<String> row = p.listParams();
+			IJ.log(row.toString());
+			data.add(row);
+		}
+		CSVUtils.writeLine(writer, header);
+		for(List<String> row : data){
+			CSVUtils.writeLine(writer, row);
+		}
+		writer.flush();
+		writer.close();
 	}
 
 }

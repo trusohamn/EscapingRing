@@ -7,6 +7,8 @@ import java.util.List;
 
 import javax.swing.DefaultListModel;
 
+import ij.IJ;
+
 
 public class Network extends ArrayList<Branch> implements Serializable{
 
@@ -40,6 +42,35 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		++totalNumberRings;
 		totalContrast += c;
 		this.meanContrast = totalContrast/totalNumberRings;
+	}
+	
+	public void recalcualteContrast(){		
+		resetContrast();
+		totalContrast = 0; //can give problems if values of contrast <0
+		for (Branch b: this){
+			for (Ring r: b){
+				//IJ.log("recalculating contrast" + r.getContrast());
+				recalculateContrast(r.getContrast());
+			}
+		}
+	}
+	
+	public void assignBranchesToRing(){
+		for (Branch b: this){
+			for (Ring r: b){
+				r.setBranches(new ArrayList<Branch>());
+				r.addBranch(b);
+				
+			}
+		}
+	}
+	
+	public void eraseNetworkVolume(Volume workingVol){
+		for (Branch b: this){
+			for (Ring r: b){
+				r.eraseVol(workingVol);
+			}
+		}
 	}
 
 	public double getMeanContrast() {

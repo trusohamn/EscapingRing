@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -15,7 +16,7 @@ public class Ring  implements Serializable {
 	private double length;
 	private double contrast;
 	
-	private Branch branch = null;
+	private ArrayList<Branch> branches;
 	
 	static private double impInside = -0.25;
 	static private double impOutside = -0.25;
@@ -25,25 +26,29 @@ public class Ring  implements Serializable {
 
 
 	public Ring() {	
+		branches = new ArrayList<Branch>();
+		contrast = 0;
 	}
 	
 	public Ring(double x, double y, double z, double radius, double length) {
+		this();
 		c = new Point3D(x, y, z);
 		this.radius = radius;
 		this.length = length;
 	}
 	
 	public Ring(double x, double y, double z, double dx, double dy, double dz, double radius, double length) {
-		c = new Point3D(x, y, z);
+		this(x,y,z,radius,length);
 		dir = new Point3D(dx, dy, dz);
-		this.radius = radius;
-		this.length = length;
+
 	}
 
 	public String toString() {
-		String out = "" + dir.getX() + " " + dir.getY() + " " + dir.getZ();
-		if(branch != null){
-			out += " from: " + branch;
+		String out = "" + contrast;
+		if(branches.size()>0){
+			for(Branch b: branches){
+				out += " from: " + b;
+			}
 		}
 		return out;
 	}
@@ -56,6 +61,7 @@ public class Ring  implements Serializable {
 		r.thickness = thickness;
 		r.length = length;
 		//r.contrast = contrast;
+		//what with branches?
 		return r;
 	}
 
@@ -114,9 +120,6 @@ public class Ring  implements Serializable {
 			}
 		}	
 		this.contrast = (meanMembrane/countMembrane) +  impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter) ;	
-		//IJ.log("meanM: " + meanMembrane + " countM: " + countMembrane+
-		//		" meanI: " + meanInner + " countI: " + countInner+
-		//		" meanO: " + meanOuter + " countO: " + countOuter);
 	}
 	public void drawMeasureArea(Volume volume) {
 		int radius = (int)Math.ceil(this.radius);
@@ -292,10 +295,33 @@ public class Ring  implements Serializable {
 		IJ.log("best candidate: "+ maxContrast + " rad: " + bestCand.radius);
 		return bestCand;
 	}
+	
+	public Ring getClosestRing(){
+		Point3D target = this.c;
+
+		double minDistance = Double.MAX_VALUE;
+		Ring closestRing = null;
+		for(Branch branch : Gui.network){
+			for(Ring ring : branch){
+				double thisDistance=target.distance(ring.getC());
+				if(thisDistance<minDistance){
+					minDistance = thisDistance;
+					closestRing = ring;
+				}
+			}
+		}
+		return closestRing;
+	}
 	/*GETTERS SETTERS*/
 	
-	public Branch getBranch() {
-		return branch;
+	public ArrayList<Branch> getBranches() {
+		return branches;
+	}
+	public void setBranches(ArrayList<Branch> branches) {
+		this.branches = branches;
+	}
+	public void addBranch(Branch branch){
+		this.branches.add(branch);
 	}
 	
 	public double getContrast() {
@@ -308,10 +334,6 @@ public class Ring  implements Serializable {
 	
 	public double getLength(){
 		return length;
-	}
-
-	public void setBranch(Branch branch) {
-		this.branch = branch;
 	}
 	
 	public static double getImpInside() {
