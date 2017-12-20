@@ -17,8 +17,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 
 	private int branchNo;
-	static ArrayList<Ring> ringsRunning = new ArrayList<Ring>();
-	private static boolean stopAll;
+
 
 	public Branch(){
 		for(Ring r: this){
@@ -60,13 +59,13 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 				this.nextRing = nextRing;
 			}			
 			public void run() {
-				ringsRunning.add(nextRing);
+				Gui.ringsRunning.add(nextRing);
 				Gui.updateRunning();
 
 				ArrayList<Ring> ringsAround = sparseCandidates(nextRing);
 				//sparseCandidate is not added to the branch, init is
 				for(Ring r : ringsAround) {
-					if(stopAll) break;
+					if(Gui.stopAll) break;
 					ArrayList<Ring> branchCand = new ArrayList<Ring>();
 					branchCand.add(nextRing);
 					branchCand.addAll(evolve( r));
@@ -76,7 +75,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 					}	
 				}
 
-				ringsRunning.remove(nextRing);
+				Gui.ringsRunning.remove(nextRing);
 				Gui.updateRunning();
 			}
 		}
@@ -86,8 +85,8 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 			ring.eraseVol(Espacing_Ring.workingVol);
 		}
 		ArrayList<Ring> sortedBranchCopy = this.sortLowestContrastFirst();
-		for(int i = 0; i < sortedBranchCopy.size(); i++){
-			if(stopAll) break;
+		for(int i = 0; i < sortedBranchCopy.size()/3; i++){
+			if(Gui.stopAll) break;
 			IJ.log("checking ring: " + i);
 			Ring nextRing = sortedBranchCopy.get(i);
 			Thread t = new Thread(new OneShotTask(nextRing));
@@ -399,7 +398,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 	/*GETTERS AND SETTERS*/
 	public static void stopAll(boolean stop) {
-		stopAll = stop;
+		Gui.stopAll = stop;
 	}
 
 	public int getBranchNo() {

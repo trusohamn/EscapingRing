@@ -32,24 +32,10 @@ processing
 output
 +skeleton
 -identification of branching points
+-cut branch between branching points when the processing is finished
 
 to repair
 +selecting rings and branches doesnt work well after implementing refreshing of one window
 
 
 
-
-
-<?xml version="1.0" encoding="UTF-8"?>
-<project name="Escaping Ring" default="compile" basedir=".">
-
-<property name="dest" value="C:/ImageJ/plugins"></property>
-
-<target name="compile">
-
-	
-	<jar destfile = "${dest}/Escaping_Ring.jar" />
-</target>
-
- </project>
-<copy toDir="${dest}"><fileset dir="bin" includes="**/*.class"/></copy>

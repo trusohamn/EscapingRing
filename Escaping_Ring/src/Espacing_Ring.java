@@ -36,7 +36,6 @@ public class Espacing_Ring implements PlugIn {
 	public static void start(Network network, double step, double impInside, double impOutside, double threshold, double branchFacilitator,
 			double firstLoop, double secondLoop, double thirdLoop,
 			double maxIn, double minMem, double maxMem, double minOut, double maxOut) {
-		IJ.log("start 21 nov 2017");
 
 		imp = WindowManager.getCurrentImage();
 
@@ -44,7 +43,6 @@ public class Espacing_Ring implements PlugIn {
 			IJ.error("No open image.");
 			return;
 		}
-
 
 		Roi roi = imp.getRoi();
 		if (roi == null) {
@@ -61,7 +59,7 @@ public class Espacing_Ring implements PlugIn {
 		Rectangle rect = oval.getBounds();
 		int xc = rect.x + rect.width/2;
 		int yc = rect.y + rect.height/2;
-		int radius = (rect.width + rect.height) / 4;	
+		double radius = (rect.width + rect.height) / 4;	
 		int zc = imp.getSlice();
 
 		Ring.setImpInside(impInside);
@@ -97,6 +95,54 @@ public class Espacing_Ring implements PlugIn {
 
 
 		new Branch(adjInitial, step);
+	}
+	
+	public static void start(Network network, Parameters param) {
+		Gui.roiRunning = true;
+
+		imp = WindowManager.getCurrentImage();
+		if (imp == null) {
+			IJ.error("No open image.");
+			Gui.roiRunning = false;
+			return;
+		}
+
+		int xc = param.getXc();
+		int yc = param.getYc();
+		double radius = param.getRadius();	
+		int zc = param.getZc();
+
+		Ring.setImpInside(param.getImpInside());
+		Ring.setImpOutside(param.getImpOutside());
+		Branch.setEvolveValue(param.getThreshold());
+		Branch.setBranchFacilitator(param.getBranchFacilitator());
+		Branch.setFirstLoopElimination(param.getFirstLoop());
+		Branch.setSecondLoopElimination(param.getSecondLoop());
+		Branch.setThirdLoopElimination(param.getThirdLoop());
+		Branch.stopAll(false);	
+		Ring.setParameters(param.getMaxIn(), param.getMinMem(), param.getMaxMem(), param.getMinOut(), param.getMaxOut());
+
+
+		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, param.getStep()*2);
+
+		if(vol == null) {
+			vol = new Volume(imp);
+			imageName = imp.getTitle();
+			Gui.updateLoadedImage();
+		}
+		if(workingVol == null) workingVol = new Volume(imp); 
+		param.setImageName(imageName);
+		Gui.usedParameters.add(param);
+		
+		generateView(true);
+
+		Ring adjInitial = initial.adjustFirstRing(workingVol);
+		IJ.log(" Initial Ring " + adjInitial.getContrast());
+		network.recalculateContrast(adjInitial.getContrast());
+
+
+		new Branch(adjInitial, param.getStep());
+		Gui.roiRunning = false;
 	}
 
 	public static void drawNetwork(Network network){
