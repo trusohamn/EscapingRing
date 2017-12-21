@@ -35,7 +35,8 @@ public class Espacing_Ring implements PlugIn {
 
 	public static void start(Network network, double step, double impInside, double impOutside, double threshold, double branchFacilitator,
 			double firstLoop, double secondLoop, double thirdLoop,
-			double maxIn, double minMem, double maxMem, double minOut, double maxOut) {
+			double maxIn, double minMem, double maxMem, double minOut, double maxOut,
+			double checkWorstRings) {
 
 		imp = WindowManager.getCurrentImage();
 
@@ -71,6 +72,7 @@ public class Espacing_Ring implements PlugIn {
 		Branch.setThirdLoopElimination(thirdLoop);
 		Branch.stopAll(false);	
 		Ring.setParameters(maxIn, minMem, maxMem, minOut, maxOut);
+		Branch.setCheckWorstRings(checkWorstRings);
 
 
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
@@ -98,8 +100,6 @@ public class Espacing_Ring implements PlugIn {
 	}
 	
 	public static void start(Network network, Parameters param) {
-		Gui.roiRunning = true;
-
 		imp = WindowManager.getCurrentImage();
 		if (imp == null) {
 			IJ.error("No open image.");
@@ -142,7 +142,7 @@ public class Espacing_Ring implements PlugIn {
 
 
 		new Branch(adjInitial, param.getStep());
-		Gui.roiRunning = false;
+
 	}
 
 	public static void drawNetwork(Network network){

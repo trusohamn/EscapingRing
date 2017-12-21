@@ -14,6 +14,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	private static double secondLoopElimination = 30;
 	private static double thirdLoopElimination = 100;
 	private static int minLengthBranch = 4;
+	private static double checkWorstRings = 0.5; //max = 0
 
 
 	private int branchNo;
@@ -85,12 +86,23 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 			ring.eraseVol(Espacing_Ring.workingVol);
 		}
 		ArrayList<Ring> sortedBranchCopy = this.sortLowestContrastFirst();
-		for(int i = 0; i < sortedBranchCopy.size()/3; i++){
+		ArrayList<Thread> listOfThreads = new ArrayList<Thread>();
+		for(int i = 0; i < (int) sortedBranchCopy.size()*checkWorstRings; i++){
 			if(Gui.stopAll) break;
 			IJ.log("checking ring: " + i);
 			Ring nextRing = sortedBranchCopy.get(i);
 			Thread t = new Thread(new OneShotTask(nextRing));
 			t.start();
+			listOfThreads.add(t);
+		}
+		if(Gui.synch){
+			for(Thread t: listOfThreads){
+				try {
+					t.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -158,7 +170,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 					//check if there is a branching point, always break
 					Ring closestRing = current.getClosestRing();
 					//IJ.log("Closest:" + closestRing);
-					if(closestRing!= null && current.getC().distance(closestRing.getC())<step*3){
+					if(closestRing!= null && current.getC().distance(closestRing.getC())<step*4){
 						newBranch.add(closestRing);
 					}
 					break MAINLOOP;
@@ -433,6 +445,14 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	public static double getEvolveValue() {
 		return evolveValue;
 	}
+	public static double getCheckWorstRings() {
+		return checkWorstRings;
+	}
+
+	public static void setCheckWorstRings(double checkWorstRings) {
+		Branch.checkWorstRings = checkWorstRings;
+	}
+
 	public static double getBranchFacilitator() {
 		return branchFacilitator;
 	}

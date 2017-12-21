@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -22,12 +23,12 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 	public Network(){	
 	}
-	
+
 	public Network(DefaultListModel<Branch> branchList){
 		this.branchList = branchList;
 		lastBranchNo = branchList.size();
 	}
-	
+
 	public Network(ArrayList<Branch> branchList){
 		this.addAll(branchList);
 	}
@@ -43,7 +44,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		totalContrast += c;
 		this.meanContrast = totalContrast/totalNumberRings;
 	}
-	
+
 	public void recalcualteContrast(){		
 		resetContrast();
 		totalContrast = 0; //can give problems if values of contrast <0
@@ -54,17 +55,17 @@ public class Network extends ArrayList<Branch> implements Serializable{
 			}
 		}
 	}
-	
+
 	public void assignBranchesToRing(){
 		for (Branch b: this){
 			for (Ring r: b){
 				r.setBranches(new ArrayList<Branch>());
 				r.addBranch(b);
-				
+
 			}
 		}
 	}
-	
+
 	public void eraseNetworkVolume(Volume workingVol){
 		for (Branch b: this){
 			for (Ring r: b){
@@ -116,7 +117,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 			}
 		}
 	}
-	
+
 	public void generateBinary(Volume vol) {
 		for(Branch branch : this) {
 			for(int n = 0; n<branch.size()-1; n++) {
@@ -144,11 +145,11 @@ public class Network extends ArrayList<Branch> implements Serializable{
 						for(int ii=-4*rad; ii<=4*rad; ii++) {
 							double j = ji/2.0;
 							double i = ii/2.0;
-							
+
 							double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
 							double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
 							double dz = i*R[2][0]  + k*R[2][2];
-							
+
 							double d = Math.sqrt(i*i+j*j);
 							if(d<=radius) vol.setValue(first, dx, dy, dz, 1000);
 						}
@@ -189,6 +190,73 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		writer.flush();
 		writer.close();
 
+	}
+
+	public void orderBranchPoints(){
+		for(Branch b: this){
+			for(Ring r: b){	
+				ArrayList<Branch> motherBranches = r.getBranches();
+				if(motherBranches.size()==2){
+					int[] indexes = new int[2];
+					boolean[] isLastFirst = new boolean[2];
+					int i = 0;
+					for(Branch motherBranch : motherBranches){
+						indexes[i] = motherBranch.indexOf(r);
+						isLastFirst[i] = (indexes[i] == motherBranch.size()-1 || indexes[i] == 0)? true : false;
+						i++;
+					}
+
+					if(isLastFirst[0] && isLastFirst[1]){
+						//branches are connected by their last/first rings ---> to join
+						Branch newBranch ;
+
+						if(indexes[0] == motherBranches.get(0).size()-1){
+							newBranch = motherBranches.get(0);
+							ArrayList<Ring> clone = (ArrayList<Ring>) motherBranches.get(1).clone();
+							if(indexes[1] == motherBranches.get(1).size()-1){						
+								Collections.reverse(clone);
+							}
+							newBranch.addAll(clone);
+						}
+						else if(indexes[1] == motherBranches.get(1).size()-1){
+							newBranch = motherBranches.get(1);
+							ArrayList<Ring> clone = (ArrayList<Ring>) motherBranches.get(0).clone();
+							newBranch.addAll(clone);
+						}
+						else{
+							ArrayList<Ring> clone0 = (ArrayList<Ring>) motherBranches.get(0).clone();
+							ArrayList<Ring> clone1 = (ArrayList<Ring>) motherBranches.get(1).clone();
+							Collections.reverse(clone0);
+							if(indexes[1] == motherBranches.get(1).size()-1){						
+								Collections.reverse(clone1);
+							}
+							newBranch = new Branch();
+							newBranch.addAll(clone0);
+							newBranch.addAll(clone1);
+																					
+						}	
+						remove(motherBranches.get(0));
+						remove(motherBranches.get(1));
+						add(newBranch);
+					}
+
+					else{
+						//one of branches finishes into another. cut another into two
+						for(int j=0; j<=2; j++){
+							if(!isLastFirst[j]){
+								Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes[j]);
+								Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes[j], motherBranches.get(j).size()-1);
+								remove(motherBranches.get(j));
+								add(newBranch1);
+								add(newBranch2);
+								branchList.removeElement(motherBranches.get(j));
+								Gui.extraBranchList.removeElement(motherBranches.get(j));
+							}
+						}
+					}	
+				}
+			}
+		}
 	}
 
 
