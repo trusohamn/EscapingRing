@@ -6,21 +6,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 import javax.swing.ButtonGroup;
@@ -50,20 +42,25 @@ public class Gui extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	static DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
-	DefaultListModel<Branch> extraBranchList = new DefaultListModel<Branch>();
+	static DefaultListModel<Branch> extraBranchList = new DefaultListModel<Branch>();
 	DefaultListModel<Ring> ringList = new DefaultListModel<Ring>();
+	static ArrayList<Ring> ringsUsed = new ArrayList<Ring>();
 	JList<Branch> list;
+
 	static Network network = new Network(branchList);
+
 	double step;
 	double impInside;
 	double impOutside;
 	double threshold;
 	double firstLoop, secondLoop, thirdLoop;
 	double maxIn, minMem, maxMem, minOut, maxOut;
-	double branchFacilitator;
+	double branchFacilitator, checkWorstRings; 
+
 	static JLabel runningLabel;
 	static JLabel meanContrastLabel;
 	static JLabel loadedImageLabel;
+
 	JFormattedTextField firstField = null;
 	JFormattedTextField secondField = null;
 	JFormattedTextField thirdField = null;
@@ -72,8 +69,19 @@ public class Gui extends JDialog {
 	JFormattedTextField maxMemField = null;
 	JFormattedTextField minOutField = null;
 	JFormattedTextField maxOutField = null; 
+	JFormattedTextField checkWorstRingsField = null;
 	Point3D end;
+
 	static ArrayList<Parameters> usedParameters = new ArrayList<Parameters>();
+	static ArrayList<Parameters> toUseParameters = new ArrayList<Parameters>();
+
+	static ArrayList<Ring> ringsRunning = new ArrayList<Ring>();
+	static boolean stopAll;
+	static boolean roiRunning = false; //not needed for now
+
+	String nameToSave = "name";
+	static boolean synch = false;
+
 
 	public static void main(final String[] args) {
 		try {
@@ -93,7 +101,8 @@ public class Gui extends JDialog {
 		JPanel tab3;
 		JPanel tab4;
 		JPanel tab5;
-		JButton showButton = new JButton("Show");;
+		final JButton showButton = new JButton("Show");
+		final JButton resetButton = new JButton("Reset");
 		setBounds(100, 100, 750, 300);
 		setTitle("VascRing3D");
 
@@ -167,11 +176,12 @@ public class Gui extends JDialog {
 					maxMem = Double.parseDouble(maxMemField.getText());
 					minOut = Double.parseDouble(minOutField.getText());
 					maxOut = Double.parseDouble(maxOutField.getText());
+					checkWorstRings = Double.parseDouble(checkWorstRingsField.getText());
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
 				}
 				Espacing_Ring.start(network, step, impInside, impOutside, threshold, branchFacilitator, firstLoop, secondLoop, thirdLoop,
-						maxIn, minMem, maxMem, minOut, maxOut);
+						maxIn, minMem, maxMem, minOut, maxOut, checkWorstRings);
 
 			}
 		}); 
@@ -429,15 +439,12 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
-				//Espacing_Ring.iC = new ImageCanvas(Espacing_Ring.threeChannels);
-				//Espacing_Ring.imgS = new StackWindow (Espacing_Ring.threeChannels, iC);
 				Espacing_Ring.iC.setVisible(true);
 				MouseListener mouseListenerImage = new MouseAdapter() {
 					public void mouseClicked(MouseEvent mouseEvent) {
 						Point location = Espacing_Ring.iC.getCursorLoc();
 						int x = location.x;
 						int y = location.y;
-						//z to solve, it sets only after moving the slice
 						int z = Espacing_Ring.iC.getImage().getSlice();
 						Point3D target = new Point3D(x, y, z);
 
@@ -485,8 +492,11 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				IJ.log(""+ringList.getSize());
+				ArrayList<Ring> ringsToRemove = new ArrayList<Ring>();
 				for(int i=0; i< ringList.getSize(); i++){
-					Ring toRemove = ringList.getElementAt(i);
+					ringsToRemove.add(ringList.getElementAt(i));
+				}
+				for(Ring toRemove: ringsToRemove){	
 					ArrayList<Branch> motherBranches = toRemove.getBranches();
 					for(Branch motherBranch : motherBranches){
 						int indexOfRingToRemove = motherBranch.indexOf(toRemove);
@@ -657,7 +667,7 @@ public class Gui extends JDialog {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setAcceptAllFileFilterUsed(false);
 					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION){
-						String objectName = chooser.getSelectedFile().getPath()+"/name.ser";
+						String objectName = chooser.getSelectedFile().getPath() + "/" + nameToSave + ".ser";
 						FileOutputStream fileOut =new FileOutputStream(objectName);
 						ObjectOutputStream out = new ObjectOutputStream(fileOut);
 						out.writeObject(network);
@@ -716,14 +726,14 @@ public class Gui extends JDialog {
 						JOptionPane.showMessageDialog(downPanel, "Make sure that the proper image is opened before loading the network");
 						IJ.log(e.toString());
 						e.printStackTrace();
-						
+
 					}
 				}
 			}
 		}); 
 		tab4.add(btnImportXML );
-		
-		final JButton btnExportParams = new JButton("Show parameters");
+
+		final JButton btnExportParams = new JButton("Export parameters");
 		btnExportParams .addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
@@ -732,12 +742,12 @@ public class Gui extends JDialog {
 				chooser.setDialogTitle("Choose directory to save");
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				chooser.setAcceptAllFileFilterUsed(false);
-   
+
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
 					try {
-						exportParams(chooser.getSelectedFile().getPath()+"/VascRing3_Params.csv");
+						Parameters.exportParams(chooser.getSelectedFile().getPath()+"/VascRing3_Params.csv");
 					} catch (IOException e) {
-						
+
 						e.printStackTrace();
 					}
 				}
@@ -746,8 +756,93 @@ public class Gui extends JDialog {
 				}
 			}
 		}); 
-			
+
 		tab4.add(btnExportParams);
+
+		final JButton btnImportParams = new JButton("Import parameters");
+		btnImportParams .addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				JFileChooser chooser = new JFileChooser(); 
+				chooser.setCurrentDirectory(new java.io.File("."));
+				chooser.setDialogTitle("Choose .csv file with parameters");
+				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+					String objectName = chooser.getSelectedFile().getPath();
+					Gui.toUseParameters = Parameters.importParams(objectName);
+					for (Parameters p : Gui.toUseParameters){
+						IJ.log(p.toString());
+					}
+				}
+			}
+		}); 
+		tab4.add(btnImportParams);
+
+		final JButton btnStartParams = new JButton("Start parameters");
+		btnStartParams.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Gui.synch = true;
+				for(Parameters param: Gui.toUseParameters){
+					Espacing_Ring.start(network, param);
+					IJ.log("Left: " + Gui.ringsRunning.size());
+
+				}
+				Gui.synch = false;
+			}
+		}); 
+		tab4.add(btnStartParams);
+
+		final JButton btnStartParamsSave = new JButton("Start parameters one by one");
+		btnStartParamsSave.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				int n=0;
+				JFileChooser chooser = new JFileChooser(); 
+				chooser.setCurrentDirectory(new java.io.File("."));
+				chooser.setDialogTitle("Choose directory to save");
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				chooser.setAcceptAllFileFilterUsed(false);
+				String openImage = WindowManager.getCurrentImage().getTitle();
+
+				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION){
+					Gui.synch = true;
+					for(Parameters param: Gui.toUseParameters){
+						Espacing_Ring.start(network, param);
+
+						nameToSave = openImage != null ? openImage+"_"+n : ""+n ;
+						String objectName = chooser.getSelectedFile().getPath() + "/" + nameToSave + ".ser";
+						FileOutputStream fileOut;
+						try {
+							fileOut = new FileOutputStream(objectName);
+							ObjectOutputStream out = new ObjectOutputStream(fileOut);
+							out.writeObject(network);
+							out.close();
+							fileOut.close();
+							System.out.printf("Serialized data is saved ");
+						} 
+						catch (Exception e) {
+
+							e.printStackTrace();
+						}
+
+						btnContrast.doClick();
+						resetButton.doClick();
+						++n;
+					}
+					Gui.synch = false;
+				}
+			}}); 
+		tab4.add(btnStartParamsSave);
+
+		final JButton btnOrderNetwork = new JButton("Order network");
+		btnOrderNetwork.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+					network.orderBranchPoints();
+					
+			}}); 
+		tab4.add(btnOrderNetwork);
+		
 		/***TAB5 Advanced Settings *****/
 		tab5 = new JPanel();
 		tab5.setLayout(new BorderLayout());
@@ -813,6 +908,13 @@ public class Gui extends JDialog {
 		maxOutField.setText("2");
 		tab5Center.add(maxOutLabel);
 		tab5Center.add(maxOutField);
+		
+		JLabel checkWorstRingsLabel = new JLabel("check only X worst rings");
+		checkWorstRingsField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		checkWorstRingsField.setColumns(4);
+		checkWorstRingsField.setText("0.5");
+		tab5Center.add(checkWorstRingsLabel);
+		tab5Center.add(checkWorstRingsField);
 
 		/*TABS*/
 
@@ -833,10 +935,10 @@ public class Gui extends JDialog {
 
 		loadedImageLabel = new JLabel("Loaded image: " + Espacing_Ring.imageName);
 		buttonPane.add(loadedImageLabel);
-		
-		runningLabel = new JLabel("Running: " + Branch.ringsRunning.size());
+
+		runningLabel = new JLabel("Running: " + Gui.ringsRunning.size());
 		buttonPane.add(runningLabel);
-		
+
 		double meanContrast = network.getMeanContrast();
 		if(meanContrast== -Double.MAX_VALUE) meanContrastLabel = new JLabel( "Mean: None");
 		else meanContrastLabel = new JLabel( "Mean: " + String.format(Locale.US, "%.2f", meanContrast)  );
@@ -856,12 +958,11 @@ public class Gui extends JDialog {
 		}); 
 		buttonPane.add(cancelButton);
 
-		
+
 		showButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 
-				//Espacing_Ring.showResult(network, step);	
 				if(Espacing_Ring.vol == null){
 					IJ.log("Saving the image as volume");
 					Espacing_Ring.imp = WindowManager.getCurrentImage();
@@ -885,8 +986,7 @@ public class Gui extends JDialog {
 		}); 
 		buttonPane.add(showButton);
 
-		final JButton btn2= new JButton("Reset");
-		btn2.addActionListener(new ActionListener() {
+		resetButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				branchList.clear();
@@ -898,15 +998,18 @@ public class Gui extends JDialog {
 				Espacing_Ring.workingVol = null;
 				Espacing_Ring.imp = null;
 				Espacing_Ring.imageName = null;
+				//Espacing_Ring.iC = null;
+				//Espacing_Ring.imgS = null;
+				Gui.ringsUsed = new ArrayList<Ring>();
 				Gui.updateLoadedImage();
 			}
 		}); 
-		buttonPane.add(btn2);
+		buttonPane.add(resetButton);
 
 	}
 
 	public static void updateRunning() {
-		runningLabel.setText("Running: " + Branch.ringsRunning.size());
+		runningLabel.setText("Running: " + Gui.ringsRunning.size());
 	}
 
 	public static void updateMeanContrast() {
@@ -919,31 +1022,11 @@ public class Gui extends JDialog {
 			meanContrastLabel.setText( "Mean: " + String.format(Locale.US, "%.2f", meanContrast) );
 		}
 	}
-	
+
 	public static void updateLoadedImage(){
 		loadedImageLabel.setText("Loaded image: " + Espacing_Ring.imageName);
 	}
-	
-	public void exportParams(String csvFile) throws IOException{
-		List<String> header = Arrays.asList("imageName", "xc", "yc", "zc", "radius", "step",  "impInside", 
-				"impOutside",  "threshold", "branchFacilitator","firstLoop",  "secondLoop",  "thirdLoop",
-				"maxIn", "minMem",  "maxMem",  "minOut",  "maxOut");
-		List<List<String>> data = new ArrayList<List<String>>();
 
-		FileWriter writer = new FileWriter(csvFile);
-
-		for(Parameters p : Gui.usedParameters) {
-			List<String> row = p.listParams();
-			IJ.log(row.toString());
-			data.add(row);
-		}
-		CSVUtils.writeLine(writer, header);
-		for(List<String> row : data){
-			CSVUtils.writeLine(writer, row);
-		}
-		writer.flush();
-		writer.close();
-	}
 
 }
 

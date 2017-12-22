@@ -1,10 +1,17 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import ij.IJ;
 
 public class Parameters {
 	String imageName;
 	int xc, yc, zc;
-	int radius;
+	double radius;
 	double step,  impInside,  impOutside,  threshold, branchFacilitator;
 	double firstLoop,  secondLoop,  thirdLoop;
 	double maxIn, minMem,  maxMem,  minOut,  maxOut;
@@ -27,20 +34,40 @@ public class Parameters {
 		this.maxOut = maxOut;
 		this.imageName = imageName;
 	}
-	
-	
-	
-	public Parameters(String imageName, int xc, int yc, int zc, int radius, double step, double impInside,
+
+	public Parameters(String imageName, int xc, int yc, int zc, double radius, double step, double impInside,
 			double impOutside, double threshold, double branchFacilitator, double firstLoop, double secondLoop,
 			double thirdLoop, double maxIn, double minMem, double maxMem, double minOut, double maxOut) {
 		this(imageName,  step,  impInside,
-				 impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
+				impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
 				thirdLoop, maxIn, minMem,  maxMem, minOut, maxOut);
 		this.xc = xc;
 		this.yc = yc;
 		this.zc = zc;
 		this.radius = radius;
-	
+	}
+
+	public Parameters(String imgName, double[] params){
+		if(params.length == 17){
+			this.imageName = imgName;
+			this.xc = (int) params[0];
+			this.yc = (int) params[1];
+			this.zc = (int) params[2];
+			this.radius = params[3];
+			this.step = params[4];
+			this.impInside = params[5];
+			this.impOutside = params[6];
+			this.threshold = params[7];
+			this.branchFacilitator = params[8];
+			this.firstLoop = params[9];
+			this.secondLoop = params[10];
+			this.thirdLoop = params[11];
+			this.maxIn = params[12];
+			this.minMem = params[13];
+			this.maxMem = params[14];
+			this.minOut = params[15];
+			this.maxOut = params[16];
+		}
 	}
 
 	public List<String>  listParams(){
@@ -48,9 +75,212 @@ public class Parameters {
 				String.valueOf(impInside), String.valueOf(impOutside), String.valueOf(threshold), String.valueOf(branchFacilitator), String.valueOf(firstLoop),
 				String.valueOf(secondLoop), String.valueOf(thirdLoop), String.valueOf(maxIn), String.valueOf(minMem),
 				String.valueOf(maxMem), String.valueOf(minOut), String.valueOf(maxOut));
-		
-		
+
+
 		return row;
 	}
 	
+	public static void exportParams(String csvFile) throws IOException{
+		List<String> header = Arrays.asList("imageName", "xc", "yc", "zc", "radius", "step",  "impInside", 
+				"impOutside",  "threshold", "branchFacilitator","firstLoop",  "secondLoop",  "thirdLoop",
+				"maxIn", "minMem",  "maxMem",  "minOut",  "maxOut");
+		List<List<String>> data = new ArrayList<List<String>>();
+
+		FileWriter writer = new FileWriter(csvFile);
+
+		for(Parameters p : Gui.usedParameters) {
+			List<String> row = p.listParams();
+			IJ.log(row.toString());
+			data.add(row);
+		}
+		CSVUtils.writeLine(writer, header);
+		for(List<String> row : data){
+			CSVUtils.writeLine(writer, row);
+		}
+		writer.flush();
+		writer.close();
+	}
+
+	public static ArrayList<Parameters> importParams(String csvFile) {
+		ArrayList<Parameters> output = new ArrayList<Parameters>();
+		String line = "";
+		String cvsSplitBy = ";";
+
+		try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+			line = br.readLine(); //header
+			IJ.log(line);
+			while ((line = br.readLine()) != null) {
+				IJ.log(line);
+				// use comma as separator
+				String[] params = line.split(cvsSplitBy);
+				String imgName = params[0];
+				double[] paramsD = new double[params.length-1];
+				for(int i = 1; i<params.length; i++){
+					paramsD[i-1]= Double.parseDouble(params[i]);
+				}
+				Parameters p = new Parameters(imgName, paramsD);
+				output.add(p);       
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			IJ.log(e.toString());
+		}
+
+		return output;
+	}
+
+	public String getImageName() {
+		return imageName;
+	}
+
+	public void setImageName(String imageName) {
+		this.imageName = imageName;
+	}
+
+	public int getXc() {
+		return xc;
+	}
+
+	public void setXc(int xc) {
+		this.xc = xc;
+	}
+
+	public int getYc() {
+		return yc;
+	}
+
+	public void setYc(int yc) {
+		this.yc = yc;
+	}
+
+	public int getZc() {
+		return zc;
+	}
+
+	public void setZc(int zc) {
+		this.zc = zc;
+	}
+
+	public double getRadius() {
+		return radius;
+	}
+
+	public void setRadius(double radius) {
+		this.radius = radius;
+	}
+
+	public double getStep() {
+		return step;
+	}
+
+	public void setStep(double step) {
+		this.step = step;
+	}
+
+	public double getImpInside() {
+		return impInside;
+	}
+
+	public void setImpInside(double impInside) {
+		this.impInside = impInside;
+	}
+
+	public double getImpOutside() {
+		return impOutside;
+	}
+
+	public void setImpOutside(double impOutside) {
+		this.impOutside = impOutside;
+	}
+
+	public double getThreshold() {
+		return threshold;
+	}
+
+	public void setThreshold(double threshold) {
+		this.threshold = threshold;
+	}
+
+	public double getBranchFacilitator() {
+		return branchFacilitator;
+	}
+
+	public void setBranchFacilitator(double branchFacilitator) {
+		this.branchFacilitator = branchFacilitator;
+	}
+
+	public double getFirstLoop() {
+		return firstLoop;
+	}
+
+	public void setFirstLoop(double firstLoop) {
+		this.firstLoop = firstLoop;
+	}
+
+	public double getSecondLoop() {
+		return secondLoop;
+	}
+
+	public void setSecondLoop(double secondLoop) {
+		this.secondLoop = secondLoop;
+	}
+
+	public double getThirdLoop() {
+		return thirdLoop;
+	}
+
+	public void setThirdLoop(double thirdLoop) {
+		this.thirdLoop = thirdLoop;
+	}
+
+	public double getMaxIn() {
+		return maxIn;
+	}
+
+	public void setMaxIn(double maxIn) {
+		this.maxIn = maxIn;
+	}
+
+	public double getMinMem() {
+		return minMem;
+	}
+
+	public void setMinMem(double minMem) {
+		this.minMem = minMem;
+	}
+
+	public double getMaxMem() {
+		return maxMem;
+	}
+
+	public void setMaxMem(double maxMem) {
+		this.maxMem = maxMem;
+	}
+
+	public double getMinOut() {
+		return minOut;
+	}
+
+	public void setMinOut(double minOut) {
+		this.minOut = minOut;
+	}
+
+	public double getMaxOut() {
+		return maxOut;
+	}
+
+	public void setMaxOut(double maxOut) {
+		this.maxOut = maxOut;
+	}
+
+	@Override
+	public String toString() {
+		return "Parameters [imageName=" + imageName + ", xc=" + xc + ", yc=" + yc + ", zc=" + zc + ", radius=" + radius
+				+ ", step=" + step + ", impInside=" + impInside + ", impOutside=" + impOutside + ", threshold="
+				+ threshold + ", branchFacilitator=" + branchFacilitator + ", firstLoop=" + firstLoop + ", secondLoop="
+				+ secondLoop + ", thirdLoop=" + thirdLoop + ", maxIn=" + maxIn + ", minMem=" + minMem + ", maxMem="
+				+ maxMem + ", minOut=" + minOut + ", maxOut=" + maxOut + "]";
+	}
+
 }

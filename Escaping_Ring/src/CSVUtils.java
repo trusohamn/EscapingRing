@@ -29,8 +29,6 @@ public class CSVUtils {
 
         boolean first = true;
 
-        //default customQuote is empty
-
         if (separators == ' ') {
             separators = DEFAULT_SEPARATOR;
         }

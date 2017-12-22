@@ -22,6 +22,7 @@ public class Ring  implements Serializable {
 	static private double impOutside = -0.25;
 	
 	static private double maxIn, minMem, maxMem, minOut, maxOut;
+	static private double plusErase = 2;
 	
 
 
@@ -197,7 +198,6 @@ public class Ring  implements Serializable {
 	}
 	
 	public void eraseVol(Volume workingVol){
-		double plusErase = 2;
 		int radius = (int)Math.ceil(this.radius*plusErase);
 		
 		
@@ -229,7 +229,6 @@ public class Ring  implements Serializable {
 	}
 	
 	public void restoreVol(Volume workingVol, Volume vol){
-		double plusErase = 2;
 		int radius = (int)Math.ceil(this.radius*plusErase);
 		
 		
@@ -322,6 +321,10 @@ public class Ring  implements Serializable {
 	}
 	public void addBranch(Branch branch){
 		this.branches.add(branch);
+	}
+	
+	public void removeBranch(Branch branch){
+		this.branches.remove(branch);
 	}
 	
 	public double getContrast() {
