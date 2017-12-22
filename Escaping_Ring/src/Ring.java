@@ -323,6 +323,10 @@ public class Ring  implements Serializable {
 		this.branches.add(branch);
 	}
 	
+	public void removeBranch(Branch branch){
+		this.branches.remove(branch);
+	}
+	
 	public double getContrast() {
 		return contrast;
 	}

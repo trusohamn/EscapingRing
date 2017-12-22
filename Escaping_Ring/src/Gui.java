@@ -6,25 +6,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
@@ -55,6 +44,7 @@ public class Gui extends JDialog {
 	static DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
 	static DefaultListModel<Branch> extraBranchList = new DefaultListModel<Branch>();
 	DefaultListModel<Ring> ringList = new DefaultListModel<Ring>();
+	static ArrayList<Ring> ringsUsed = new ArrayList<Ring>();
 	JList<Branch> list;
 
 	static Network network = new Network(branchList);
@@ -1008,6 +998,9 @@ public class Gui extends JDialog {
 				Espacing_Ring.workingVol = null;
 				Espacing_Ring.imp = null;
 				Espacing_Ring.imageName = null;
+				//Espacing_Ring.iC = null;
+				//Espacing_Ring.imgS = null;
+				Gui.ringsUsed = new ArrayList<Ring>();
 				Gui.updateLoadedImage();
 			}
 		}); 

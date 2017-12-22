@@ -26,6 +26,10 @@ public class Espacing_Ring implements PlugIn {
 
 		vol = null;
 		workingVol = null;
+		iC = null;
+		imp = null;
+		imgS=null;
+		
 		Gui dialog = new Gui();
 		dialog.setVisible(true);
 
@@ -103,7 +107,6 @@ public class Espacing_Ring implements PlugIn {
 		imp = WindowManager.getCurrentImage();
 		if (imp == null) {
 			IJ.error("No open image.");
-			Gui.roiRunning = false;
 			return;
 		}
 

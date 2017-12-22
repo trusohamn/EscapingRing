@@ -193,71 +193,91 @@ public class Network extends ArrayList<Branch> implements Serializable{
 	}
 
 	public void orderBranchPoints(){
-		for(Branch b: this){
-			for(Ring r: b){	
-				ArrayList<Branch> motherBranches = r.getBranches();
-				if(motherBranches.size()==2){
-					int[] indexes = new int[2];
-					boolean[] isLastFirst = new boolean[2];
-					int i = 0;
-					for(Branch motherBranch : motherBranches){
-						indexes[i] = motherBranch.indexOf(r);
-						isLastFirst[i] = (indexes[i] == motherBranch.size()-1 || indexes[i] == 0)? true : false;
-						i++;
-					}
+		ArrayList<Ring> allRings = new ArrayList<Ring>();
+		for(Branch b: this) {
+			for(Ring r: b) {
+				allRings.add(r);
+			}
+		}
 
-					if(isLastFirst[0] && isLastFirst[1]){
-						//branches are connected by their last/first rings ---> to join
-						Branch newBranch ;
+		for(Ring r: allRings){
+			r.setBranches(new ArrayList<Branch>());
+			for(Branch b: this) {
+				if(b.contains(r)) r.addBranch(b);
+			}
 
-						if(indexes[0] == motherBranches.get(0).size()-1){
-							newBranch = motherBranches.get(0);
-							ArrayList<Ring> clone = (ArrayList<Ring>) motherBranches.get(1).clone();
-							if(indexes[1] == motherBranches.get(1).size()-1){						
-								Collections.reverse(clone);
-							}
-							newBranch.addAll(clone);
-						}
-						else if(indexes[1] == motherBranches.get(1).size()-1){
-							newBranch = motherBranches.get(1);
-							ArrayList<Ring> clone = (ArrayList<Ring>) motherBranches.get(0).clone();
-							newBranch.addAll(clone);
-						}
-						else{
-							ArrayList<Ring> clone0 = (ArrayList<Ring>) motherBranches.get(0).clone();
-							ArrayList<Ring> clone1 = (ArrayList<Ring>) motherBranches.get(1).clone();
-							Collections.reverse(clone0);
-							if(indexes[1] == motherBranches.get(1).size()-1){						
-								Collections.reverse(clone1);
-							}
-							newBranch = new Branch();
-							newBranch.addAll(clone0);
-							newBranch.addAll(clone1);
-																					
-						}	
-						remove(motherBranches.get(0));
-						remove(motherBranches.get(1));
-						add(newBranch);
-					}
 
-					else{
-						//one of branches finishes into another. cut another into two
-						for(int j=0; j<=2; j++){
-							if(!isLastFirst[j]){
-								Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes[j]);
-								Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes[j], motherBranches.get(j).size()-1);
-								remove(motherBranches.get(j));
-								add(newBranch1);
-								add(newBranch2);
-								branchList.removeElement(motherBranches.get(j));
-								Gui.extraBranchList.removeElement(motherBranches.get(j));
-							}
-						}
-					}	
+
+
+			ArrayList<Branch> motherBranches = r.getBranches();
+			if(motherBranches.size()==2){
+				int[] indexes = new int[2];
+				boolean[] isLastFirst = new boolean[2];
+				int i = 0;
+				for(Branch motherBranch : motherBranches){
+					indexes[i] = motherBranch.indexOf(r);
+					isLastFirst[i] = (indexes[i] == motherBranch.size()-1 || indexes[i] == 0)? true : false;
+					i++;
 				}
+
+				if(isLastFirst[0] && isLastFirst[1]){
+					//branches are connected by their last/first rings ---> to join
+					Branch newBranch ;
+
+					if(indexes[0] == motherBranches.get(0).size()-1){
+						newBranch = motherBranches.get(0);
+						ArrayList<Ring> clone = (ArrayList<Ring>) motherBranches.get(1).clone();
+						if(indexes[1] == motherBranches.get(1).size()-1){						
+							Collections.reverse(clone);
+						}
+						newBranch.addAll(clone);
+					}
+					else if(indexes[1] == motherBranches.get(1).size()-1){
+						newBranch = motherBranches.get(1);
+						ArrayList<Ring> clone = (ArrayList<Ring>) motherBranches.get(0).clone();
+						newBranch.addAll(clone);
+					}
+					else{
+						ArrayList<Ring> clone0 = (ArrayList<Ring>) motherBranches.get(0).clone();
+						ArrayList<Ring> clone1 = (ArrayList<Ring>) motherBranches.get(1).clone();
+						Collections.reverse(clone0);
+						if(indexes[1] == motherBranches.get(1).size()-1){						
+							Collections.reverse(clone1);
+						}
+						newBranch = new Branch();
+						newBranch.addAll(clone0);
+						newBranch.addAll(clone1);
+
+					}	
+					remove(motherBranches.get(0));
+					remove(motherBranches.get(1));
+					add(newBranch);
+					r.removeBranch(motherBranches.get(0));
+					r.removeBranch(motherBranches.get(1));
+					r.addBranch(newBranch);
+				}
+
+				else{
+					//one of branches finishes into another. cut another into two
+					for(int j=0; j<=2; j++){
+						if(!isLastFirst[j]){
+							Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes[j]);
+							Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes[j], motherBranches.get(j).size()-1);
+							remove(motherBranches.get(j));
+							add(newBranch1);
+							add(newBranch2);
+							r.removeBranch(motherBranches.get(j));
+							r.addBranch(newBranch1);
+							r.addBranch(newBranch2);
+							branchList.removeElement(motherBranches.get(j));
+							Gui.extraBranchList.removeElement(motherBranches.get(j));
+						}
+					}
+				}	
 			}
 		}
 	}
+
 
 
 	@Override public boolean add(Branch branch) {
