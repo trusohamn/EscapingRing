@@ -17,6 +17,8 @@ public class Ring  implements Serializable {
 	private double contrast;
 	
 	private ArrayList<Branch> branches;
+	boolean isBranchPoint = false;
+	boolean isEndPoint = false;
 	
 	static private double impInside = -0.25;
 	static private double impOutside = -0.25;

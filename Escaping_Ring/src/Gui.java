@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -274,12 +275,14 @@ public class Gui extends JDialog {
 		btnDelete.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
+				ArrayList<Branch> toRemove = new ArrayList<Branch>();
 				for(int i=0; i< extraBranchList.getSize(); i++){
-					Branch toRemove = extraBranchList.getElementAt(i);
-					branchList.removeElement(toRemove);
-					network.remove(toRemove);
-					extraBranchList.removeElement(toRemove);
-					toRemove.restoreBranch();
+					toRemove.add(extraBranchList.getElementAt(i));
+				}
+				for(Branch b: toRemove){
+					network.remove(b);
+					b.restoreBranch();
+					
 				}
 			}
 		}); 
@@ -630,7 +633,7 @@ public class Gui extends JDialog {
 								+  chooser.getCurrentDirectory());
 						System.out.println("getSelectedFile() : " 
 								+  chooser.getSelectedFile());
-						network.exportData(chooser.getSelectedFile().getPath()+"/VascRing3_Output.csv");
+						network.exportData(chooser.getSelectedFile().getPath()+ File.separator );
 					}
 					else {
 						System.out.println("No Selection ");
@@ -838,11 +841,11 @@ public class Gui extends JDialog {
 		btnOrderNetwork.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-					network.orderBranchPoints();
-					
+				network.orderBranchPoints();
+
 			}}); 
 		tab4.add(btnOrderNetwork);
-		
+
 		/***TAB5 Advanced Settings *****/
 		tab5 = new JPanel();
 		tab5.setLayout(new BorderLayout());
@@ -908,7 +911,7 @@ public class Gui extends JDialog {
 		maxOutField.setText("2");
 		tab5Center.add(maxOutLabel);
 		tab5Center.add(maxOutField);
-		
+
 		JLabel checkWorstRingsLabel = new JLabel("check only X worst rings");
 		checkWorstRingsField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		checkWorstRingsField.setColumns(4);
@@ -980,7 +983,8 @@ public class Gui extends JDialog {
 					IJ.log("Restoring image");
 					Espacing_Ring.generateView(true);
 				}
-				Espacing_Ring.drawNetwork(network);
+				//Espacing_Ring.drawNetwork(network);
+				Espacing_Ring.drawNetworkBranchEndPoints(network);
 				Espacing_Ring.iC.repaint();
 			}
 		}); 
@@ -1006,6 +1010,47 @@ public class Gui extends JDialog {
 		}); 
 		buttonPane.add(resetButton);
 
+	}
+
+	public static void updateRingsUsed() {
+
+
+
+		ringsUsed = new ArrayList<Ring>();
+
+		for(Branch b: network) {
+			for(Ring r: b) {
+				if(!Gui.ringsUsed.contains(r)) {
+					r.setBranches(new ArrayList<Branch>());
+					Gui.ringsUsed.add(r);
+				}
+			}
+		}
+
+		for(Branch b: network) {
+			for(Ring r: b) {
+				if(!r.getBranches().contains(b)) r.addBranch(b);
+			}
+		}
+
+
+		Ring r;
+		for(Branch b: network) {
+
+			for(int n : new int[] {0, b.size()-1}) {
+				r = b.get(n);
+				if(r.getBranches().size()>1) r.isBranchPoint = true;
+				else r.isEndPoint = true;
+
+			}
+
+			for(int n = 1; n< b.size()-1; n++) {
+				r = b.get(n);
+				r.isBranchPoint = false;
+				r.isEndPoint = false;
+				if(!Gui.ringsUsed.contains(r)) Gui.ringsUsed.add(r);
+			}
+		}
 	}
 
 	public static void updateRunning() {

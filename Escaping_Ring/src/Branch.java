@@ -406,6 +406,9 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	public void restoreBranch(){
 		for(Ring ring : this){
 			ring.restoreVol(Espacing_Ring.workingVol, Espacing_Ring.vol);
+			if(ring.getBranches().size()==1 && Gui.ringsUsed.contains(ring)) {
+				Gui.ringsUsed.remove(ring);
+			}			
 		}
 	}
 
