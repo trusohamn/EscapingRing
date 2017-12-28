@@ -228,109 +228,108 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 	public void orderBranchPoints(){
 		Gui.updateRingsUsed();
-		for(Ring r: Gui.ringsUsed){
 
-			ArrayList<Branch> motherBranches = new ArrayList<Branch>();
-			motherBranches.addAll(r.getBranches());
-			if(motherBranches.size()==2){
-				int[] indexes = new int[2];
-				boolean[] isLastFirst = new boolean[2];
-				int i = 0;
-				for(Branch motherBranch : motherBranches){
-					indexes[i] = motherBranch.indexOf(r);
-					isLastFirst[i] = (indexes[i] == motherBranch.size()-1 || indexes[i] == 0)? true : false;
-					i++;
-				}
+			for(int m = 0; m < Gui.ringsUsed.size(); m++){
+				Ring r = Gui.ringsUsed.get(m);
+				ArrayList<Branch> motherBranches = new ArrayList<Branch>();
+				motherBranches.addAll(r.getBranches());
+				if(motherBranches.size()==2){
+					int[] indexes = new int[2];
+					boolean[] isLastFirst = new boolean[2];
+					int i = 0;
+					for(Branch motherBranch : motherBranches){
+						indexes[i] = motherBranch.indexOf(r);
+						isLastFirst[i] = (indexes[i] == motherBranch.size()-1 || indexes[i] == 0)? true : false;
+						i++;
+					}
 
-				if(isLastFirst[0] && isLastFirst[1]){
-					//branches are connected by their last/first rings ---> to join
-					Branch newBranch = new Branch() ;
-					IJ.log("Trying to join: " + motherBranches.get(0).toString() + " with " + motherBranches.get(1).toString());
-					ArrayList<Ring> clone = new ArrayList<Ring>();
-					ArrayList<Ring> clone0 = new ArrayList<Ring>();
-					ArrayList<Ring> clone1 = new ArrayList<Ring>();
-					if(indexes[0] == motherBranches.get(0).size()-1){
-						newBranch.addAll(motherBranches.get(0));
-						clone.addAll(motherBranches.get(1));
-						if(indexes[1] == motherBranches.get(1).size()-1){						
-							Collections.reverse(clone);
+					if(isLastFirst[0] && isLastFirst[1]){
+						//branches are connected by their last/first rings ---> to join
+						Branch newBranch = new Branch() ;
+						IJ.log("Trying to join: " + motherBranches.get(0).toString() + " with " + motherBranches.get(1).toString());
+						ArrayList<Ring> clone = new ArrayList<Ring>();
+						ArrayList<Ring> clone0 = new ArrayList<Ring>();
+						ArrayList<Ring> clone1 = new ArrayList<Ring>();
+						if(indexes[0] == motherBranches.get(0).size()-1){
+							newBranch.addAll(motherBranches.get(0));
+							clone.addAll(motherBranches.get(1));
+							if(indexes[1] == motherBranches.get(1).size()-1){						
+								Collections.reverse(clone);
+							}
+							newBranch.addAll(clone);
 						}
-						newBranch.addAll(clone);
-					}
-					else if(indexes[1] == motherBranches.get(1).size()-1){
-						newBranch.addAll(motherBranches.get(1));
-						clone.addAll(motherBranches.get(0));
-						newBranch.addAll(clone);
-					}
-					else{
-						clone0.addAll(motherBranches.get(0));
-						clone1.addAll( motherBranches.get(1));
-						Collections.reverse(clone0);
-						if(indexes[1] == motherBranches.get(1).size()-1){						
-							Collections.reverse(clone1);
+						else if(indexes[1] == motherBranches.get(1).size()-1){
+							newBranch.addAll(motherBranches.get(1));
+							clone.addAll(motherBranches.get(0));
+							newBranch.addAll(clone);
 						}
-						
-						newBranch.addAll(clone0);
-						newBranch.addAll(clone1);
-
-					}	
-
-					for (Ring ri:motherBranches.get(0)) {
-						ri.removeBranch(motherBranches.get(0));
-						if(!ri.getBranches().contains(newBranch)) ri.addBranch(newBranch);
-					}
-					for (Ring ri:motherBranches.get(1)) {					
-						ri.removeBranch(motherBranches.get(1));
-						if(!ri.getBranches().contains(newBranch)) ri.addBranch(newBranch);
-					}
-					remove(motherBranches.get(0));
-					remove(motherBranches.get(1));
-					add(newBranch);
-
-
-					IJ.log("Joined into: " + newBranch.toString());
-				}
-
-				else{
-					//one of branches finishes into another. cut another into two
-					IJ.log("Trying to cut: " + motherBranches.get(0).toString() + " or " + motherBranches.get(1).toString());
-					for(int j=0; j<=2; j++){
-						if(!isLastFirst[j]){
-							IJ.log("Cutting: " + motherBranches.get(j).toString());
-							Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes[j]);
-							Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes[j], motherBranches.get(j).size()-1);
-
-							IJ.log("Removing: " + motherBranches.get(j).toString());
-							remove(motherBranches.get(j));
-							IJ.log("Removing: " + motherBranches.get(j).toString());
-							for(Ring ri: motherBranches.get(j)){
-								if(ri.getBranches().contains(motherBranches.get(j))) {
-									ri.removeBranch(motherBranches.get(j));
-								}
-								
+						else{
+							clone0.addAll(motherBranches.get(0));
+							clone1.addAll( motherBranches.get(1));
+							Collections.reverse(clone0);
+							if(indexes[1] == motherBranches.get(1).size()-1){						
+								Collections.reverse(clone1);
 							}
 
-							
+							newBranch.addAll(clone0);
+							newBranch.addAll(clone1);
 
-							for(Ring ri: newBranch1) ri.addBranch(newBranch1);
-							for(Ring ri: newBranch2) ri.addBranch(newBranch2);
+						}	
 
-
-							add(newBranch1);
-							add(newBranch2);
-							IJ.log("Cut into: " + newBranch1.toString() + " and " + newBranch2.toString());
+						for (Ring ri:motherBranches.get(0)) {
+							ri.removeBranch(motherBranches.get(0));
+							if(!ri.getBranches().contains(newBranch)) ri.addBranch(newBranch);
 						}
+						for (Ring ri:motherBranches.get(1)) {					
+							ri.removeBranch(motherBranches.get(1));
+							if(!ri.getBranches().contains(newBranch)) ri.addBranch(newBranch);
+						}
+						remove(motherBranches.get(0));
+						remove(motherBranches.get(1));
+						add(newBranch);
+
+
+						IJ.log("Joined into: " + newBranch.toString());
 					}
-				}	
+
+					else{
+						//one of branches finishes into another. cut another into two
+						IJ.log("Trying to cut: " + motherBranches.get(0).toString() + " or " + motherBranches.get(1).toString());
+						for(int j=0; j<2; j++){
+							if(!isLastFirst[j]){
+								IJ.log("Cutting: " + motherBranches.get(j).toString());
+								Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes[j]);
+								Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes[j], motherBranches.get(j).size()-1);
+
+								IJ.log("Removing: " + motherBranches.get(j).toString());
+								remove(motherBranches.get(j));
+								IJ.log("Removing: " + motherBranches.get(j).toString());
+								for(Ring ri: motherBranches.get(j)){
+									if(ri.getBranches().contains(motherBranches.get(j))) {
+										ri.removeBranch(motherBranches.get(j));
+									}
+
+								}
+								for(Ring ri: newBranch1) ri.addBranch(newBranch1);
+								for(Ring ri: newBranch2) ri.addBranch(newBranch2);
+
+								add(newBranch1);
+								add(newBranch2);
+								IJ.log("Cut into: " + newBranch1.toString() + " and " + newBranch2.toString());
+							}
+						}
+					}	
+				}
 			}
-		}
+
 		Gui.updateRingsUsed();
 	}
 
-
-
 	@Override public boolean add(Branch branch) {
 		branchList.addElement(branch);
+		for(Ring r : branch){
+			if(!Gui.ringsUsed.contains(r)) Gui.ringsUsed.add(r);
+		}
 		++this.lastBranchNo;
 		return super.add(branch);
 	}
@@ -341,6 +340,9 @@ public class Network extends ArrayList<Branch> implements Serializable{
 	public boolean remove(Object branch) {
 		branchList.removeElement(branch);
 		Gui.extraBranchList.removeElement(branch);
+		for(Ring r : (Branch) branch){
+			if(Gui.ringsUsed.contains(r)) Gui.ringsUsed.remove(r);
+		}
 		return super.remove(branch);
 	}
 

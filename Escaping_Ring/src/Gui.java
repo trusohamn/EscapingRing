@@ -568,13 +568,16 @@ public class Gui extends JDialog {
 							int x = location.x;
 							int y = location.y;
 							int z = Espacing_Ring.iC.getImage().getSlice();
+							IJ.log("Endpoint: " + x + y + z);
 							end = new Point3D(x, y, z);
 							try {
 								double width= Double.parseDouble(widthField.getText());
 								Branch.createBranchBetweenRingAndPoint(start, end, width);
+								Espacing_Ring.iC.removeMouseListener(this);
 
-							} catch (NumberFormatException e) {
+							} catch (Exception e) {
 								e.printStackTrace();
+								IJ.log(e.toString());
 							}
 						}
 					};
@@ -965,7 +968,7 @@ public class Gui extends JDialog {
 		showButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-
+				Gui.updateRingsUsed();
 				if(Espacing_Ring.vol == null){
 					IJ.log("Saving the image as volume");
 					Espacing_Ring.imp = WindowManager.getCurrentImage();
