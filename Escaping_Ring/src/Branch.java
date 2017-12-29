@@ -124,10 +124,13 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		double minRadius = 0.60;
 		MAINLOOP:
 			do {
-				ArrayList<Ring> candidates = proposeCandidates(current, step,maxRadius, minRadius);
-
-				if(newBranch.size()>0)candidates = keepRingsWhichDontOverlapWithOthers(candidates, 0.95, newBranch.get(newBranch.size()-1));
-				else candidates = keepRingsWhichDontOverlapWithOthers(candidates, 0.2, null);//first ring
+				ArrayList<Ring> candidates = proposeCandidates(current, step, maxRadius, minRadius);
+				ArrayList<Ring> previous = new ArrayList<Ring>();
+				previous.addAll(newBranch);
+				
+				
+				if(newBranch.size()>0)candidates = keepRingsWhichDontOverlapWithOthers(candidates, 1 , previous);
+				else candidates = keepRingsWhichDontOverlapWithOthers(candidates, 0.1, previous);//first ring
 				if(candidates.size()==0) break MAINLOOP;
 
 				//keep x% best
@@ -234,13 +237,13 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		return bestCands;
 	}
 
-	private ArrayList<Ring> keepRingsWhichDontOverlapWithOthers(ArrayList<Ring> rings, double rate, Ring previous){
+	private ArrayList<Ring> keepRingsWhichDontOverlapWithOthers(ArrayList<Ring> rings, double rate, ArrayList<Ring> previous){
 		//keeps percent of best candidates
 		ArrayList<Ring> keepCands = new ArrayList<Ring>();	
 		keepCands.addAll(rings);
 		for(Ring cand: rings) {
 			for(Ring r: Gui.ringsUsed){
-				if(previous != null && r.equals(previous)==false){
+				if(!previous.contains(r)){
 					if( cand.getC().distance(r.getC()) < (cand.getRadius()+r.getRadius())*rate){
 						if(keepCands.contains(cand)) keepCands.remove(cand);
 						break;
@@ -367,7 +370,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		return newB;
 	}
 	public static Branch createBranchBetweenTwoRings(Ring start, Ring end, double width){
-		//creates a single long ring between centers of two rings
+		/**creates a single long ring between centers of two rings, and returns a branch : start - new - end */
 		Point3D startPoint = start.getC();
 		Point3D endPoint = end.getC();
 		double avgRadius = width;

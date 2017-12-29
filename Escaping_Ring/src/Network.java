@@ -233,32 +233,31 @@ public class Network extends ArrayList<Branch> implements Serializable{
 				Ring r = Gui.ringsUsed.get(m);
 				ArrayList<Branch> motherBranches = new ArrayList<Branch>();
 				motherBranches.addAll(r.getBranches());
-				if(motherBranches.size()==2){
-					int[] indexes = new int[2];
-					boolean[] isLastFirst = new boolean[2];
-					int i = 0;
+				if(motherBranches.size()>1){
+					ArrayList<Integer> indexes = new ArrayList<Integer>();
+					ArrayList<Boolean> isLastFirst = new ArrayList<Boolean>();
 					for(Branch motherBranch : motherBranches){
-						indexes[i] = motherBranch.indexOf(r);
-						isLastFirst[i] = (indexes[i] == motherBranch.size()-1 || indexes[i] == 0)? true : false;
-						i++;
+						indexes.add( motherBranch.indexOf(r));
+						boolean isLF = (motherBranch.indexOf(r) == motherBranch.size()-1 || motherBranch.indexOf(r) == 0)? true : false;
+						isLastFirst.add(isLF);
 					}
 
-					if(isLastFirst[0] && isLastFirst[1]){
+					if(isLastFirst.size()==2 && isLastFirst.get(0) && isLastFirst.get(1)){
 						//branches are connected by their last/first rings ---> to join
 						Branch newBranch = new Branch() ;
 						IJ.log("Trying to join: " + motherBranches.get(0).toString() + " with " + motherBranches.get(1).toString());
 						ArrayList<Ring> clone = new ArrayList<Ring>();
 						ArrayList<Ring> clone0 = new ArrayList<Ring>();
 						ArrayList<Ring> clone1 = new ArrayList<Ring>();
-						if(indexes[0] == motherBranches.get(0).size()-1){
+						if(indexes.get(0) == motherBranches.get(0).size()-1){
 							newBranch.addAll(motherBranches.get(0));
 							clone.addAll(motherBranches.get(1));
-							if(indexes[1] == motherBranches.get(1).size()-1){						
+							if(indexes.get(1) == motherBranches.get(1).size()-1){						
 								Collections.reverse(clone);
 							}
 							newBranch.addAll(clone);
 						}
-						else if(indexes[1] == motherBranches.get(1).size()-1){
+						else if(indexes.get(1) == motherBranches.get(1).size()-1){
 							newBranch.addAll(motherBranches.get(1));
 							clone.addAll(motherBranches.get(0));
 							newBranch.addAll(clone);
@@ -267,7 +266,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 							clone0.addAll(motherBranches.get(0));
 							clone1.addAll( motherBranches.get(1));
 							Collections.reverse(clone0);
-							if(indexes[1] == motherBranches.get(1).size()-1){						
+							if(indexes.get(1) == motherBranches.get(1).size()-1){						
 								Collections.reverse(clone1);
 							}
 
@@ -295,11 +294,11 @@ public class Network extends ArrayList<Branch> implements Serializable{
 					else{
 						//one of branches finishes into another. cut another into two
 						IJ.log("Trying to cut: " + motherBranches.get(0).toString() + " or " + motherBranches.get(1).toString());
-						for(int j=0; j<2; j++){
-							if(!isLastFirst[j]){
+						for(int j=0; j<isLastFirst.size(); j++){
+							if(!isLastFirst.get(j)){
 								IJ.log("Cutting: " + motherBranches.get(j).toString());
-								Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes[j]);
-								Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes[j], motherBranches.get(j).size()-1);
+								Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes.get(j));
+								Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes.get(j), motherBranches.get(j).size()-1);
 
 								IJ.log("Removing: " + motherBranches.get(j).toString());
 								remove(motherBranches.get(j));
