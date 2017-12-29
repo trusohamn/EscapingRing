@@ -158,6 +158,8 @@ public class Ring  implements Serializable {
 	
 	public void drawMeasureArea(ImagePlus img, java.awt.Color color) {
 		int radius = (int)Math.ceil(this.radius);
+		
+		//java.awt.Color toTrans = new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue(), 200);
 
 		double angles[] = this.getAnglesFromDirection();
 		double sint = Math.sin(angles[0]);
@@ -179,11 +181,16 @@ public class Ring  implements Serializable {
 
 					double d = Math.sqrt(i*i+j*j);
 					if(dx>=0 && dy>=0 && dz>=0 && dx<img.getWidth() && dy<img.getHeight() && dz< img.getImageStackSize()){
-						ImageProcessor ip = img.getStack().getProcessor(dz+1);
-						ip.setColor(color);
-						if (d >= 0.8*radius && d <=1.2*radius) {
+						ImageProcessor ip = img.getStack().getProcessor(dz+1);					
+						if (d >= 0.9*radius && d <=1.1*radius) {
+							ip.setColor(color);
 							ip.drawPixel(dx, dy);
 						}
+						/*
+						else if(d<0.8*radius){
+							ip.setColor(toTrans);
+							ip.drawPixel(dx, dy);
+						} */
 					}
 				}	
 			}
@@ -286,7 +293,7 @@ public class Ring  implements Serializable {
 					double contrast = cand.contrast;
 					//IJ.log(""+ contrast + " ( " + cand.dir.x + " , " +cand.dir.y + ", " + cand.dir.z );
 					if(contrast > maxContrast) {
-						IJ.log("better >>>>>"+ contrast + " ( " + cand.getDir().getX() + " , " +cand.getDir().getY() + ", " + cand.getDir().getZ() );
+						//IJ.log("better >>>>>"+ contrast + " ( " + cand.getDir().getX() + " , " +cand.getDir().getY() + ", " + cand.getDir().getZ() );
 						bestCand=cand;
 						maxContrast=contrast;
 					}

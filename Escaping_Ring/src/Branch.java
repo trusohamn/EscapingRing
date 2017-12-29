@@ -114,7 +114,6 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	}
 
 	public ArrayList<Ring> evolve( Ring initial) {
-
 		Ring current = initial.duplicate();
 		int iter = 0;
 		double prevMax = Gui.network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*2 : Gui.network.getMeanContrast()*2; //later the contrast value is a sum of three rings
@@ -125,10 +124,15 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		double minRadius = 0.60;
 		MAINLOOP:
 			do {
-				ArrayList<Ring> candidates = proposeCandidates(current, step,maxRadius, minRadius);
-
-				candidates = keepRingsWhichDontOverlapWithOthers(candidates);
+				ArrayList<Ring> candidates = proposeCandidates(current, step, maxRadius, minRadius);
+				ArrayList<Ring> previous = new ArrayList<Ring>();
+				previous.addAll(newBranch);
+				
+				
+				if(newBranch.size()>0)candidates = keepRingsWhichDontOverlapWithOthers(candidates, 1 , previous);
+				else candidates = keepRingsWhichDontOverlapWithOthers(candidates, 0.1, previous);//first ring
 				if(candidates.size()==0) break MAINLOOP;
+
 				//keep x% best
 				candidates = keepBestCandidates(candidates, firstLoopElimination);
 				if(candidates.size()==0) break MAINLOOP;	
@@ -199,6 +203,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 					Gui.network.recalculateContrast(best.getContrast());
 					IJ.log("------>" +Gui.ringsUsed.size());
 					if(!Gui.ringsUsed.contains(newBranch.get(newBranch.size()-2))) Gui.ringsUsed.add(newBranch.get(newBranch.size()-2));
+					if(!Gui.ringsUsed.contains(best)) Gui.ringsUsed.add(best);
 					newBranch.get(newBranch.size()-2).eraseVol(Espacing_Ring.workingVol);
 				}
 				prevMax = Gui.network.getMeanContrast()*2;
@@ -232,21 +237,20 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		return bestCands;
 	}
 
-	private ArrayList<Ring> keepRingsWhichDontOverlapWithOthers(ArrayList<Ring> rings) {
+	private ArrayList<Ring> keepRingsWhichDontOverlapWithOthers(ArrayList<Ring> rings, double rate, ArrayList<Ring> previous){
 		//keeps percent of best candidates
 		ArrayList<Ring> keepCands = new ArrayList<Ring>();	
 		keepCands.addAll(rings);
-
 		for(Ring cand: rings) {
 			for(Ring r: Gui.ringsUsed){
-				if(cand.getC().distance(r.getC()) < (cand.getRadius()+r.getRadius())*0.5 ) {
-					if(keepCands.contains(cand)) keepCands.remove(cand);
-					break;
+				if(!previous.contains(r)){
+					if( cand.getC().distance(r.getC()) < (cand.getRadius()+r.getRadius())*rate){
+						if(keepCands.contains(cand)) keepCands.remove(cand);
+						break;
+					}
 				}
 			}
 		}
-
-
 		return keepCands;
 	}
 
@@ -366,7 +370,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		return newB;
 	}
 	public static Branch createBranchBetweenTwoRings(Ring start, Ring end, double width){
-		//creates a single long ring between centers of two rings
+		/**creates a single long ring between centers of two rings, and returns a branch : start - new - end */
 		Point3D startPoint = start.getC();
 		Point3D endPoint = end.getC();
 		double avgRadius = width;
@@ -382,6 +386,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		newBranch.eraseBranch();
 		Gui.network.add(newBranch);
 
+
 		return newBranch;
 	}
 
@@ -390,13 +395,15 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		double avgRadius = width;
 		double distanceBetween = startPoint.distance(endPoint);
 		Point3D newMiddle = startPoint.middlePoint(endPoint);
+		Ring endRing =  new Ring(endPoint.getX(), endPoint.getY(), endPoint.getZ(), avgRadius, start.getLength());
 		Ring newRing =  new Ring(newMiddle.getX(), newMiddle.getY(), newMiddle.getZ(), avgRadius, distanceBetween);
 		newRing.setDir(startPoint.middlePointDir(endPoint));	
+		endRing.setDir(startPoint.middlePointDir(endPoint));
 
 		Branch newBranch = new Branch();
-		newBranch.remove(0);
 		newBranch.add(start);
 		newBranch.add(newRing);
+		newBranch.add(endRing);
 		newBranch.eraseBranch();
 		Gui.network.add(newBranch);
 		return newBranch;
