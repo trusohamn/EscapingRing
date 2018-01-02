@@ -682,13 +682,13 @@ public class Gui extends JDialog {
 		}); 
 		tab4.add(btnSkeleton);
 
-		final JButton btnBinary = new JButton("Generate binary");
+		final JButton btnBinary = new JButton("Generate mask");
 		btnBinary.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				Volume binary = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
-				network.generateBinary(binary);
-				binary.show("Binary");
+				network.createMask(binary, 0.5);
+				//binary.show("Binary");
 
 			}
 		}); 
