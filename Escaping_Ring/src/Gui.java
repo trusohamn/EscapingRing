@@ -120,9 +120,11 @@ public class Gui extends JDialog {
 		tab1.setLayout(new BorderLayout());
 
 		JPanel leftPanel = new JPanel();
-		tab1.add(leftPanel, BorderLayout.WEST);
+		leftPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+		tab1.add(leftPanel, BorderLayout.CENTER);
 
 		JPanel downPanel = new JPanel();
+		downPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 		tab1.add(downPanel, BorderLayout.SOUTH);
 
 
@@ -241,8 +243,8 @@ public class Gui extends JDialog {
 		emptyButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				impInsideField.setText("-0.25");
-				impOutsideField.setText("-0.25");
+				impInsideField.setText("-0.5");
+				impOutsideField.setText("-0.5");
 			}
 		}); 
 		downPanel.add(emptyButton);
@@ -256,19 +258,20 @@ public class Gui extends JDialog {
 			}
 		}); 
 		downPanel.add(filledButton);
-
-		JRadioButton customButton = new JRadioButton("custom settings");
-		filledButton.addActionListener(new ActionListener() {
+		
+		JRadioButton otherButton = new JRadioButton("other");
+		otherButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
+
 			}
 		}); 
-		downPanel.add(customButton);
+		downPanel.add(otherButton);
 
 		ButtonGroup group = new ButtonGroup();
 		group.add(emptyButton);
 		group.add(filledButton);
-		group.add(customButton);
+		group.add(otherButton);
 
 
 		/*****TAB2 Branches*****/
