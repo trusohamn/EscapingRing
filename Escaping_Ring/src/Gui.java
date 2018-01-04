@@ -62,7 +62,7 @@ public class Gui extends JDialog {
 	static JLabel meanContrastLabel;
 	static JLabel loadedImageLabel;
 
-
+	JFormattedTextField sepField = null;
 	JFormattedTextField firstField = null;
 	JFormattedTextField secondField = null;
 	JFormattedTextField thirdField = null;
@@ -669,7 +669,14 @@ public class Gui extends JDialog {
 		/*****TAB4 Export Import *****/	 
 		tab4 = new JPanel();
 		tab4.setLayout(new FlowLayout(FlowLayout.LEFT));
-
+		
+		JLabel septLabel = new JLabel("Default separator");
+		//sepField = new JFormattedTextField();
+		//sepField.setColumns(2);
+		//sepField.setText(",");
+		tab4.add(septLabel);
+		//secondRow.add(sepField);
+		
 		final JButton btnSkeleton = new JButton("Generate skeleton");
 		btnSkeleton.addActionListener(new ActionListener() {
 			@Override
@@ -693,6 +700,7 @@ public class Gui extends JDialog {
 			}
 		}); 
 		tab4.add(btnBinary);
+	
 
 		final JButton btnCSV = new JButton("Generate csv");
 		btnCSV.addActionListener(new ActionListener() {
@@ -706,7 +714,8 @@ public class Gui extends JDialog {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setAcceptAllFileFilterUsed(false);
 					//    
-					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) {
+						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 						System.out.println("getCurrentDirectory(): " 
 								+  chooser.getCurrentDirectory());
 						System.out.println("getSelectedFile() : " 
@@ -787,6 +796,7 @@ public class Gui extends JDialog {
 					String objectName = chooser.getSelectedFile().getPath();
 					FileInputStream fileIn = null;
 					try {
+						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 						fileIn = new FileInputStream(objectName);
 
 						ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -824,8 +834,10 @@ public class Gui extends JDialog {
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				chooser.setAcceptAllFileFilterUsed(false);
 
-				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) {
+					
 					try {
+						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 						Parameters.exportParams(chooser.getSelectedFile().getPath()+"/VascRing3_Params.csv");
 					} catch (IOException e) {
 
@@ -848,6 +860,7 @@ public class Gui extends JDialog {
 				chooser.setCurrentDirectory(new java.io.File("."));
 				chooser.setDialogTitle("Choose .csv file with parameters");
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+					CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 					String objectName = chooser.getSelectedFile().getPath();
 					Gui.toUseParameters = Parameters.importParams(objectName);
 					for (Parameters p : Gui.toUseParameters){
@@ -887,6 +900,7 @@ public class Gui extends JDialog {
 
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION){
 					Gui.synch = true;
+					CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 					for(Parameters param: Gui.toUseParameters){
 						Espacing_Ring.start(network, param);
 

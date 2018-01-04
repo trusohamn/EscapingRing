@@ -27,11 +27,27 @@ public class MeasurmentVolume {
 		int maxR = (int)Math.ceil(ring.getRadius()); // maximal needed radius - the maximum radius and more
 		bin =  1; //with bin 1 it properly aligns first ring
 		int noBins = (int) Math.ceil(maxR/bin)+1;
-		//IJ.log("no of bins: "+ noBins+" radius: " + maxR);
+		
 
 		sumIntensity = new double[noBins];
 		count = new int[noBins];
-
+		
+		for(int i=-maxR; i<=maxR; i++){
+			for(int j=-maxR; j<=maxR; j++){
+				double d = Math.sqrt(i*i+j*j);
+				if(d<=maxR){
+					int binIndex = (int) Math.round(d/bin); 
+					for(int k=-(int)Math.round(width/2); k<=(int)Math.round(width/2); k++) {
+						float dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
+						float dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
+						float dz = i*R[2][0] + k*R[2][2];
+						sumIntensity[binIndex] += volume.getValue(ring.getC(), dx, dy, dz);
+						++count[binIndex];
+					}
+				}
+			}
+		}
+/*
 		for(int k=-(int)Math.round(width/2); k<=(int)Math.round(width/2); k++) {
 			for(int i=-maxR; i<=maxR; i++){
 				for(int j=-maxR; j<=maxR; j++){
@@ -42,13 +58,12 @@ public class MeasurmentVolume {
 					double d = Math.sqrt(i*i+j*j);
 					if(d<=maxR){
 						int binIndex = (int) Math.round(d/bin); 
-						//IJ.log("bin : " + binIndex +" radius: " + d);
 						sumIntensity[binIndex] += volume.getValue(ring.getC(), dx, dy, dz);
 						++count[binIndex];
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 	@Override
