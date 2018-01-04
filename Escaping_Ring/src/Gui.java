@@ -1,5 +1,7 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,6 +18,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -30,7 +33,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
-
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -62,7 +66,7 @@ public class Gui extends JDialog {
 	static JLabel meanContrastLabel;
 	static JLabel loadedImageLabel;
 
-
+	JFormattedTextField sepField = null;
 	JFormattedTextField firstField = null;
 	JFormattedTextField secondField = null;
 	JFormattedTextField thirdField = null;
@@ -269,16 +273,23 @@ public class Gui extends JDialog {
 
 		/*****TAB2 Branches*****/
 		tab2 = new JPanel();
-		tab2.setLayout(new BorderLayout());
-		JPanel tab2Left = new JPanel(); 
+		tab2.setLayout(new GridLayout(1, 2, 5, 5));
+		JPanel tab2Left = new JPanel();
 		JPanel tab2Right = new JPanel();
-		JPanel tab2Down= new JPanel();
 		tab2Left.setLayout(new BorderLayout());
 		tab2Right.setLayout(new BorderLayout());
+		tab2.add(tab2Left);
+		tab2.add(tab2Right);
+
+		JPanel tab2Down= new JPanel();
 		tab2Down.setLayout(new FlowLayout(FlowLayout.LEFT));
-		tab2.add(tab2Left,BorderLayout.WEST);
-		tab2.add(tab2Right,BorderLayout.EAST);
-		tab2.add(tab2Down,BorderLayout.SOUTH);
+		JPanel tab2UpLeft= new JPanel();
+		tab2UpLeft.setLayout(new FlowLayout(FlowLayout.LEFT));
+		
+		tab2.add(tab2Left);
+		tab2.add(tab2Right);
+		tab2Left.add(tab2Down,BorderLayout.SOUTH);
+		tab2Left.add(tab2UpLeft,BorderLayout.NORTH);
 
 		list = new JList<Branch>(branchList);
 		JPanel listPanel = new JPanel();
@@ -286,7 +297,11 @@ public class Gui extends JDialog {
 		JScrollPane scrol = new JScrollPane(list);
 		tab2Left.add(scrol,BorderLayout.WEST);
 		tab2Left.add(listPanel);
+		
 
+		JLabel alistLabel = new JLabel("All branches: ");
+		tab2UpLeft.add(alistLabel);
+		
 		JList<Branch> list2 = new JList<Branch>(extraBranchList);
 		JPanel listPanel2 = new JPanel();
 		listPanel2.add(list2, BorderLayout.CENTER);
@@ -296,11 +311,12 @@ public class Gui extends JDialog {
 
 		JLabel listLabel = new JLabel("Chosen branches: ");
 		JPanel listLabelPanel = new JPanel();
+		listLabelPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		listLabelPanel.add(listLabel);
 		tab2Right.add(listLabelPanel, BorderLayout.NORTH);
 
 		JPanel buttonListPanel = new JPanel();
-		buttonListPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+		buttonListPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		tab2Right.add(buttonListPanel, BorderLayout.AFTER_LAST_LINE);
 
 		final JButton btnDelete = new JButton("Delete");
@@ -458,23 +474,38 @@ public class Gui extends JDialog {
 
 		/*****TAB3 Rings*****/	 
 		tab3 = new JPanel();
-		tab3.setLayout(new BorderLayout());
-
-		JList<Ring>listRing = new JList<Ring>(ringList);
-		JPanel ringPanel = new JPanel();
-		ringPanel.add(listRing, BorderLayout.CENTER);
-		JScrollPane scrolRing = new JScrollPane(listRing);
-		tab3.add(scrolRing,BorderLayout.WEST);
-		tab3.add(ringPanel);
+		tab3.setLayout(new GridLayout(1, 2, 5, 5));
+		JPanel tab3Left = new JPanel();
+		JPanel tab3Right = new JPanel();
+		tab3Right.setLayout(new BorderLayout());
+		tab3.add(tab3Left);
+		tab3.add(tab3Right);
+		
 		JPanel actionPanel = new JPanel();
 		actionPanel.setLayout(new BorderLayout());
-		tab3.add(actionPanel, BorderLayout.EAST);
+		tab3Left.add(actionPanel);
+		
 		JPanel firstRow = new JPanel();
-		firstRow.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		firstRow.setLayout(new FlowLayout(FlowLayout.LEFT));
 		JPanel secondRow = new JPanel();
-		secondRow.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		secondRow.setLayout(new FlowLayout(FlowLayout.LEFT));
 		actionPanel.add(firstRow, BorderLayout.NORTH);
 		actionPanel.add(secondRow, BorderLayout.CENTER);
+		
+		JPanel selectRingPanelT = new JPanel();
+		selectRingPanelT.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		tab3Right.add(selectRingPanelT, BorderLayout.NORTH);
+		
+		JList<Ring>listRing = new JList<Ring>(ringList);
+		JPanel ringPanel = new JPanel();
+		ringPanel.add(listRing);
+		JScrollPane scrolRing = new JScrollPane(listRing);
+		tab3Right.add(scrolRing, BorderLayout.EAST);
+		tab3Right.add(ringPanel);
+		
+		JPanel selectRingPanel = new JPanel();
+		selectRingPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		tab3Right.add(selectRingPanel, BorderLayout.SOUTH);
 
 		MouseListener mouseListener3 = new MouseAdapter() {
 			//removes ring from the list
@@ -491,11 +522,8 @@ public class Gui extends JDialog {
 		};
 		listRing.addMouseListener(mouseListener3);
 
-		JPanel selectRingPanel = new JPanel();
-		selectRingPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		tab3.add(selectRingPanel, BorderLayout.SOUTH);
 
-		final JButton clickRings = new JButton("Select rings");
+		final JButton clickRings = new JButton("Click rings");
 		clickRings.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
@@ -535,33 +563,9 @@ public class Gui extends JDialog {
 				Espacing_Ring.iC.addMouseListener(mouseListenerImage);
 			}
 		}); 
-		selectRingPanel.add(clickRings);
+		selectRingPanelT.add(clickRings);
 		
-		final JButton btnCleanRing = new JButton("Clean");
-		btnCleanRing.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				ArrayList<Ring> ringsToRemove = new ArrayList<Ring>();
-				for(int i=0; i< ringList.getSize(); i++){
-					ringsToRemove.add(ringList.getElementAt(i));
-				}
-				for(Ring toRemove: ringsToRemove){	
-					ringList.removeElement(toRemove);
-				}
-			}
-		}); 
-		selectRingPanel.add(btnCleanRing);
-
-		final JButton showRings = new JButton("Show rings");
-		showRings.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {	
-				Espacing_Ring.showRings(ringList);	
-				Espacing_Ring.iC.repaint();
-			}
-		}); 
-		selectRingPanel.add(showRings);
-
+		
 		final JButton btnDeleteRing = new JButton("Delete rings");
 		btnDeleteRing.addActionListener(new ActionListener() {
 			@Override
@@ -593,15 +597,42 @@ public class Gui extends JDialog {
 				}
 			}
 		}); 
-		firstRow.add(btnDeleteRing);
+		selectRingPanel.add(btnDeleteRing);
+		
+		final JButton btnCleanRing = new JButton("Clean");
+		btnCleanRing.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				ArrayList<Ring> ringsToRemove = new ArrayList<Ring>();
+				for(int i=0; i< ringList.getSize(); i++){
+					ringsToRemove.add(ringList.getElementAt(i));
+				}
+				for(Ring toRemove: ringsToRemove){	
+					ringList.removeElement(toRemove);
+				}
+			}
+		}); 
+		selectRingPanel.add(btnCleanRing);
+
+		final JButton showRings = new JButton("Show rings");
+		showRings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {	
+				Espacing_Ring.showRings(ringList);	
+				Espacing_Ring.iC.repaint();
+			}
+		}); 
+		selectRingPanel.add(showRings);
+
+		
 		
 
 		JLabel widthLabel = new JLabel("Width of new branch");
 		JFormattedTextField widthField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		widthField.setColumns(5);
 		widthField.setText("0");
-		secondRow.add(widthLabel);
-		secondRow.add(widthField);
+		firstRow.add(widthLabel);
+		firstRow.add(widthField);
 
 		final JButton btnJoinRings = new JButton("Join two rings");
 		btnJoinRings.addActionListener(new ActionListener() {
@@ -666,10 +697,35 @@ public class Gui extends JDialog {
 		secondRow.add(btnFreeBranch);
 
 
-		/*****TAB4 Export Import *****/	 
+		/*****TAB4 Export Import *****/	
+		Border raisedetched = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+		
 		tab4 = new JPanel();
-		tab4.setLayout(new FlowLayout(FlowLayout.LEFT));
-
+		tab4.setLayout(new GridLayout(1, 3, 8, 8));
+		JPanel tab4row1 = new JPanel();
+		tab4row1.setLayout(new GridLayout(6, 1, 8, 8));
+		JPanel tab4row2 = new JPanel();
+		tab4row2.setLayout(new GridLayout(6, 1, 8, 8));
+		JPanel tab4row3 = new JPanel();
+		tab4row3.setLayout(new GridLayout(6, 1, 8, 8));
+		tab4row1.setBorder(raisedetched);
+		tab4row2.setBorder(raisedetched);
+		tab4row3.setBorder(raisedetched);
+		tab4.add(tab4row1);
+		tab4.add(tab4row2);
+		tab4.add(tab4row3);
+		
+		JPanel sepPanel = new JPanel();
+		sepPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+		
+		JLabel septLabel = new JLabel("Default separator");
+		sepField = new JFormattedTextField();
+		sepField.setColumns(1);
+		sepField.setText(",");
+		sepPanel.add(septLabel);
+		sepPanel.add(sepField);
+		tab4row1.add(sepPanel);
+		
 		final JButton btnSkeleton = new JButton("Generate skeleton");
 		btnSkeleton.addActionListener(new ActionListener() {
 			@Override
@@ -680,19 +736,20 @@ public class Gui extends JDialog {
 
 			}
 		}); 
-		tab4.add(btnSkeleton);
+		tab4row2.add(btnSkeleton);
 
-		final JButton btnBinary = new JButton("Generate binary");
+		final JButton btnBinary = new JButton("Generate mask");
 		btnBinary.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				Volume binary = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
-				network.generateBinary(binary);
-				binary.show("Binary");
+				network.createMask(binary, 0.5);
+				//binary.show("Binary");
 
 			}
 		}); 
-		tab4.add(btnBinary);
+		tab4row2.add(btnBinary);
+	
 
 		final JButton btnCSV = new JButton("Generate csv");
 		btnCSV.addActionListener(new ActionListener() {
@@ -706,7 +763,8 @@ public class Gui extends JDialog {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setAcceptAllFileFilterUsed(false);
 					//    
-					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) {
+						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 						System.out.println("getCurrentDirectory(): " 
 								+  chooser.getCurrentDirectory());
 						System.out.println("getSelectedFile() : " 
@@ -723,7 +781,7 @@ public class Gui extends JDialog {
 				}		
 			}
 		}); 
-		tab4.add(btnCSV);
+		tab4row1.add(btnCSV);
 
 		final JButton btnExportXML = new JButton("Export network");
 		btnExportXML.addActionListener(new ActionListener() {
@@ -760,7 +818,7 @@ public class Gui extends JDialog {
 					e.printStackTrace();
 				}}
 		}); 
-		tab4.add(btnExportXML);
+		tab4row3.add(btnExportXML);
 
 
 		final JButton btnImportXML = new JButton("Import network");
@@ -787,6 +845,7 @@ public class Gui extends JDialog {
 					String objectName = chooser.getSelectedFile().getPath();
 					FileInputStream fileIn = null;
 					try {
+						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 						fileIn = new FileInputStream(objectName);
 
 						ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -812,7 +871,7 @@ public class Gui extends JDialog {
 				}
 			}
 		}); 
-		tab4.add(btnImportXML );
+		tab4row3.add(btnImportXML );
 
 		final JButton btnExportParams = new JButton("Export parameters");
 		btnExportParams .addActionListener(new ActionListener() {
@@ -824,8 +883,10 @@ public class Gui extends JDialog {
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				chooser.setAcceptAllFileFilterUsed(false);
 
-				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) {
+					
 					try {
+						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 						Parameters.exportParams(chooser.getSelectedFile().getPath()+"/VascRing3_Params.csv");
 					} catch (IOException e) {
 
@@ -838,7 +899,7 @@ public class Gui extends JDialog {
 			}
 		}); 
 
-		tab4.add(btnExportParams);
+		tab4row1.add(btnExportParams);
 
 		final JButton btnImportParams = new JButton("Import parameters");
 		btnImportParams .addActionListener(new ActionListener() {
@@ -848,6 +909,7 @@ public class Gui extends JDialog {
 				chooser.setCurrentDirectory(new java.io.File("."));
 				chooser.setDialogTitle("Choose .csv file with parameters");
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
+					CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 					String objectName = chooser.getSelectedFile().getPath();
 					Gui.toUseParameters = Parameters.importParams(objectName);
 					for (Parameters p : Gui.toUseParameters){
@@ -856,7 +918,7 @@ public class Gui extends JDialog {
 				}
 			}
 		}); 
-		tab4.add(btnImportParams);
+		tab4row1.add(btnImportParams);
 
 		final JButton btnStartParams = new JButton("Start parameters");
 		btnStartParams.addActionListener(new ActionListener() {
@@ -871,7 +933,7 @@ public class Gui extends JDialog {
 				Gui.synch = false;
 			}
 		}); 
-		tab4.add(btnStartParams);
+		tab4row1.add(btnStartParams);
 
 		final JButton btnStartParamsSave = new JButton("Start parameters one by one");
 		btnStartParamsSave.addActionListener(new ActionListener() {
@@ -887,6 +949,7 @@ public class Gui extends JDialog {
 
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION){
 					Gui.synch = true;
+					CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 					for(Parameters param: Gui.toUseParameters){
 						Espacing_Ring.start(network, param);
 
@@ -913,81 +976,117 @@ public class Gui extends JDialog {
 					Gui.synch = false;
 				}
 			}}); 
-		tab4.add(btnStartParamsSave);
+		tab4row1.add(btnStartParamsSave);
 
 
 		/***TAB5 Advanced Settings *****/
 		tab5 = new JPanel();
-		tab5.setLayout(new BorderLayout());
+		tab5.setLayout(new GridLayout(1, 3, 8, 8));
+		
 		JPanel tab5Upper = new JPanel();
-		tab5.add(tab5Upper, BorderLayout.NORTH);
-		tab5Upper.setLayout(new FlowLayout(FlowLayout.LEFT));
+		tab5Upper.setLayout(new GridLayout(6, 1, 8, 8));
+		tab5.add(tab5Upper);
+		tab5Upper.setBorder(raisedetched);
+		
 		JPanel tab5Center = new JPanel();
-		tab5.add(tab5Center, BorderLayout.CENTER);
-		tab5Center.setLayout(new FlowLayout(FlowLayout.LEFT));
-
+		tab5Center.setLayout(new GridLayout(6, 1, 8, 8));
+		tab5.add(tab5Center);
+		tab5Center.setBorder(raisedetched);
+		
+		JPanel empty = new JPanel();
+		tab5.add(empty);
+		
+		JPanel Cell1 = new JPanel();
+		Cell1.setLayout(new FlowLayout(FlowLayout.LEFT));
 		JLabel firstLabel = new JLabel("Keep after first loop");
 		firstField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		firstField.setColumns(5);
+		firstField.setColumns(3);
 		firstField.setText("100");
-		tab5Upper.add(firstLabel);
-		tab5Upper.add(firstField);
+		Cell1.add(firstLabel);
+		Cell1.add(firstField);
+		tab5Upper.add(Cell1);
 
+		JPanel Cell2 = new JPanel();
+		Cell2.setLayout(new FlowLayout(FlowLayout.LEFT));
 		JLabel secondLabel = new JLabel("Keep after second loop");
 		secondField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		secondField.setColumns(5);
+		secondField.setColumns(3);
 		secondField.setText("5");
-		tab5Upper.add(secondLabel);
-		tab5Upper.add(secondField);
-
+		Cell2.add(secondLabel);
+		Cell2.add(secondField);
+		tab5Upper.add(Cell2);
+		
+		JPanel Cell3 = new JPanel();
+		Cell3.setLayout(new FlowLayout(FlowLayout.LEFT));
 		JLabel thirdLabel = new JLabel("Keep after third loop");
 		thirdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		thirdField.setColumns(5);
+		thirdField.setColumns(3);
 		thirdField.setText("10");
-		tab5Upper.add(thirdLabel);
-		tab5Upper.add(thirdField);
-
-		JLabel maxInLabel = new JLabel("Max inside");
-		maxInField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		maxInField.setColumns(4);
-		maxInField.setText("0.8");
-		tab5Center.add(maxInLabel);
-		tab5Center.add(maxInField);
-
-		JLabel minMemLabel = new JLabel("Min membrane");
-		minMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		minMemField.setColumns(4);
-		minMemField.setText("0.8");
-		tab5Center.add(minMemLabel);
-		tab5Center.add(minMemField);
-
-		JLabel maxMemLabel = new JLabel("Max membrane");
-		maxMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		maxMemField.setColumns(4);
-		maxMemField.setText("1.2");
-		tab5Center.add(maxMemLabel);
-		tab5Center.add(maxMemField);
-
-		JLabel minOutLabel = new JLabel("Min outside");
-		minOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		minOutField.setColumns(4);
-		minOutField.setText("1.2");
-		tab5Center.add(minOutLabel);
-		tab5Center.add(minOutField);
-
-		JLabel maxOutLabel = new JLabel("Max outside");
-		maxOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		maxOutField.setColumns(4);
-		maxOutField.setText("2");
-		tab5Center.add(maxOutLabel);
-		tab5Center.add(maxOutField);
-
+		Cell3.add(thirdLabel);
+		Cell3.add(thirdField);
+		tab5Upper.add(Cell3);
+		
+		JPanel Cell4 = new JPanel();
+		Cell4.setLayout(new FlowLayout(FlowLayout.LEFT));
 		JLabel checkWorstRingsLabel = new JLabel("check only X worst rings");
 		checkWorstRingsField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		checkWorstRingsField.setColumns(4);
 		checkWorstRingsField.setText("0.5");
-		tab5Center.add(checkWorstRingsLabel);
-		tab5Center.add(checkWorstRingsField);
+		Cell4.add(checkWorstRingsLabel);
+		Cell4.add(checkWorstRingsField);
+		tab5Upper.add(Cell4);
+
+		JPanel Cell5 = new JPanel();
+		Cell5.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JLabel maxInLabel = new JLabel("Max inside");
+		maxInField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		maxInField.setColumns(4);
+		maxInField.setText("0.8");
+		Cell5.add(maxInLabel);
+		Cell5.add(maxInField);
+		tab5Center.add(Cell5);
+
+		JPanel Cell6 = new JPanel();
+		Cell6.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JLabel minMemLabel = new JLabel("Min membrane");
+		minMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		minMemField.setColumns(4);
+		minMemField.setText("0.8");
+		Cell6.add(minMemLabel);
+		Cell6.add(minMemField);
+		tab5Center.add(Cell6);
+
+		JPanel Cell7 = new JPanel();
+		Cell7.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JLabel maxMemLabel = new JLabel("Max membrane");
+		maxMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		maxMemField.setColumns(4);
+		maxMemField.setText("1.2");
+		Cell7.add(maxMemLabel);
+		Cell7.add(maxMemField);
+		tab5Center.add(Cell7);
+
+		
+		JPanel Cell8 = new JPanel();
+		Cell8.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JLabel minOutLabel = new JLabel("Min outside");
+		minOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		minOutField.setColumns(4);
+		minOutField.setText("1.2");
+		Cell8.add(minOutLabel);
+		Cell8.add(minOutField);
+		tab5Center.add(Cell8);
+
+		JPanel Cell9 = new JPanel();
+		Cell9.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JLabel maxOutLabel = new JLabel("Max outside");
+		maxOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		maxOutField.setColumns(4);
+		maxOutField.setText("2");
+		Cell9.add(maxOutLabel);
+		Cell9.add(maxOutField);
+		tab5Center.add(Cell9);
+
 
 		/*TABS*/
 

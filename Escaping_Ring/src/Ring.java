@@ -197,6 +197,28 @@ public class Ring  implements Serializable {
 		}
 	}
 	
+	public void draw(Volume volume, float value, double sampling) {
+		int radius = (int)Math.ceil(this.radius);
+		double angles[] = this.getAnglesFromDirection();
+		double sint = Math.sin(angles[0]);
+		double cost = Math.cos(angles[0]);
+		double sinp = Math.sin(angles[1]);
+		double cosp = Math.cos(angles[1]);
+		int len = (int)Math.ceil(this.length*.5);
+		double R[][] = {{cosp*cost, -sinp, cosp*sint}, {sinp*cost, cosp, sinp*sint}, {-sint, 0.0, cost}};
+		for(double j=-radius*2; j<=radius*2; j+=sampling)
+		for(double i=-radius*2; i<=radius*2; i+=sampling) {
+			if (Math.sqrt(i*i+j*j)<=radius) {
+				for(double k=-len; k<=len; k+=sampling) {
+					double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
+					double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
+					double dz = i*R[2][0] + k*R[2][2];
+					volume.setValue(c, dx, dy, dz, value);
+				}
+			}	
+		}
+	}
+	
 	public Ring flippedRing() {
 		Ring newRing = this.duplicate();
 		newRing.getDir().setX( -this.dir.getX());

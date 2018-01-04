@@ -4,9 +4,10 @@ import java.util.List;
 public class CSVUtils {
 	/* From https://www.mkyong.com/java/how-to-export-data-to-csv-file-java/ */
 
-    private static final char DEFAULT_SEPARATOR = ';';
+    private static char DEFAULT_SEPARATOR = ';';
 
-    public static void writeLine(Writer w, List<String> values) throws IOException {
+
+	public static void writeLine(Writer w, List<String> values) throws IOException {
         writeLine(w, values, DEFAULT_SEPARATOR, ' ');
     }
 
@@ -49,6 +50,13 @@ public class CSVUtils {
         sb.append("\n");
         w.append(sb.toString());
 
-
     }
+    
+    public static char getDEFAULT_SEPARATOR() {
+		return DEFAULT_SEPARATOR;
+	}
+
+	public static void setDEFAULT_SEPARATOR(char dEFAULT_SEPARATOR) {
+		DEFAULT_SEPARATOR = dEFAULT_SEPARATOR;
+	}
 }

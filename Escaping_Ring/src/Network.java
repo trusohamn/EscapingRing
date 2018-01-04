@@ -225,6 +225,27 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		writer.close();
 
 	}
+	
+	public void createMask(Volume in, double sampling) {
+		Volume v = new Volume(in.nx, in.ny, in.nz);
+		IJ.log(">>>>>>> Network");
+		int k = 1;
+		for (Branch b: this) {
+			k++;
+			for (Ring r: b) {
+				r.draw(v, 200, sampling);
+			}
+		}
+
+		v.showFloat("Mask");	
+
+		Volume s = v.smooth(v);
+		s.showFloat("Smooth");	
+
+		Volume g = s.gradient(s);
+		g.showFloat("Gradient");	
+		
+	}	
 
 	public void orderBranchPoints(){
 		Gui.updateRingsUsed();

@@ -95,6 +95,7 @@ public class Volume {
 		}
 		new ImagePlus(title, stack).show();
 	}
+	
 	public void show(String title) {
 		new ImagePlus(title, createImageStackFrom3DArray()).show();
 	}
@@ -123,6 +124,43 @@ public class Volume {
 		}
 		//stack.setColorModel(java.awt.image.ColorModel.getRGBdefault());
 		return stack;
+	}
+	
+	protected Volume gradient(Volume in) {
+		int nx = in.nx;
+		int ny = in.ny;
+		int nz = in.nz;
+		Volume out = new Volume(nx, ny, nz);
+		Point3D zero = new Point3D(0, 0, 0);
+		for(int i=1; i<nx-1; i++)
+		for(int j=1; j<ny-1; j++)
+		for(int k=1; k<nz-1; k++) {
+			float gx = in.data[i-1][j][k] - in.data[i+1][j][k];
+			float gy = in.data[i][j-1][k] - in.data[i][j+1][k];
+			float gz = in.data[i][j][k-1] - in.data[i][j][k+1];
+			float u = (float)Math.sqrt(gx*gx + gy*gy + gz*gz);
+			out.setValue(zero, i, j, k, u);
+		}
+		return out;	
+	}
+	
+	protected Volume smooth(Volume in) {
+		int nx = in.nx;
+		int ny = in.ny;
+		int nz = in.nz;
+		Volume out = new Volume (nx, ny, nz);
+		Point3D zero = new Point3D(0, 0, 0);
+		for(int i=1; i<nx-1; i++)
+		for(int j=1; j<ny-1; j++)
+		for(int k=1; k<nz-1; k++) {
+			float gx = in.data[i-1][j][k] + in.data[i+1][j][k];
+			float gy = in.data[i][j-1][k] + in.data[i][j+1][k];
+			float gz = in.data[i][j][k-1] + in.data[i][j][k+1];
+			float u = (in.data[i-1][j][k] + gx + gy + gz) / 5;
+			out.setValue(zero, i, j, k, u);
+		}
+		return out;	
+		
 	}
 		
 }
