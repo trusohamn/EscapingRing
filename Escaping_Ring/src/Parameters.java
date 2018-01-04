@@ -104,7 +104,7 @@ public class Parameters {
 	public static ArrayList<Parameters> importParams(String csvFile) {
 		ArrayList<Parameters> output = new ArrayList<Parameters>();
 		String line = "";
-		String cvsSplitBy = ";";
+		String cvsSplitBy = String.valueOf(CSVUtils.getDEFAULT_SEPARATOR());
 
 		try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
 			line = br.readLine(); //header
