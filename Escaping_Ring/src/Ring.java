@@ -159,8 +159,6 @@ public class Ring  implements Serializable {
 	public void drawMeasureArea(ImagePlus img, java.awt.Color color) {
 		int radius = (int)Math.ceil(this.radius);
 		
-		//java.awt.Color toTrans = new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue(), 200);
-
 		double angles[] = this.getAnglesFromDirection();
 		double sint = Math.sin(angles[0]);
 		double cost = Math.cos(angles[0]);
@@ -181,9 +179,9 @@ public class Ring  implements Serializable {
 
 					double d = Math.sqrt(i*i+j*j);
 					if(dx>=0 && dy>=0 && dz>=0 && dx<img.getWidth() && dy<img.getHeight() && dz< img.getImageStackSize()){
-						ImageProcessor ip = img.getStack().getProcessor(dz+1);					
+						ImageProcessor ip = img.getStack().getProcessor(dz+1);
+						ip.setColor(color);
 						if (d >= 0.9*radius && d <=1.1*radius) {
-							ip.setColor(color);
 							ip.drawPixel(dx, dy);
 						}
 						/*

@@ -1,3 +1,5 @@
+import java.awt.Color;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -122,10 +124,10 @@ public class Volume {
 					fp.putPixelValue(x, y, this.data[x][y][z]);
 			stack.addSlice("", fp);
 		}
-		//stack.setColorModel(java.awt.image.ColorModel.getRGBdefault());
 		return stack;
 	}
 	
+
 	protected Volume gradient(Volume in) {
 		int nx = in.nx;
 		int ny = in.ny;
@@ -161,6 +163,18 @@ public class Volume {
 		}
 		return out;	
 		
+	}
+	
+	public void copyOtherVolume() {
+		for(int x = 0; x< nx; x++) {
+			for(int y = 0; y<ny; y++) {
+				for(int z = 0; z<nz; z++) {
+					//Espacing_Ring.iC.getImage()[x][y]
+					
+					
+				}
+			}
+		}
 	}
 		
 }
