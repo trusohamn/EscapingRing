@@ -6,6 +6,7 @@ import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
 import ij.plugin.PlugIn;
+import ij.process.ImageProcessor;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class Espacing_Ring implements PlugIn {
 		iC = null;
 		imp = null;
 		imgS=null;
-		
+
 		Gui dialog = new Gui();
 		dialog.setVisible(true);
 
@@ -92,10 +93,10 @@ public class Espacing_Ring implements PlugIn {
 		if(workingVol == null) workingVol = new Volume(imp); 
 
 		Parameters params = new Parameters(imageName, xc, yc, zc, radius,  step,  impInside,
-				 impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
+				impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
 				thirdLoop, maxIn, minMem,  maxMem, minOut, maxOut);
 		Gui.usedParameters.add(params);
-		
+
 		generateView(true);
 
 		Ring adjInitial = initial.adjustFirstRing(workingVol);
@@ -105,7 +106,7 @@ public class Espacing_Ring implements PlugIn {
 
 		new Branch(adjInitial, step);
 	}
-	
+
 	public static void start(Network network, Parameters param) {
 		imp = WindowManager.getCurrentImage();
 		if (imp == null) {
@@ -139,7 +140,7 @@ public class Espacing_Ring implements PlugIn {
 		if(workingVol == null) workingVol = new Volume(imp); 
 		param.setImageName(imageName);
 		Gui.usedParameters.add(param);
-		
+
 		generateView(true);
 
 		Ring adjInitial = initial.adjustFirstRing(workingVol);
@@ -198,11 +199,11 @@ public class Espacing_Ring implements PlugIn {
 
 
 		Ring adjInitial = initial.adjustFirstRing(workingVol);
-		
+
 		generateView(true);
 		showRings(Arrays.asList(adjInitial));
 	}
-	
+
 	public static void drawNetwork(Network network){
 
 		for(Branch branch : network) {
@@ -211,17 +212,17 @@ public class Espacing_Ring implements PlugIn {
 			}
 		}
 	}
-	
+
 	public static void drawNetworkBranchEndPoints(Network network){
 		java.awt.Color normal = java.awt.Color.BLUE;
 		java.awt.Color notCorrect = java.awt.Color.ORANGE;
 		java.awt.Color branchpoint = java.awt.Color.MAGENTA;
 		java.awt.Color endpoint = java.awt.Color.CYAN;
-		
+
 
 		for(Branch branch : network) {
 			Ring ring;
-			
+
 			for(int i = 1; i< branch.size()-1; i++) {
 				//other rings
 				ring = branch.get(i);
@@ -252,7 +253,7 @@ public class Espacing_Ring implements PlugIn {
 			ring.drawMeasureArea(iC.getImage(), java.awt.Color.YELLOW);
 		}
 	}
-	
+
 	public static void showRings(List<Ring> ringList){
 		for(int i=0; i< ringList.size(); i++){
 			Ring ring = ringList.get(i);
@@ -300,5 +301,20 @@ public class Espacing_Ring implements PlugIn {
 		}
 		iC.setVisible(true);
 
+	}
+
+	public static void updateImgWithVol(ImagePlus img) {
+		for(int z=0; z<vol.nz; z++) {
+			ImageProcessor ip = img.getStack().getProcessor(z+1);
+
+			for(int x=0; x<vol.nx; x++){
+				for(int y=0; y<vol.ny; y++) {			
+					//ip.setValue((double)this.data[x][y][z]);
+					//ip.drawPixel(x, y );
+					ip.putPixelValue(x, y, vol.data[x][y][z]);
+				}
+			}
+
+		}
 	}
 }
