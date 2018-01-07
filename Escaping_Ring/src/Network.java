@@ -116,6 +116,41 @@ public class Network extends ArrayList<Branch> implements Serializable{
 					vol.setValue(first, dx, dy, dz, 1000);
 				}
 			}
+			for(int e : new int[] {0, branch.size()-1}) {
+				//checking if it is a endpoint
+				Ring firstR = branch.get(e);
+				if(firstR.getBranches().size() == 1) {
+					//we cannot say in which direction the endpoint ring is directed
+					//I will prolong the skeleton by half of width of the ring 
+					//in the direction opposed to the direction connecting it with next one
+					Ring secondR = e==0? branch.get(1): branch.get(branch.size()-2);
+					Point3D dir = firstR.getC().middlePointDir(secondR.getC());
+					Point3D first = firstR.getC();
+
+					dir = dir.flipp();
+					double[] angles = new double[2];
+					
+					angles[0] = Math.acos(dir.getZ());
+					angles[1] = Math.atan2(dir.getY(), dir.getX());
+					double sint = Math.sin(angles[0]);
+					double cost = Math.cos(angles[0]);
+					double sinp = Math.sin(angles[1]);
+					double cosp = Math.cos(angles[1]);
+					double R[][] = 
+						{{cosp*cost, -sinp, cosp*sint},
+								{sinp*cost, cosp, sinp*sint},
+								{-sint, 0, cost}};
+					int i = 0;
+					int j = 0;
+					int maxK = (int)firstR.getLength()/2;
+					for(int k=0; k<=maxK; k++) {
+						double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
+						double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
+						double dz = i*R[2][0]  + k*R[2][2];
+						vol.setValue(first, dx, dy, dz, 1000);
+					}
+				}
+			}
 		}
 	}
 
@@ -228,12 +263,42 @@ public class Network extends ArrayList<Branch> implements Serializable{
 	
 	public void createMask(Volume in, double sampling) {
 		Volume vol = new Volume(in.nx, in.ny, in.nz);
+		Point3D zero = new Point3D(0, 0, 0);
+		
 		
 		for(Branch b: this) {
 			ArrayList<Ring> polyline = new ArrayList<Ring>();
+			
+			Ring firstR = b.get(0);
+			if(firstR.getBranches().size() == 1) { //endpoint
+				Ring secondR =  b.get(1);
+				Point3D dir = firstR.getC().middlePointDir(secondR.getC());
+				dir = dir.flipp();
+					
+				Ring newRing = firstR.duplicate();
+				newRing.setDir(dir);
+				double polar[] = newRing.getAnglesFromDirection();
+				newRing.setC(newRing.getPositionFromSphericalAngles(firstR.getLength()/2, polar[0], polar[1]));				
+				polyline.add(newRing);
+			}
+			
 			for(Ring r:b) {
 				polyline.add(r);			
 			}
+		
+			firstR = b.get(b.size()-1);
+			if(firstR.getBranches().size() == 1) { //endpoint
+				Ring secondR = b.get(b.size()-2);
+				Point3D dir = firstR.getC().middlePointDir(secondR.getC());
+				dir = dir.flipp();
+					
+				Ring newRing = firstR.duplicate();
+				newRing.setDir(dir);
+				double polar[] = newRing.getAnglesFromDirection();
+				newRing.setC(newRing.getPositionFromSphericalAngles(firstR.getLength()/2, polar[0], polar[1]));				
+				polyline.add(newRing);
+			}	
+			
 			for(int p=0; p<polyline.size()-1; p++) {
 				Point3D p1 = polyline.get(p).getC();
 				Point3D p2 = polyline.get(p+1).getC();
@@ -243,8 +308,8 @@ public class Network extends ArrayList<Branch> implements Serializable{
 				double r2[] = {p2.x, p2.y, p2.z, polyline.get(p+1).getRadius()};
 				double dr[] = {p2.x-p1.x, p2.y-p1.y, p2.z-p1.z, r2[3]-r1[3]};
 				double sr[] = {dr[0]/ns, dr[1]/ns, dr[2]/ns, dr[3]/ns};
-				Point3D zero = new Point3D(0, 0, 0);
-				System.out.println("Segment " + p1);
+				
+				//System.out.println("Segment " + p1);
 				for(int s=0; s<=ns; s++) {
 					Point3D pt = new Point3D(r1[0] + s*sr[0], r1[1] + s*sr[1], r1[2] + s*sr[2]);
 					double radius = r1[3] + s*sr[3];
@@ -260,21 +325,21 @@ public class Network extends ArrayList<Branch> implements Serializable{
 							vol.setValue(zero, i, j, k, 100);
 						}
 					}
-					System.out.println("" + pt + " " + radius + " " + r);
+					//System.out.println("" + pt + " " + radius + " " + r);
 					
 				}
 			}
 		}
 		
 
-		vol.showFloat("Rolling ball");
+		//vol.showFloat("Rolling ball");
 
 
 		Volume s = vol.smooth(vol);
-		s.showFloat("Smooth");	
+		s.showFloat("Mask");	
 
-		Volume g = s.gradient(s);
-		g.showFloat("Gradient");	
+		//Volume g = s.gradient(s);
+		//g.showFloat("Gradient");	
 		
 	}	
 

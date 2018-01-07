@@ -36,6 +36,10 @@ public class Point3D  implements Serializable{
 		return new Point3D(x, y, z);
 	}
 	
+	public Point3D flipp() {
+		return new Point3D(-x, -y, -z);
+	}
+	
 	public Point3D middlePoint(Point3D point){
 		double newx = (this.x + point.x)/2;
 		double newy = (this.y + point.y)/2;
