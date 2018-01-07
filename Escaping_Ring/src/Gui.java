@@ -604,7 +604,8 @@ public class Gui extends JDialog {
 				for(int i=0; i< ringList.getSize(); i++){
 					ringsToRemove.add(ringList.getElementAt(i));
 				}
-				for(Ring toRemove: ringsToRemove){	
+				for(int j=0; j< ringsToRemove.size(); j++){	
+					Ring toRemove = ringsToRemove.get(j);
 					ArrayList<Branch> motherBranches = toRemove.getBranches();
 					for(Branch motherBranch : motherBranches){
 						int indexOfRingToRemove = motherBranch.indexOf(toRemove);
@@ -623,6 +624,7 @@ public class Gui extends JDialog {
 							motherBranch.remove(toRemove);
 						}}	
 					ringList.removeElement(toRemove);
+					updateRingsUsed();
 				}
 				Espacing_Ring.updateImgWithVol(Espacing_Ring.iC.getImage());
 				showButton.doClick();
