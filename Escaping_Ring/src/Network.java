@@ -22,7 +22,8 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 	private int lastBranchNo = 0;
 
-	public Network(){	
+	public Network(){
+		lastBranchNo = 0;
 	}
 
 	public Network(DefaultListModel<Branch> branchList){
@@ -32,6 +33,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 	public Network(ArrayList<Branch> branchList){
 		this.addAll(branchList);
+		lastBranchNo = branchList.size();
 	}
 
 	public void save(String filename) {
@@ -129,7 +131,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 					dir = dir.flipp();
 					double[] angles = new double[2];
-					
+
 					angles[0] = Math.acos(dir.getZ());
 					angles[1] = Math.atan2(dir.getY(), dir.getX());
 					double sint = Math.sin(angles[0]);
@@ -201,7 +203,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		List<List<String>> data = new ArrayList<List<String>>();
 		FileWriter writer = new FileWriter(csvFile + "VascRing3_Output.csv");
 
-		double totalLength = 0;
+		double totalLength = 0; //of branches in the network
 		int numberBranchPoints = 0;
 		int numberEndPoints = 0;
 		double totalIntWidth = 0;
@@ -211,28 +213,47 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		for(Ring r: Gui.ringsUsed) {
 			if (r.isBranchPoint) ++ numberBranchPoints;
 			if (r.isEndPoint) ++numberEndPoints;
-
 		}
+
 		for(Branch branch : this) {
 			int BranchNo = branch.getBranchNo();
 			double branchLength = 0;
 			double totalBranchWidth = 0;
-			int ringNumber = 0;
+			ArrayList<Ring> points = new ArrayList<Ring>();
+			points.addAll(branch);
 
+			for(int n = 1; n<branch.size(); n++) {
+				double thisBranchLength = branch.get(n-1).getC().distance(branch.get(n).getC());
+				branchLength += thisBranchLength ;
+				totalBranchWidth += branch.get(n).getRadius()*thisBranchLength;			
+			}
 
-			for(int n = 0; n<branch.size(); n++) {
-				++ringNumber;
-				if(n>0){
-					branchLength += branch.get(n-1).getC().distance(branch.get(n).getC());
+			//adding halfring to the endpoint
+			for(int e : new int[] {0, branch.size()-1}) {
+				Ring firstR = branch.get(0);
+				if(firstR.getBranches().size() == 1) { //endpoint
+					Ring secondR = e==0? branch.get(1): branch.get(branch.size()-2);
+					Point3D dir = firstR.getC().middlePointDir(secondR.getC());
+					dir = dir.flipp();
+
+					Ring newRing = firstR.duplicate();
+					newRing.setDir(dir);
+					double polar[] = newRing.getAnglesFromDirection();
+					newRing.setC(newRing.getPositionFromSphericalAngles(firstR.getLength()/2, polar[0], polar[1]));				
+					double halfRingDistance = firstR.getC().distance(newRing.getC());
+
+					branchLength += halfRingDistance;
+					totalBranchWidth += branch.get(e).getRadius()*halfRingDistance;
+
+					if(e==0) points.add(0, newRing);
+					if(e==branch.size()-1)points.add(newRing);
 				}
-				totalBranchWidth += branch.get(n).getRadius();
-
 			}
 
 			totalLength += branchLength;
-			double branchWidth = totalBranchWidth/ringNumber;
-			double branchStraightness = branch.get(0).getC().distance(branch.get(branch.size()-1).getC()) / branchLength;	
-			totalIntWidth += branchWidth*branchLength;
+			double branchWidth = totalBranchWidth/branchLength;
+			double branchStraightness = points.get(0).getC().distance(points.get(branch.size()-1).getC()) / branchLength;	
+			totalIntWidth += totalBranchWidth;
 			totalIntStraightness += branchStraightness*branchLength;
 			;
 			List<String> row = Arrays.asList( String.valueOf(BranchNo), String.valueOf(branchLength), String.valueOf(branchWidth), String.valueOf(branchStraightness));
@@ -260,45 +281,45 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		writer.close();
 
 	}
-	
+
 	public void createMask(Volume in, double sampling) {
 		Volume vol = new Volume(in.nx, in.ny, in.nz);
 		Point3D zero = new Point3D(0, 0, 0);
-		
-		
+
+
 		for(Branch b: this) {
 			ArrayList<Ring> polyline = new ArrayList<Ring>();
-			
+
 			Ring firstR = b.get(0);
 			if(firstR.getBranches().size() == 1) { //endpoint
 				Ring secondR =  b.get(1);
 				Point3D dir = firstR.getC().middlePointDir(secondR.getC());
 				dir = dir.flipp();
-					
+
 				Ring newRing = firstR.duplicate();
 				newRing.setDir(dir);
 				double polar[] = newRing.getAnglesFromDirection();
 				newRing.setC(newRing.getPositionFromSphericalAngles(firstR.getLength()/2, polar[0], polar[1]));				
 				polyline.add(newRing);
 			}
-			
+
 			for(Ring r:b) {
 				polyline.add(r);			
 			}
-		
+
 			firstR = b.get(b.size()-1);
 			if(firstR.getBranches().size() == 1) { //endpoint
 				Ring secondR = b.get(b.size()-2);
 				Point3D dir = firstR.getC().middlePointDir(secondR.getC());
 				dir = dir.flipp();
-					
+
 				Ring newRing = firstR.duplicate();
 				newRing.setDir(dir);
 				double polar[] = newRing.getAnglesFromDirection();
 				newRing.setC(newRing.getPositionFromSphericalAngles(firstR.getLength()/2, polar[0], polar[1]));				
 				polyline.add(newRing);
 			}	
-			
+
 			for(int p=0; p<polyline.size()-1; p++) {
 				Point3D p1 = polyline.get(p).getC();
 				Point3D p2 = polyline.get(p+1).getC();
@@ -308,7 +329,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 				double r2[] = {p2.x, p2.y, p2.z, polyline.get(p+1).getRadius()};
 				double dr[] = {p2.x-p1.x, p2.y-p1.y, p2.z-p1.z, r2[3]-r1[3]};
 				double sr[] = {dr[0]/ns, dr[1]/ns, dr[2]/ns, dr[3]/ns};
-				
+
 				//System.out.println("Segment " + p1);
 				for(int s=0; s<=ns; s++) {
 					Point3D pt = new Point3D(r1[0] + s*sr[0], r1[1] + s*sr[1], r1[2] + s*sr[2]);
@@ -318,19 +339,19 @@ public class Network extends ArrayList<Branch> implements Serializable{
 					int z = (int)(Math.round(pt.z));
 					int r = (int)(Math.ceil(radius)+2);
 					for(int i=x-r; i<=x+r; i++)
-					for(int j=y-r; j<=y+r; j++)
-					for(int k=z-r; k<=z+r; k++) {
-						double d = Math.sqrt((pt.x-i)*(pt.x-i) + (pt.y-j)*(pt.y-j) + (pt.z-k)*(pt.z-k));
-						if (d < radius) {
-							vol.setValue(zero, i, j, k, 100);
-						}
-					}
+						for(int j=y-r; j<=y+r; j++)
+							for(int k=z-r; k<=z+r; k++) {
+								double d = Math.sqrt((pt.x-i)*(pt.x-i) + (pt.y-j)*(pt.y-j) + (pt.z-k)*(pt.z-k));
+								if (d < radius) {
+									vol.setValue(zero, i, j, k, 100);
+								}
+							}
 					//System.out.println("" + pt + " " + radius + " " + r);
-					
+
 				}
 			}
 		}
-		
+
 
 		//vol.showFloat("Rolling ball");
 
@@ -340,103 +361,103 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 		//Volume g = s.gradient(s);
 		//g.showFloat("Gradient");	
-		
+
 	}	
 
 	public void orderBranchPoints(){
 		Gui.updateRingsUsed();
 
-			for(int m = 0; m < Gui.ringsUsed.size(); m++){
-				Ring r = Gui.ringsUsed.get(m);
-				ArrayList<Branch> motherBranches = new ArrayList<Branch>();
-				motherBranches.addAll(r.getBranches());
-				if(motherBranches.size()>1){
-					ArrayList<Integer> indexes = new ArrayList<Integer>();
-					ArrayList<Boolean> isLastFirst = new ArrayList<Boolean>();
-					for(Branch motherBranch : motherBranches){
-						indexes.add( motherBranch.indexOf(r));
-						boolean isLF = (motherBranch.indexOf(r) == motherBranch.size()-1 || motherBranch.indexOf(r) == 0)? true : false;
-						isLastFirst.add(isLF);
-					}
-
-					if(isLastFirst.size()==2 && isLastFirst.get(0) && isLastFirst.get(1)){
-						//branches are connected by their last/first rings ---> to join
-						Branch newBranch = new Branch() ;
-						IJ.log("Trying to join: " + motherBranches.get(0).toString() + " with " + motherBranches.get(1).toString());
-						ArrayList<Ring> clone = new ArrayList<Ring>();
-						ArrayList<Ring> clone0 = new ArrayList<Ring>();
-						ArrayList<Ring> clone1 = new ArrayList<Ring>();
-						if(indexes.get(0) == motherBranches.get(0).size()-1){
-							newBranch.addAll(motherBranches.get(0));
-							clone.addAll(motherBranches.get(1));
-							if(indexes.get(1) == motherBranches.get(1).size()-1){						
-								Collections.reverse(clone);
-							}
-							newBranch.addAll(clone);
-						}
-						else if(indexes.get(1) == motherBranches.get(1).size()-1){
-							newBranch.addAll(motherBranches.get(1));
-							clone.addAll(motherBranches.get(0));
-							newBranch.addAll(clone);
-						}
-						else{
-							clone0.addAll(motherBranches.get(0));
-							clone1.addAll( motherBranches.get(1));
-							Collections.reverse(clone0);
-							if(indexes.get(1) == motherBranches.get(1).size()-1){						
-								Collections.reverse(clone1);
-							}
-
-							newBranch.addAll(clone0);
-							newBranch.addAll(clone1);
-
-						}	
-
-						for (Ring ri:motherBranches.get(0)) {
-							ri.removeBranch(motherBranches.get(0));
-							if(!ri.getBranches().contains(newBranch)) ri.addBranch(newBranch);
-						}
-						for (Ring ri:motherBranches.get(1)) {					
-							ri.removeBranch(motherBranches.get(1));
-							if(!ri.getBranches().contains(newBranch)) ri.addBranch(newBranch);
-						}
-						remove(motherBranches.get(0));
-						remove(motherBranches.get(1));
-						add(newBranch);
-
-
-						IJ.log("Joined into: " + newBranch.toString());
-					}
-
-					else{
-						//one of branches finishes into another. cut another into two
-						IJ.log("Trying to cut: " + motherBranches.get(0).toString() + " or " + motherBranches.get(1).toString());
-						for(int j=0; j<isLastFirst.size(); j++){
-							if(!isLastFirst.get(j)){
-								IJ.log("Cutting: " + motherBranches.get(j).toString());
-								Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes.get(j));
-								Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes.get(j), motherBranches.get(j).size()-1);
-
-								IJ.log("Removing: " + motherBranches.get(j).toString());
-								remove(motherBranches.get(j));
-								IJ.log("Removing: " + motherBranches.get(j).toString());
-								for(Ring ri: motherBranches.get(j)){
-									if(ri.getBranches().contains(motherBranches.get(j))) {
-										ri.removeBranch(motherBranches.get(j));
-									}
-
-								}
-								for(Ring ri: newBranch1) ri.addBranch(newBranch1);
-								for(Ring ri: newBranch2) ri.addBranch(newBranch2);
-
-								add(newBranch1);
-								add(newBranch2);
-								IJ.log("Cut into: " + newBranch1.toString() + " and " + newBranch2.toString());
-							}
-						}
-					}	
+		for(int m = 0; m < Gui.ringsUsed.size(); m++){
+			Ring r = Gui.ringsUsed.get(m);
+			ArrayList<Branch> motherBranches = new ArrayList<Branch>();
+			motherBranches.addAll(r.getBranches());
+			if(motherBranches.size()>1){
+				ArrayList<Integer> indexes = new ArrayList<Integer>();
+				ArrayList<Boolean> isLastFirst = new ArrayList<Boolean>();
+				for(Branch motherBranch : motherBranches){
+					indexes.add( motherBranch.indexOf(r));
+					boolean isLF = (motherBranch.indexOf(r) == motherBranch.size()-1 || motherBranch.indexOf(r) == 0)? true : false;
+					isLastFirst.add(isLF);
 				}
+
+				if(isLastFirst.size()==2 && isLastFirst.get(0) && isLastFirst.get(1)){
+					//branches are connected by their last/first rings ---> to join
+					Branch newBranch = new Branch() ;
+					IJ.log("Trying to join: " + motherBranches.get(0).toString() + " with " + motherBranches.get(1).toString());
+					ArrayList<Ring> clone = new ArrayList<Ring>();
+					ArrayList<Ring> clone0 = new ArrayList<Ring>();
+					ArrayList<Ring> clone1 = new ArrayList<Ring>();
+					if(indexes.get(0) == motherBranches.get(0).size()-1){
+						newBranch.addAll(motherBranches.get(0));
+						clone.addAll(motherBranches.get(1));
+						if(indexes.get(1) == motherBranches.get(1).size()-1){						
+							Collections.reverse(clone);
+						}
+						newBranch.addAll(clone);
+					}
+					else if(indexes.get(1) == motherBranches.get(1).size()-1){
+						newBranch.addAll(motherBranches.get(1));
+						clone.addAll(motherBranches.get(0));
+						newBranch.addAll(clone);
+					}
+					else{
+						clone0.addAll(motherBranches.get(0));
+						clone1.addAll( motherBranches.get(1));
+						Collections.reverse(clone0);
+						if(indexes.get(1) == motherBranches.get(1).size()-1){						
+							Collections.reverse(clone1);
+						}
+
+						newBranch.addAll(clone0);
+						newBranch.addAll(clone1);
+
+					}	
+
+					for (Ring ri:motherBranches.get(0)) {
+						ri.removeBranch(motherBranches.get(0));
+						if(!ri.getBranches().contains(newBranch)) ri.addBranch(newBranch);
+					}
+					for (Ring ri:motherBranches.get(1)) {					
+						ri.removeBranch(motherBranches.get(1));
+						if(!ri.getBranches().contains(newBranch)) ri.addBranch(newBranch);
+					}
+					remove(motherBranches.get(0));
+					remove(motherBranches.get(1));
+					add(newBranch);
+
+
+					IJ.log("Joined into: " + newBranch.toString());
+				}
+
+				else{
+					//one of branches finishes into another. cut another into two
+					IJ.log("Trying to cut: " + motherBranches.get(0).toString() + " or " + motherBranches.get(1).toString());
+					for(int j=0; j<isLastFirst.size(); j++){
+						if(!isLastFirst.get(j)){
+							IJ.log("Cutting: " + motherBranches.get(j).toString());
+							Branch newBranch1 = motherBranches.get(j).duplicateCrop(0, indexes.get(j));
+							Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes.get(j), motherBranches.get(j).size()-1);
+
+							IJ.log("Removing: " + motherBranches.get(j).toString());
+							remove(motherBranches.get(j));
+							IJ.log("Removing: " + motherBranches.get(j).toString());
+							for(Ring ri: motherBranches.get(j)){
+								if(ri.getBranches().contains(motherBranches.get(j))) {
+									ri.removeBranch(motherBranches.get(j));
+								}
+
+							}
+							for(Ring ri: newBranch1) ri.addBranch(newBranch1);
+							for(Ring ri: newBranch2) ri.addBranch(newBranch2);
+
+							add(newBranch1);
+							add(newBranch2);
+							IJ.log("Cut into: " + newBranch1.toString() + " and " + newBranch2.toString());
+						}
+					}
+				}	
 			}
+		}
 
 		Gui.updateRingsUsed();
 	}
@@ -447,6 +468,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 			if(!Gui.ringsUsed.contains(r)) Gui.ringsUsed.add(r);
 		}
 		++this.lastBranchNo;
+		branch.setBranchNo(lastBranchNo+1);
 		return super.add(branch);
 	}
 

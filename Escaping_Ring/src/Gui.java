@@ -1,5 +1,4 @@
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -775,7 +774,7 @@ public class Gui extends JDialog {
 		tab4row2.add(btnBinary);
 
 
-		final JButton btnCSV = new JButton("Generate csv");
+		final JButton btnCSV = new JButton("Export measurments as csv");
 		btnCSV.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
@@ -1189,6 +1188,9 @@ public class Gui extends JDialog {
 				ringList.clear();
 				network.clear();	
 				network.resetContrast();
+				updateMeanContrast();
+				network.setLastBranchNo(0);
+				
 				Espacing_Ring.vol = null;
 				Espacing_Ring.workingVol = null;
 				Espacing_Ring.imp = null;

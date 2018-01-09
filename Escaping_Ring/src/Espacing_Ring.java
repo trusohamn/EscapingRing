@@ -250,14 +250,14 @@ public class Espacing_Ring implements PlugIn {
 	public static void showRings(DefaultListModel<Ring> ringList){
 		for(int i=0; i< ringList.getSize(); i++){
 			Ring ring = ringList.getElementAt(i);
-			ring.drawMeasureArea(iC.getImage(), java.awt.Color.YELLOW);
+			ring.drawMeasureArea(iC.getImage(), java.awt.Color.GREEN);
 		}
 	}
 
 	public static void showRings(List<Ring> ringList){
 		for(int i=0; i< ringList.size(); i++){
 			Ring ring = ringList.get(i);
-			ring.drawMeasureArea(iC.getImage(), java.awt.Color.YELLOW);
+			ring.drawMeasureArea(iC.getImage(), java.awt.Color.GREEN);
 		}
 	}
 
