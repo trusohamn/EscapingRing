@@ -1,5 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -47,10 +48,10 @@ public class Ring  implements Serializable {
 	}
 
 	public String toString() {
-		String out = "" + contrast;
+		String out = "contrast: " + String.format(Locale.US, "%.1f", contrast) + " radius: " + String.format(Locale.US, "%.1f", radius);
 		if(branches.size()>0){
 			for(Branch b: branches){
-				out += " from: " + b;
+				out += " from: " + b.getBranchNo();
 			}
 		}
 		return out;

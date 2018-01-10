@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -253,8 +254,11 @@ public class Gui extends JDialog {
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
 				}
-				Espacing_Ring.trySeedRing(network, step, impInside, impOutside, threshold, branchFacilitator, firstLoop, 
+				Ring r = Espacing_Ring.trySeedRing(network, step, impInside, impOutside, threshold, branchFacilitator, firstLoop, 
 						secondLoop, thirdLoop, maxIn, minMem, maxMem, minOut, maxOut, checkWorstRings);
+				String message = "Initial ring radius: " + String.format(Locale.US, "%.2f", r.getRadius()) + "\ncontrast: " + String.format(Locale.US, "%.2f",r.getContrast());
+				JOptionPane.showMessageDialog(downPanel, message);
+				
 
 			}
 		}); 
@@ -323,6 +327,7 @@ public class Gui extends JDialog {
 		listPanel.add(list, BorderLayout.CENTER);
 		JScrollPane scrol = new JScrollPane(list);
 		tab2Left.add(scrol,BorderLayout.WEST);
+		scrol.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		tab2Left.add(listPanel);
 
 
@@ -333,6 +338,7 @@ public class Gui extends JDialog {
 		JPanel listPanel2 = new JPanel();
 		listPanel2.add(list2, BorderLayout.CENTER);
 		JScrollPane scrol2 = new JScrollPane(list2);
+		scrol2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		tab2Right.add(scrol2,BorderLayout.EAST);
 		tab2Right.add(listPanel2);
 
@@ -527,6 +533,7 @@ public class Gui extends JDialog {
 		JPanel ringPanel = new JPanel();
 		ringPanel.add(listRing);
 		JScrollPane scrolRing = new JScrollPane(listRing);
+		scrolRing.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);		
 		tab3Right.add(scrolRing, BorderLayout.EAST);
 		tab3Right.add(ringPanel);
 
