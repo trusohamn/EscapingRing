@@ -40,9 +40,12 @@ import javax.swing.border.EtchedBorder;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
+import ij.measure.Calibration;
+import ij.process.ImageProcessor;
 
 
 public class Gui extends JDialog {
@@ -68,6 +71,7 @@ public class Gui extends JDialog {
 	static JLabel meanContrastLabel;
 	static JLabel loadedImageLabel;
 	static JButton cancelButton = null;
+	static JPanel downPanel;
 
 	JFormattedTextField sepField = null;
 	JFormattedTextField firstField = null;
@@ -122,6 +126,7 @@ public class Gui extends JDialog {
 		JPanel tab3;
 		JPanel tab4;
 		JPanel tab5;
+		JPanel tab6;
 		final JButton showButton = new JButton("Show");
 		final JButton resetButton = new JButton("Reset");
 		setBounds(100, 100, 750, 300);
@@ -514,16 +519,20 @@ public class Gui extends JDialog {
 		tab3.add(tab3Left);
 		tab3.add(tab3Right);
 
-		JPanel actionPanel = new JPanel();
-		actionPanel.setLayout(new BorderLayout());
-		tab3Left.add(actionPanel);
+		tab3Left.setLayout(new GridLayout(6,1));
 
 		JPanel firstRow = new JPanel();
 		firstRow.setLayout(new FlowLayout(FlowLayout.LEFT));
 		JPanel secondRow = new JPanel();
 		secondRow.setLayout(new FlowLayout(FlowLayout.LEFT));
-		actionPanel.add(firstRow, BorderLayout.NORTH);
-		actionPanel.add(secondRow, BorderLayout.CENTER);
+		JPanel thirdRow = new JPanel();
+		thirdRow.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JPanel fourthRow = new JPanel();
+		fourthRow.setLayout(new FlowLayout(FlowLayout.LEFT));
+		tab3Left.add(firstRow);
+		tab3Left.add(secondRow);
+		tab3Left.add(thirdRow);
+		tab3Left.add(fourthRow);
 
 		JPanel selectRingPanelT = new JPanel();
 		selectRingPanelT.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -556,7 +565,6 @@ public class Gui extends JDialog {
 			}
 		};
 		listRing.addMouseListener(mouseListener3);
-
 
 		final JButton clickRings = new JButton("Click rings");
 		clickRings.addActionListener(new ActionListener() {
@@ -661,6 +669,13 @@ public class Gui extends JDialog {
 		widthField.setText("0");
 		firstRow.add(widthLabel);
 		firstRow.add(widthField);
+		
+		JLabel brLabel = new JLabel("Branch to detach");
+		JFormattedTextField brField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		brField.setColumns(4);
+		brField.setText("");
+		thirdRow.add(brLabel);
+		thirdRow.add(brField);
 
 		final JButton btnJoinRings = new JButton("Join two rings");
 		btnJoinRings.addActionListener(new ActionListener() {
@@ -684,8 +699,6 @@ public class Gui extends JDialog {
 			}
 		}); 
 		secondRow.add(btnJoinRings);
-
-
 
 		final JButton btnFreeBranch = new JButton("Join ring and a point");
 		btnFreeBranch.addActionListener(new ActionListener() {
@@ -725,6 +738,41 @@ public class Gui extends JDialog {
 			}
 		}); 
 		secondRow.add(btnFreeBranch);
+		
+		final JButton btnRemoveBranchFromRing = new JButton("Disconnect Branch from Branching Point");
+		btnRemoveBranchFromRing.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				if(ringList.getSize()==1){
+					try {
+						int branchNo = Integer.parseInt(brField.getText());
+						Ring r = ringList.getElementAt(0);
+						if(r.getBranches().size()>1) {
+							Branch toDis = null;
+							for(Branch b : r.getBranches()) {
+								if(b.getBranchNo()== branchNo) {
+									toDis = b;
+								}
+							}
+							if(toDis == null)JOptionPane.showMessageDialog(downPanel, "Ring doesnt belong to this Branch!");
+							else {
+								r.removeBranch(toDis);
+								toDis.remove(r);
+								showButton.doClick();
+							}
+						}
+						else JOptionPane.showMessageDialog(downPanel, "Select a branch point!");					
+
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					}				
+				}
+				else{
+					JOptionPane.showMessageDialog(downPanel, "Select only one ring");
+				}
+			}
+		}); 
+		fourthRow.add(btnRemoveBranchFromRing);
 
 
 		/*****TAB4 Export Import *****/	
@@ -1116,7 +1164,42 @@ public class Gui extends JDialog {
 		Cell9.add(maxOutLabel);
 		Cell9.add(maxOutField);
 		tab5Center.add(Cell9);
-
+		
+		/***TAB6 Preprocessing***/
+		tab6 = new JPanel();
+		tab6.setLayout(new GridLayout(1, 3, 8, 8));
+		JPanel tab6row1 = new JPanel();
+		tab4row1.setLayout(new GridLayout(6, 1, 8, 8));
+		JPanel tab6row2 = new JPanel();
+		tab4row2.setLayout(new GridLayout(6, 1, 8, 8));
+		JPanel tab6row3 = new JPanel();
+		tab6row3.setLayout(new GridLayout(6, 1, 8, 8));
+		//tab6row1.setBorder(raisedetched);
+		//tab6row2.setBorder(raisedetched);
+		tab6row3.setBorder(raisedetched);
+		tab6.add(tab6row1);
+		tab6.add(tab6row2);
+		tab6.add(tab6row3);
+		
+		final JButton btnShowMeta = new JButton("Show metadata");
+		btnShowMeta.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				showMeta();
+				}
+			}); 
+		tab6row1.add(btnShowMeta);
+		
+		final JButton btnMakeIso = new JButton("Make iso");
+		btnMakeIso.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				ImagePlus imp = makeIso();
+				imp.show();
+				}
+			}); 
+		tab6row1.add(btnMakeIso);
+		
 
 		/*TABS*/
 
@@ -1126,6 +1209,7 @@ public class Gui extends JDialog {
 		tabPane.addTab( "Rings", tab3);
 		tabPane.addTab( "Export", tab4);
 		tabPane.addTab( "Advanced Settings", tab5);
+		tabPane.addTab( "Preprocessing", tab6);
 		getContentPane().add(tabPane);
 
 
@@ -1278,9 +1362,64 @@ public class Gui extends JDialog {
 		}
 		activatedListeners = new ArrayList<MouseListener>();
 	}
-
-
-
-
+	
+	public void showMeta() {
+		IJ.log("Metadata");
+		ImagePlus imp = IJ.getImage();
+		Double pixelWidth = imp.getCalibration().pixelWidth;
+		Double pixelHeight = imp.getCalibration().pixelHeight;
+		Double voxelDepth = imp.getCalibration().pixelDepth;
+		int sliceNumber = imp.getStackSize();
+		IJ.log("width: " + pixelWidth + " heighth: " + pixelHeight + " depth: " + voxelDepth + " nSlice: " + sliceNumber);
+		
+		String message = "Image: " + imp.getTitle() + "\npixel width: " + pixelWidth +
+				"\npixel height: " + pixelHeight + "\nvoxel depth: " + voxelDepth +
+				"\nnumber of slices: " + sliceNumber;
+		JOptionPane.showMessageDialog(downPanel, message);
+	}
+	
+	public ImagePlus makeIso() {
+		int interpolationMethod = ImageProcessor.BICUBIC; 
+		ImagePlus imp = IJ.getImage();
+		Double pixelWidth = imp.getCalibration().pixelWidth;
+		Double pixelHeight = imp.getCalibration().pixelHeight;
+		Double voxelDepth = imp.getCalibration().pixelDepth;
+		int sliceNumber = imp.getStackSize();
+		int newSliceNumber = (int) Math.round(voxelDepth/pixelWidth*sliceNumber);
+		
+		ImageStack stack1 = imp.getStack();
+        int width = stack1.getWidth();
+        int height = stack1.getHeight();
+        int depth = stack1.getSize();
+        int bitDepth = imp.getBitDepth();
+       
+        ImagePlus imp2 = IJ.createImage(imp.getTitle(), bitDepth+"-bit", width, height, newSliceNumber);
+        if (imp2==null) return null;
+        ImageStack stack2 = imp2.getStack();
+        ImageProcessor ip = imp.getProcessor();
+        ImageProcessor xzPlane1 = ip.createProcessor(width, depth);
+        xzPlane1.setInterpolationMethod(interpolationMethod);
+        ImageProcessor xzPlane2;        
+        Object xzpixels1 = xzPlane1.getPixels();
+        for (int y=0; y<height; y++) {
+            for (int z=0; z<depth; z++) { // get xz plane at y
+                Object pixels1 = stack1.getPixels(z+1);
+                System.arraycopy(pixels1, y*width, xzpixels1, z*width, width);
+            }
+            xzPlane2 = xzPlane1.resize(width, newSliceNumber, true);
+            Object xypixels2 = xzPlane2.getPixels();
+            for (int z=0; z<newSliceNumber; z++) {
+                Object pixels2 = stack2.getPixels(z+1);
+                System.arraycopy(xypixels2, z*width, pixels2, y*width, width);
+            }
+        }
+        Calibration cal = imp2.getCalibration();
+        
+        cal.setUnit(imp.getCalibration().getUnit()) ;
+        cal.pixelWidth = pixelWidth;
+        cal.pixelHeight = pixelHeight;
+        cal.pixelDepth = ((voxelDepth/pixelWidth*sliceNumber)/newSliceNumber)*pixelWidth;
+        return imp2;		
+	}
 }
 
