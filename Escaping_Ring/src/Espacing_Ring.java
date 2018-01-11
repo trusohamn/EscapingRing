@@ -152,27 +152,27 @@ public class Espacing_Ring implements PlugIn {
 
 	}
 
-	public static void trySeedRing(Network network, double step, double impInside, double impOutside, double threshold, double branchFacilitator,
+	public static Ring trySeedRing(Network network, double step, double impInside, double impOutside, double threshold, double branchFacilitator,
 			double firstLoop, double secondLoop, double thirdLoop,
 			double maxIn, double minMem, double maxMem, double minOut, double maxOut,
 			double checkWorstRings) {
 
 		imp = WindowManager.getCurrentImage();
-
+		Ring adjInitial = null;
 		if (imp == null) {
 			IJ.error("No open image.");
-			return;
+			return adjInitial;
 		}
 
 		Roi roi = imp.getRoi();
 		if (roi == null) {
 			IJ.error("No selected ROI.");
-			return;
+			return adjInitial;
 		}
 
 		if (roi.getType() != Roi.OVAL){
 			IJ.error("No selected Oval ROI.");
-			return;
+			return adjInitial;
 		}
 
 		OvalRoi oval = (OvalRoi)roi;
@@ -198,10 +198,12 @@ public class Espacing_Ring implements PlugIn {
 
 
 
-		Ring adjInitial = initial.adjustFirstRing(workingVol);
+		adjInitial = initial.adjustFirstRing(workingVol);
 
 		generateView(true);
 		showRings(Arrays.asList(adjInitial));
+		
+		return adjInitial;
 	}
 
 	public static void drawNetwork(Network network){
@@ -250,14 +252,14 @@ public class Espacing_Ring implements PlugIn {
 	public static void showRings(DefaultListModel<Ring> ringList){
 		for(int i=0; i< ringList.getSize(); i++){
 			Ring ring = ringList.getElementAt(i);
-			ring.drawMeasureArea(iC.getImage(), java.awt.Color.YELLOW);
+			ring.drawMeasureArea(iC.getImage(), java.awt.Color.GREEN);
 		}
 	}
 
 	public static void showRings(List<Ring> ringList){
 		for(int i=0; i< ringList.size(); i++){
 			Ring ring = ringList.get(i);
-			ring.drawMeasureArea(iC.getImage(), java.awt.Color.YELLOW);
+			ring.drawMeasureArea(iC.getImage(), java.awt.Color.GREEN);
 		}
 	}
 
