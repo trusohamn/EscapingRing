@@ -439,16 +439,20 @@ public class Network extends ArrayList<Branch> implements Serializable{
 							Branch newBranch2 = motherBranches.get(j).duplicateCrop(indexes.get(j), motherBranches.get(j).size()-1);
 
 							IJ.log("Removing: " + motherBranches.get(j).toString());
-							remove(motherBranches.get(j));
-							IJ.log("Removing: " + motherBranches.get(j).toString());
+							
 							for(Ring ri: motherBranches.get(j)){
 								if(ri.getBranches().contains(motherBranches.get(j))) {
 									ri.removeBranch(motherBranches.get(j));
 								}
-
 							}
-							for(Ring ri: newBranch1) ri.addBranch(newBranch1);
-							for(Ring ri: newBranch2) ri.addBranch(newBranch2);
+							remove(motherBranches.get(j));
+							
+							for(Ring ri: newBranch1) {
+								if(!ri.getBranches().contains(newBranch1)) ri.addBranch(newBranch1);
+							}
+							for(Ring ri: newBranch2) {
+								if(!ri.getBranches().contains(newBranch2))ri.addBranch(newBranch2);
+							}
 
 							add(newBranch1);
 							add(newBranch2);
