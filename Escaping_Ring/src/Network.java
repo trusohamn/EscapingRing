@@ -270,12 +270,15 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		//General stats//
 		writer = new FileWriter(csvFile+"VascRing3_GenStats.csv");
 
-		header = Arrays.asList("TotalLength", "TotalWidth", "TotalStraightness", "BranchPointsNo", "EndpointsNo");
+		header = Arrays.asList("TotalLength", "TotalWidth", "TotalStraightness", "BranchPointsNo", "EndpointsNo",
+				"PixelWidth", "PixelHeight", "VoxelDepth");
+		
 
 
 		CSVUtils.writeLine(writer, header);			
 		CSVUtils.writeLine(writer, Arrays.asList(String.valueOf(totalLength),String.valueOf(totalIntWidth/totalLength), String.valueOf(totalIntStraightness/totalLength), 
-				String.valueOf(numberBranchPoints), String.valueOf(numberEndPoints )));
+				String.valueOf(numberBranchPoints), String.valueOf(numberEndPoints ), 
+				String.valueOf(Espacing_Ring.pixelWidth), String.valueOf(Espacing_Ring.pixelHeight), String.valueOf(Espacing_Ring.voxelDepth)));
 
 		writer.flush();
 		writer.close();
@@ -475,8 +478,6 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		branch.setBranchNo(lastBranchNo+1);
 		return super.add(branch);
 	}
-
-
 
 	@Override
 	public boolean remove(Object branch) {

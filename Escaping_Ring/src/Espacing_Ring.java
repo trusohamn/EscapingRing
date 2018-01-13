@@ -9,7 +9,6 @@ import ij.plugin.PlugIn;
 import ij.process.ImageProcessor;
 
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,6 +23,9 @@ public class Espacing_Ring implements PlugIn {
 	static ImagePlus imp; //display image
 	static StackWindow imgS;
 	static String imageName;
+	static double pixelWidth;
+	static double pixelHeight;
+	static double voxelDepth;
 
 	@Override
 	public void run(String arg0) {
@@ -88,6 +90,9 @@ public class Espacing_Ring implements PlugIn {
 		if(vol == null) {
 			vol = new Volume(imp);
 			imageName = imp.getTitle();
+			pixelWidth = imp.getCalibration().pixelWidth;
+			pixelHeight = imp.getCalibration().pixelWidth;
+			voxelDepth = imp.getCalibration().pixelDepth;
 			Gui.updateLoadedImage();
 		}
 		if(workingVol == null) workingVol = new Volume(imp); 
