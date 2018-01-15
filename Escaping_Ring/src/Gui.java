@@ -130,8 +130,7 @@ public class Gui extends JDialog {
 		final JButton showButton = new JButton("Show");
 		final JButton resetButton = new JButton("Reset");
 		setBounds(100, 100, 750, 300);
-		setTitle("VascRing3D");
-
+		setTitle("VesselTracer3D");
 
 
 		IJ.log("Starting GUI");
@@ -263,7 +262,7 @@ public class Gui extends JDialog {
 						secondLoop, thirdLoop, maxIn, minMem, maxMem, minOut, maxOut, checkWorstRings);
 				String message = "Initial ring radius: " + String.format(Locale.US, "%.2f", r.getRadius()) + "\ncontrast: " + String.format(Locale.US, "%.2f",r.getContrast());
 				JOptionPane.showMessageDialog(downPanel, message);
-				
+
 
 			}
 		}); 
@@ -472,29 +471,68 @@ public class Gui extends JDialog {
 
 		/*FILTER BRANCHES*/
 		JLabel filterLabel = new JLabel("Filter size");
-		JFormattedTextField filterField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		filterField.setColumns(5);
-		filterField.setText("0");
+		JFormattedTextField filterField = new JFormattedTextField();
+		filterField.setColumns(3);
+		filterField.setText("");
 		tab2Down.add(filterLabel);
 		tab2Down.add(filterField);
+
+		JLabel filterLabel2 = new JLabel("Branch no");
+		JFormattedTextField filterField2 = new JFormattedTextField();
+		filterField2.setColumns(3);
+		filterField2.setText("");
+		tab2Down.add(filterLabel2);
+		tab2Down.add(filterField2);
 
 		final JButton filterButton = new JButton("Filter");
 		filterButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				try {
-					int filterSize= Integer.parseInt(filterField.getText());
-					for(int i=0; i< branchList.getSize(); i++){
-						Branch b = branchList.getElementAt(i);
-						if(b.size()<=filterSize) {
-							extraBranchList.addElement(b);
-						}
-					}
-					showButton.doClick();
-				} catch (NumberFormatException e) {
-					e.printStackTrace();
+
+
+				ArrayList<Branch> filteredBranches = new ArrayList<Branch>();
+				boolean filtered = false;
+				for(int i=0; i< branchList.getSize(); i++){
+					filteredBranches.add(branchList.getElementAt(i));				
 				}
 
+				try {
+					int filterSize= Integer.parseInt(filterField.getText());
+					if(filterSize>0) {
+						ArrayList<Branch> temp = new ArrayList<Branch>();
+						temp.addAll(filteredBranches);
+						for(int j=0; j<temp.size();j++) {
+							if(temp.get(j).size()> filterSize) {
+								filteredBranches.remove(temp.get(j));
+							}
+						}
+						filtered = true;
+					}
+
+				} catch (Exception e) {
+				}
+				try {
+					ArrayList<Branch> temp = new ArrayList<Branch>();
+					temp.addAll(filteredBranches);
+					int branchNo= Integer.parseInt(filterField2.getText());
+					if(branchNo>0) {
+						for(int j=0; j<temp.size();j++) {
+							if(temp.get(j).getBranchNo()< branchNo) {
+								filteredBranches.remove(temp.get(j));
+							}
+						}
+						filtered = true;
+					}
+
+				} catch (Exception e) {
+				}
+
+				if(filtered) {
+					for(Branch b : filteredBranches){
+						if(!extraBranchList.contains(b)) extraBranchList.addElement(b);
+					}
+					showButton.doClick();
+				}
 			}
 		}); 
 		tab2Down.add(filterButton);
@@ -507,7 +545,7 @@ public class Gui extends JDialog {
 				showButton.doClick();
 
 			}}); 
-		tab2Down.add(btnOrderNetwork);
+		tab2UpLeft.add(btnOrderNetwork);
 
 
 		/*****TAB3 Rings*****/	 
@@ -669,7 +707,7 @@ public class Gui extends JDialog {
 		widthField.setText("0");
 		firstRow.add(widthLabel);
 		firstRow.add(widthField);
-		
+
 		JLabel brLabel = new JLabel("Branch to detach");
 		JFormattedTextField brField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		brField.setColumns(4);
@@ -738,7 +776,7 @@ public class Gui extends JDialog {
 			}
 		}); 
 		secondRow.add(btnFreeBranch);
-		
+
 		final JButton btnRemoveBranchFromRing = new JButton("Disconnect Branch from Branching Point");
 		btnRemoveBranchFromRing.addActionListener(new ActionListener() {
 			@Override
@@ -803,7 +841,7 @@ public class Gui extends JDialog {
 		sepPanel.add(septLabel);
 		sepPanel.add(sepField);
 		tab4row1.add(sepPanel);
-		
+
 		JPanel namePanel = new JPanel();
 		namePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
@@ -854,7 +892,7 @@ public class Gui extends JDialog {
 					//    
 					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) {
 						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
-				
+
 						network.exportData(chooser.getSelectedFile().getPath()+ File.separator+nameField.getText() );
 					}
 					else {
@@ -1126,7 +1164,7 @@ public class Gui extends JDialog {
 		JLabel maxInLabel = new JLabel("Max inside");
 		maxInField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		maxInField.setColumns(4);
-		maxInField.setText("0.8");
+		maxInField.setText("0.9");
 		Cell5.add(maxInLabel);
 		Cell5.add(maxInField);
 		tab5Center.add(Cell5);
@@ -1136,7 +1174,7 @@ public class Gui extends JDialog {
 		JLabel minMemLabel = new JLabel("Min membrane");
 		minMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		minMemField.setColumns(4);
-		minMemField.setText("0.8");
+		minMemField.setText("0.9");
 		Cell6.add(minMemLabel);
 		Cell6.add(minMemField);
 		tab5Center.add(Cell6);
@@ -1146,7 +1184,7 @@ public class Gui extends JDialog {
 		JLabel maxMemLabel = new JLabel("Max membrane");
 		maxMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		maxMemField.setColumns(4);
-		maxMemField.setText("1.2");
+		maxMemField.setText("1.1");
 		Cell7.add(maxMemLabel);
 		Cell7.add(maxMemField);
 		tab5Center.add(Cell7);
@@ -1157,7 +1195,7 @@ public class Gui extends JDialog {
 		JLabel minOutLabel = new JLabel("Min outside");
 		minOutField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		minOutField.setColumns(4);
-		minOutField.setText("1.2");
+		minOutField.setText("1.1");
 		Cell8.add(minOutLabel);
 		Cell8.add(minOutField);
 		tab5Center.add(Cell8);
@@ -1171,7 +1209,7 @@ public class Gui extends JDialog {
 		Cell9.add(maxOutLabel);
 		Cell9.add(maxOutField);
 		tab5Center.add(Cell9);
-		
+
 		/***TAB6 Preprocessing***/
 		tab6 = new JPanel();
 		tab6.setLayout(new GridLayout(1, 3, 8, 8));
@@ -1187,26 +1225,26 @@ public class Gui extends JDialog {
 		tab6.add(tab6row1);
 		tab6.add(tab6row2);
 		tab6.add(tab6row3);
-		
+
 		final JButton btnShowMeta = new JButton("Show metadata");
 		btnShowMeta.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				showMeta();
-				}
-			}); 
+			}
+		}); 
 		tab6row1.add(btnShowMeta);
-		
+
 		final JButton btnMakeIso = new JButton("Make iso");
 		btnMakeIso.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				ImagePlus imp = makeIso();
 				imp.show();
-				}
-			}); 
+			}
+		}); 
 		tab6row1.add(btnMakeIso);
-		
+
 
 		/*TABS*/
 
@@ -1292,7 +1330,7 @@ public class Gui extends JDialog {
 				network.resetContrast();
 				updateMeanContrast();
 				network.setLastBranchNo(0);
-				
+
 				Espacing_Ring.vol = null;
 				Espacing_Ring.workingVol = null;
 				Espacing_Ring.imp = null;
@@ -1366,14 +1404,14 @@ public class Gui extends JDialog {
 	public static void updateLoadedImage(){
 		loadedImageLabel.setText("Loaded image: " + Espacing_Ring.imageName);
 	}
-	
+
 	public static String getNameWithoutExt() {
 		String name = Espacing_Ring.imageName;
 		int ind = name.lastIndexOf(".");
 		if (ind > -1)  name = name.substring(0, ind);	
 		return name;
 	}
-	
+
 	public static void updateSaveAsWithCurrentImage() {		
 		nameField.setText(getNameWithoutExt());
 	}
@@ -1384,7 +1422,7 @@ public class Gui extends JDialog {
 		}
 		activatedListeners = new ArrayList<MouseListener>();
 	}
-	
+
 	public void showMeta() {
 		IJ.log("Metadata");
 		ImagePlus imp = IJ.getImage();
@@ -1393,13 +1431,13 @@ public class Gui extends JDialog {
 		Double voxelDepth = imp.getCalibration().pixelDepth;
 		int sliceNumber = imp.getStackSize();
 		IJ.log("width: " + pixelWidth + " heighth: " + pixelHeight + " depth: " + voxelDepth + " nSlice: " + sliceNumber);
-		
+
 		String message = "Image: " + imp.getTitle() + "\npixel width: " + pixelWidth +
 				"\npixel height: " + pixelHeight + "\nvoxel depth: " + voxelDepth +
 				"\nnumber of slices: " + sliceNumber;
 		JOptionPane.showMessageDialog(downPanel, message);
 	}
-	
+
 	public ImagePlus makeIso() {
 		int interpolationMethod = ImageProcessor.BICUBIC; 
 		ImagePlus imp = IJ.getImage();
@@ -1408,40 +1446,40 @@ public class Gui extends JDialog {
 		Double voxelDepth = imp.getCalibration().pixelDepth;
 		int sliceNumber = imp.getStackSize();
 		int newSliceNumber = (int) Math.round(voxelDepth/pixelWidth*sliceNumber);
-		
+
 		ImageStack stack1 = imp.getStack();
-        int width = stack1.getWidth();
-        int height = stack1.getHeight();
-        int depth = stack1.getSize();
-        int bitDepth = imp.getBitDepth();
-       
-        ImagePlus imp2 = IJ.createImage(imp.getTitle(), bitDepth+"-bit", width, height, newSliceNumber);
-        if (imp2==null) return null;
-        ImageStack stack2 = imp2.getStack();
-        ImageProcessor ip = imp.getProcessor();
-        ImageProcessor xzPlane1 = ip.createProcessor(width, depth);
-        xzPlane1.setInterpolationMethod(interpolationMethod);
-        ImageProcessor xzPlane2;        
-        Object xzpixels1 = xzPlane1.getPixels();
-        for (int y=0; y<height; y++) {
-            for (int z=0; z<depth; z++) { // get xz plane at y
-                Object pixels1 = stack1.getPixels(z+1);
-                System.arraycopy(pixels1, y*width, xzpixels1, z*width, width);
-            }
-            xzPlane2 = xzPlane1.resize(width, newSliceNumber, true);
-            Object xypixels2 = xzPlane2.getPixels();
-            for (int z=0; z<newSliceNumber; z++) {
-                Object pixels2 = stack2.getPixels(z+1);
-                System.arraycopy(xypixels2, z*width, pixels2, y*width, width);
-            }
-        }
-        Calibration cal = imp2.getCalibration();
-        
-        cal.setUnit(imp.getCalibration().getUnit()) ;
-        cal.pixelWidth = pixelWidth;
-        cal.pixelHeight = pixelHeight;
-        cal.pixelDepth = ((voxelDepth/pixelWidth*sliceNumber)/newSliceNumber)*pixelWidth;
-        return imp2;		
+		int width = stack1.getWidth();
+		int height = stack1.getHeight();
+		int depth = stack1.getSize();
+		int bitDepth = imp.getBitDepth();
+
+		ImagePlus imp2 = IJ.createImage(imp.getTitle(), bitDepth+"-bit", width, height, newSliceNumber);
+		if (imp2==null) return null;
+		ImageStack stack2 = imp2.getStack();
+		ImageProcessor ip = imp.getProcessor();
+		ImageProcessor xzPlane1 = ip.createProcessor(width, depth);
+		xzPlane1.setInterpolationMethod(interpolationMethod);
+		ImageProcessor xzPlane2;        
+		Object xzpixels1 = xzPlane1.getPixels();
+		for (int y=0; y<height; y++) {
+			for (int z=0; z<depth; z++) { // get xz plane at y
+				Object pixels1 = stack1.getPixels(z+1);
+				System.arraycopy(pixels1, y*width, xzpixels1, z*width, width);
+			}
+			xzPlane2 = xzPlane1.resize(width, newSliceNumber, true);
+			Object xypixels2 = xzPlane2.getPixels();
+			for (int z=0; z<newSliceNumber; z++) {
+				Object pixels2 = stack2.getPixels(z+1);
+				System.arraycopy(xypixels2, z*width, pixels2, y*width, width);
+			}
+		}
+		Calibration cal = imp2.getCalibration();
+
+		cal.setUnit(imp.getCalibration().getUnit()) ;
+		cal.pixelWidth = pixelWidth;
+		cal.pixelHeight = pixelHeight;
+		cal.pixelDepth = ((voxelDepth/pixelWidth*sliceNumber)/newSliceNumber)*pixelWidth;
+		return imp2;		
 	}
 }
 
