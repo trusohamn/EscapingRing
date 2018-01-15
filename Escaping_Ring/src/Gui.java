@@ -74,6 +74,7 @@ public class Gui extends JDialog {
 	static JPanel downPanel;
 
 	JFormattedTextField sepField = null;
+	static JFormattedTextField nameField = null;
 	JFormattedTextField firstField = null;
 	JFormattedTextField secondField = null;
 	JFormattedTextField thirdField = null;
@@ -92,7 +93,6 @@ public class Gui extends JDialog {
 	static boolean stopAll;
 	static boolean roiRunning = false; //not needed for now
 
-	String nameToSave = "name";
 	static boolean synch = false;
 
 	ArrayList<MouseListener> activatedListeners = new ArrayList<MouseListener>();
@@ -803,6 +803,17 @@ public class Gui extends JDialog {
 		sepPanel.add(septLabel);
 		sepPanel.add(sepField);
 		tab4row1.add(sepPanel);
+		
+		JPanel namePanel = new JPanel();
+		namePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+
+		JLabel nameLabel = new JLabel("Save as:");
+		nameField = new JFormattedTextField();
+		nameField.setColumns(15);
+		nameField.setText("");
+		namePanel.add(nameLabel);
+		namePanel.add(nameField);
+		tab4row3.add(namePanel);
 
 		final JButton btnSkeleton = new JButton("Generate skeleton");
 		btnSkeleton.addActionListener(new ActionListener() {
@@ -843,11 +854,8 @@ public class Gui extends JDialog {
 					//    
 					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) {
 						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
-						System.out.println("getCurrentDirectory(): " 
-								+  chooser.getCurrentDirectory());
-						System.out.println("getSelectedFile() : " 
-								+  chooser.getSelectedFile());
-						network.exportData(chooser.getSelectedFile().getPath()+ File.separator );
+				
+						network.exportData(chooser.getSelectedFile().getPath()+ File.separator+nameField.getText() );
 					}
 					else {
 						System.out.println("No Selection ");
@@ -884,7 +892,8 @@ public class Gui extends JDialog {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setAcceptAllFileFilterUsed(false);
 					if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION){
-						String objectName = chooser.getSelectedFile().getPath() + "/" + nameToSave + ".ser";
+						String objectName = chooser.getSelectedFile().getPath() + File.separator + nameField.getText() + ".ser";
+						IJ.log("saving as: " + objectName);
 						FileOutputStream fileOut =new FileOutputStream(objectName);
 						ObjectOutputStream out = new ObjectOutputStream(fileOut);
 						out.writeObject(network);
@@ -918,7 +927,7 @@ public class Gui extends JDialog {
 
 				JFileChooser chooser = new JFileChooser(); 
 				chooser.setCurrentDirectory(new java.io.File("."));
-				chooser.setDialogTitle("Choose .xml file");
+				chooser.setDialogTitle("Choose .ser file");
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
 					String objectName = chooser.getSelectedFile().getPath();
 					FileInputStream fileIn = null;
@@ -965,7 +974,7 @@ public class Gui extends JDialog {
 
 					try {
 						CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
-						Parameters.exportParams(chooser.getSelectedFile().getPath()+"/VascRing3_Params.csv");
+						Parameters.exportParams(chooser.getSelectedFile().getPath()+File.separator + nameField.getText() +  "_Params.csv");
 					} catch (IOException e) {
 
 						e.printStackTrace();
@@ -1023,7 +1032,6 @@ public class Gui extends JDialog {
 				chooser.setDialogTitle("Choose directory to save");
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				chooser.setAcceptAllFileFilterUsed(false);
-				String openImage = WindowManager.getCurrentImage().getTitle();
 
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION){
 					Gui.synch = true;
@@ -1031,8 +1039,7 @@ public class Gui extends JDialog {
 					for(Parameters param: Gui.toUseParameters){
 						Espacing_Ring.start(network, param);
 
-						nameToSave = openImage != null ? openImage+"_"+n : ""+n ;
-						String objectName = chooser.getSelectedFile().getPath() + "/" + nameToSave + ".ser";
+						String objectName = chooser.getSelectedFile().getPath() + File.separator + nameField.getText() + n + ".ser";
 						FileOutputStream fileOut;
 						try {
 							fileOut = new FileOutputStream(objectName);
@@ -1250,6 +1257,10 @@ public class Gui extends JDialog {
 					Espacing_Ring.imp = WindowManager.getCurrentImage();
 					Espacing_Ring.vol = new Volume(Espacing_Ring.imp );
 					Espacing_Ring.imageName = Espacing_Ring.imp.getTitle();
+					Gui.updateSaveAsWithCurrentImage();
+					Espacing_Ring.pixelWidth = Espacing_Ring.imp.getCalibration().pixelWidth;
+					Espacing_Ring.pixelHeight = Espacing_Ring.imp.getCalibration().pixelWidth;
+					Espacing_Ring.voxelDepth = Espacing_Ring.imp.getCalibration().pixelDepth;
 					Gui.updateLoadedImage();
 					Espacing_Ring.workingVol = new Volume(Espacing_Ring.imp );
 					Espacing_Ring.imp  = new ImagePlus("VascRing3D", Espacing_Ring.vol.createImageStackFrom3DArray());
@@ -1354,6 +1365,17 @@ public class Gui extends JDialog {
 
 	public static void updateLoadedImage(){
 		loadedImageLabel.setText("Loaded image: " + Espacing_Ring.imageName);
+	}
+	
+	public static String getNameWithoutExt() {
+		String name = Espacing_Ring.imageName;
+		int ind = name.lastIndexOf(".");
+		if (ind > -1)  name = name.substring(0, ind);	
+		return name;
+	}
+	
+	public static void updateSaveAsWithCurrentImage() {		
+		nameField.setText(getNameWithoutExt());
 	}
 
 	public void removeImageListeners(){

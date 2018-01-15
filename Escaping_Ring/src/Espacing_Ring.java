@@ -90,6 +90,7 @@ public class Espacing_Ring implements PlugIn {
 		if(vol == null) {
 			vol = new Volume(imp);
 			imageName = imp.getTitle();
+			Gui.updateSaveAsWithCurrentImage();
 			pixelWidth = imp.getCalibration().pixelWidth;
 			pixelHeight = imp.getCalibration().pixelWidth;
 			voxelDepth = imp.getCalibration().pixelDepth;
