@@ -51,7 +51,7 @@ public class Ring  implements Serializable {
 		String out = "contrast: " + String.format(Locale.US, "%.1f", contrast) + " radius: " + String.format(Locale.US, "%.1f", radius);
 		if(branches.size()>0){
 			for(Branch b: branches){
-				out += " from: " + b.getBranchNo();
+				out += " from: " + b.getBranchNo() + " at index: "+ b.indexOf(this);
 			}
 		}
 		return out;
