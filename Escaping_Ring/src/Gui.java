@@ -870,12 +870,23 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				Volume binary = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
-				network.createMask(binary, 0.5);
-				//binary.show("Binary");
+				network.createMask(binary, 0.5, true);
 
 			}
 		}); 
 		tab4row2.add(btnBinary);
+		
+		final JButton btnOutline = new JButton("Generate outline");
+		btnOutline.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				Volume binary = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
+				network.createMask(binary, 0.5, false);
+				//binary.show("Binary");
+
+			}
+		}); 
+		tab4row2.add(btnOutline);
 
 
 		final JButton btnCSV = new JButton("Export measurments as csv");
@@ -1252,7 +1263,7 @@ public class Gui extends JDialog {
 		tabPane.addTab( "Start", tab1);
 		tabPane.addTab( "Branches", tab2);
 		tabPane.addTab( "Rings", tab3);
-		tabPane.addTab( "Export", tab4);
+		tabPane.addTab( "I/O", tab4);
 		tabPane.addTab( "Advanced Settings", tab5);
 		tabPane.addTab( "Preprocessing", tab6);
 		getContentPane().add(tabPane);
