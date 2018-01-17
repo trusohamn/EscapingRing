@@ -288,7 +288,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 	}
 
-	public void createMask(Volume in, double sampling) {
+	public void createMask(Volume in, double sampling, boolean mask) {
 		Volume vol = new Volume(in.nx, in.ny, in.nz);
 		Point3D zero = new Point3D(0, 0, 0);
 
@@ -358,13 +358,16 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 
 		//vol.showFloat("Rolling ball");
-
-
 		Volume s = vol.smooth(vol);
-		s.showFloat("Mask");	
+		if(mask) {		
+			s.showFloat("Mask");
+		}
+		else {
+			Volume g = s.gradient(s);
+			g.showFloat("Outline");
+		}
 
-		//Volume g = s.gradient(s);
-		//g.showFloat("Gradient");	
+			
 
 	}	
 
