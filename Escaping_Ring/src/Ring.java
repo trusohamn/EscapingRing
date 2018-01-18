@@ -25,7 +25,7 @@ public class Ring  implements Serializable {
 	static private double impOutside = -0.25;
 	
 	static private double maxIn, minMem, maxMem, minOut, maxOut;
-	static private double plusErase = 2;
+	static private double plusErase = maxOut;
 	
 
 

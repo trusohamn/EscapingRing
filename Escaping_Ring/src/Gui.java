@@ -1,5 +1,4 @@
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -1165,7 +1164,7 @@ public class Gui extends JDialog {
 		JLabel checkWorstRingsLabel = new JLabel("check only X worst rings");
 		checkWorstRingsField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		checkWorstRingsField.setColumns(4);
-		checkWorstRingsField.setText("0.5");
+		checkWorstRingsField.setText("1");
 		Cell4.add(checkWorstRingsLabel);
 		Cell4.add(checkWorstRingsField);
 		tab5Upper.add(Cell4);
