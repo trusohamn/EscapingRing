@@ -63,7 +63,7 @@ public class Gui extends JDialog {
 	double impOutside;
 	double threshold;
 	double firstLoop, secondLoop, thirdLoop;
-	double maxIn, minMem, maxMem, minOut, maxOut;
+	double maxIn, widthMem, minOut, maxOut;
 	double branchFacilitator, checkWorstRings; 
 
 	static JLabel runningLabel;
@@ -78,8 +78,7 @@ public class Gui extends JDialog {
 	JFormattedTextField secondField = null;
 	JFormattedTextField thirdField = null;
 	JFormattedTextField maxInField = null;
-	JFormattedTextField minMemField = null;
-	JFormattedTextField maxMemField = null;
+	JFormattedTextField widthMemField = null;
 	JFormattedTextField minOutField = null;
 	JFormattedTextField maxOutField = null; 
 	JFormattedTextField checkWorstRingsField = null;
@@ -210,8 +209,7 @@ public class Gui extends JDialog {
 					secondLoop = Double.parseDouble(secondField.getText());
 					thirdLoop = Double.parseDouble(thirdField.getText());
 					maxIn = Double.parseDouble(maxInField.getText());
-					minMem = Double.parseDouble(minMemField.getText());
-					maxMem = Double.parseDouble(maxMemField.getText());
+					widthMem = Double.parseDouble(widthMemField.getText());
 					minOut = Double.parseDouble(minOutField.getText());
 					maxOut = Double.parseDouble(maxOutField.getText());
 					checkWorstRings = Double.parseDouble(checkWorstRingsField.getText());
@@ -219,7 +217,7 @@ public class Gui extends JDialog {
 					e.printStackTrace();
 				}
 				Espacing_Ring.start(network, step, impInside, impOutside, threshold, branchFacilitator, firstLoop, secondLoop, thirdLoop,
-						maxIn, minMem, maxMem, minOut, maxOut, checkWorstRings);
+						maxIn, widthMem, minOut, maxOut, checkWorstRings);
 
 			}
 		}); 
@@ -249,8 +247,7 @@ public class Gui extends JDialog {
 					secondLoop = Double.parseDouble(secondField.getText());
 					thirdLoop = Double.parseDouble(thirdField.getText());
 					maxIn = Double.parseDouble(maxInField.getText());
-					minMem = Double.parseDouble(minMemField.getText());
-					maxMem = Double.parseDouble(maxMemField.getText());
+					widthMem = Double.parseDouble(widthMemField.getText());
 					minOut = Double.parseDouble(minOutField.getText());
 					maxOut = Double.parseDouble(maxOutField.getText());
 					checkWorstRings = Double.parseDouble(checkWorstRingsField.getText());
@@ -258,7 +255,7 @@ public class Gui extends JDialog {
 					e.printStackTrace();
 				}
 				Ring r = Espacing_Ring.trySeedRing(network, step, impInside, impOutside, threshold, branchFacilitator, firstLoop, 
-						secondLoop, thirdLoop, maxIn, minMem, maxMem, minOut, maxOut, checkWorstRings);
+						secondLoop, thirdLoop, maxIn, widthMem, minOut, maxOut, checkWorstRings);
 				String message = "Initial ring radius: " + String.format(Locale.US, "%.2f", r.getRadius()) + "\ncontrast: " + String.format(Locale.US, "%.2f",r.getContrast());
 				JOptionPane.showMessageDialog(downPanel, message);
 
@@ -269,13 +266,16 @@ public class Gui extends JDialog {
 
 		/*CHANGE PARAMETERS BETWEEN FILLED AND EMPTY VESSELS*/
 
-		JRadioButton emptyButton = new JRadioButton("empty tube");
+		JRadioButton emptyButton = new JRadioButton("hollow tube");
 		emptyButton.setSelected(true);
 		emptyButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				impInsideField.setText("-0.5");
 				impOutsideField.setText("-0.5");
+				widthMemField.setText("0.1");
+				maxInField.setText("0.8");
+				minOutField.setText("1.2");
 			}
 		}); 
 		downPanel.add(emptyButton);
@@ -285,7 +285,10 @@ public class Gui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				impInsideField.setText("1");
-				impOutsideField.setText("-2");
+				impOutsideField.setText("-1");
+				widthMemField.setText("0");
+				maxInField.setText("1");
+				minOutField.setText("1");
 			}
 		}); 
 		downPanel.add(filledButton);
@@ -1181,23 +1184,13 @@ public class Gui extends JDialog {
 
 		JPanel Cell6 = new JPanel();
 		Cell6.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel minMemLabel = new JLabel("Min membrane");
-		minMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		minMemField.setColumns(4);
-		minMemField.setText("0.9");
-		Cell6.add(minMemLabel);
-		Cell6.add(minMemField);
+		JLabel widthMemLabel = new JLabel("Width membrane");
+		widthMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
+		widthMemField.setColumns(4);
+		widthMemField.setText("0.1");
+		Cell6.add(widthMemLabel);
+		Cell6.add(widthMemField);
 		tab5Center.add(Cell6);
-
-		JPanel Cell7 = new JPanel();
-		Cell7.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel maxMemLabel = new JLabel("Max membrane");
-		maxMemField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
-		maxMemField.setColumns(4);
-		maxMemField.setText("1.1");
-		Cell7.add(maxMemLabel);
-		Cell7.add(maxMemField);
-		tab5Center.add(Cell7);
 
 
 		JPanel Cell8 = new JPanel();

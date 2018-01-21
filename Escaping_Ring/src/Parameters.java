@@ -14,11 +14,11 @@ public class Parameters {
 	double radius;
 	double step,  impInside,  impOutside,  threshold, branchFacilitator;
 	double firstLoop,  secondLoop,  thirdLoop;
-	double maxIn, minMem,  maxMem,  minOut,  maxOut;
+	double maxIn, widthMem,  minOut,  maxOut;
 
 	public Parameters(String imageName, double step, double impInside,
 			double impOutside, double threshold, double branchFacilitator, double firstLoop, double secondLoop,
-			double thirdLoop, double maxIn, double minMem, double maxMem, double minOut, double maxOut) {
+			double thirdLoop, double maxIn, double widthMem, double minOut, double maxOut) {
 		this.step = step;
 		this.impInside = impInside;
 		this.impOutside = impOutside;
@@ -28,8 +28,7 @@ public class Parameters {
 		this.secondLoop = secondLoop;
 		this.thirdLoop = thirdLoop;
 		this.maxIn = maxIn;
-		this.minMem = minMem;
-		this.maxMem = maxMem;
+		this.widthMem = widthMem;
 		this.minOut = minOut;
 		this.maxOut = maxOut;
 		this.imageName = imageName;
@@ -37,10 +36,10 @@ public class Parameters {
 
 	public Parameters(String imageName, int xc, int yc, int zc, double radius, double step, double impInside,
 			double impOutside, double threshold, double branchFacilitator, double firstLoop, double secondLoop,
-			double thirdLoop, double maxIn, double minMem, double maxMem, double minOut, double maxOut) {
+			double thirdLoop, double maxIn, double widthMem, double minOut, double maxOut) {
 		this(imageName,  step,  impInside,
 				impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
-				thirdLoop, maxIn, minMem,  maxMem, minOut, maxOut);
+				thirdLoop, maxIn, widthMem, minOut, maxOut);
 		this.xc = xc;
 		this.yc = yc;
 		this.zc = zc;
@@ -63,18 +62,16 @@ public class Parameters {
 			this.secondLoop = params[10];
 			this.thirdLoop = params[11];
 			this.maxIn = params[12];
-			this.minMem = params[13];
-			this.maxMem = params[14];
-			this.minOut = params[15];
-			this.maxOut = params[16];
+			this.widthMem = params[13];
+			this.minOut = params[14];
+			this.maxOut = params[15];
 		}
 	}
 
 	public List<String>  listParams(){
 		List<String> row = Arrays.asList(String.valueOf(imageName), String.valueOf(xc), String.valueOf(yc), String.valueOf(zc), String.valueOf(radius), String.valueOf(step),
 				String.valueOf(impInside), String.valueOf(impOutside), String.valueOf(threshold), String.valueOf(branchFacilitator), String.valueOf(firstLoop),
-				String.valueOf(secondLoop), String.valueOf(thirdLoop), String.valueOf(maxIn), String.valueOf(minMem),
-				String.valueOf(maxMem), String.valueOf(minOut), String.valueOf(maxOut));
+				String.valueOf(secondLoop), String.valueOf(thirdLoop), String.valueOf(maxIn), String.valueOf(widthMem), String.valueOf(minOut), String.valueOf(maxOut));
 
 
 		return row;
@@ -83,7 +80,7 @@ public class Parameters {
 	public static void exportParams(String csvFile) throws IOException{
 		List<String> header = Arrays.asList("imageName", "xc", "yc", "zc", "radius", "step",  "impInside", 
 				"impOutside",  "threshold", "branchFacilitator","firstLoop",  "secondLoop",  "thirdLoop",
-				"maxIn", "minMem",  "maxMem",  "minOut",  "maxOut");
+				"maxIn", "widthMem",  "minOut",  "maxOut");
 		List<List<String>> data = new ArrayList<List<String>>();
 
 		FileWriter writer = new FileWriter(csvFile);
@@ -242,20 +239,12 @@ public class Parameters {
 		this.maxIn = maxIn;
 	}
 
-	public double getMinMem() {
-		return minMem;
+	public double getWidthMem() {
+		return widthMem;
 	}
 
-	public void setMinMem(double minMem) {
-		this.minMem = minMem;
-	}
-
-	public double getMaxMem() {
-		return maxMem;
-	}
-
-	public void setMaxMem(double maxMem) {
-		this.maxMem = maxMem;
+	public void setWidthMem(double widthMem) {
+		this.widthMem = widthMem;
 	}
 
 	public double getMinOut() {
@@ -279,8 +268,8 @@ public class Parameters {
 		return "Parameters [imageName=" + imageName + ", xc=" + xc + ", yc=" + yc + ", zc=" + zc + ", radius=" + radius
 				+ ", step=" + step + ", impInside=" + impInside + ", impOutside=" + impOutside + ", threshold="
 				+ threshold + ", branchFacilitator=" + branchFacilitator + ", firstLoop=" + firstLoop + ", secondLoop="
-				+ secondLoop + ", thirdLoop=" + thirdLoop + ", maxIn=" + maxIn + ", minMem=" + minMem + ", maxMem="
-				+ maxMem + ", minOut=" + minOut + ", maxOut=" + maxOut + "]";
+				+ secondLoop + ", thirdLoop=" + thirdLoop + ", maxIn=" + maxIn + ", widthMem=" + widthMem + 
+				", minOut=" + minOut + ", maxOut=" + maxOut + "]";
 	}
 
 }
