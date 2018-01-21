@@ -24,7 +24,7 @@ public class Ring  implements Serializable {
 	static private double impInside = -0.25;
 	static private double impOutside = -0.25;
 	
-	static private double maxIn, minMem, maxMem, minOut, maxOut;
+	static private double maxIn, widthMem, minOut, maxOut;
 	static private double plusErase = 2;
 	
 
@@ -103,6 +103,8 @@ public class Ring  implements Serializable {
 		double countMembrane = 0;
 		double meanOuter = 0;
 		double countOuter = 0;
+		double minMem = 1 - widthMem;
+		double maxMem = 1 + widthMem;
 		//IJ.log("radius: " + radius);
 		
 		for(int i=0; i<n; i++){
@@ -123,7 +125,8 @@ public class Ring  implements Serializable {
 				countOuter =+ mv.count[i];
 			}
 		}	
-		this.contrast = (meanMembrane/countMembrane) +  impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter) ;	
+		if(countMembrane==0) this.contrast = impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter);
+		else this.contrast = (meanMembrane/countMembrane) +  impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter) ;	
 	}
 	public void drawMeasureArea(Volume volume) {
 		int radius = (int)Math.ceil(this.radius);
@@ -385,10 +388,9 @@ public class Ring  implements Serializable {
 		Ring.impOutside = impOutside;
 	}
 	
-	public static void setParameters(double maxIn, double minMem, double maxMem, double minOut, double maxOut){
+	public static void setParameters(double maxIn, double widthMem, double minOut, double maxOut){
 		Ring.maxIn = maxIn;
-		Ring.minMem = minMem;
-		Ring.maxMem = maxMem;
+		Ring.widthMem = widthMem;
 		Ring.minOut = minOut;
 		Ring.maxOut = maxOut;
 		
@@ -428,20 +430,12 @@ public class Ring  implements Serializable {
 		Ring.maxIn = maxIn;
 	}
 
-	public static double getMinMem() {
-		return minMem;
+	public static double getWidthMem() {
+		return widthMem;
 	}
 
-	public static void setMinMem(double minMem) {
-		Ring.minMem = minMem;
-	}
-
-	public static double getMaxMem() {
-		return maxMem;
-	}
-
-	public static void setMaxMem(double maxMem) {
-		Ring.maxMem = maxMem;
+	public static void setWidthMem(double widthMem) {
+		Ring.widthMem = widthMem;
 	}
 
 	public static double getMinOut() {

@@ -45,7 +45,7 @@ public class Espacing_Ring implements PlugIn {
 
 	public static void start(Network network, double step, double impInside, double impOutside, double threshold, double branchFacilitator,
 			double firstLoop, double secondLoop, double thirdLoop,
-			double maxIn, double minMem, double maxMem, double minOut, double maxOut,
+			double maxIn, double widthMem, double minOut, double maxOut,
 			double checkWorstRings) {
 
 		imp = WindowManager.getCurrentImage();
@@ -81,7 +81,7 @@ public class Espacing_Ring implements PlugIn {
 		Branch.setSecondLoopElimination(secondLoop);
 		Branch.setThirdLoopElimination(thirdLoop);
 		Branch.stopAll(false);	
-		Ring.setParameters(maxIn, minMem, maxMem, minOut, maxOut);
+		Ring.setParameters(maxIn, widthMem, minOut, maxOut);
 		Branch.setCheckWorstRings(checkWorstRings);
 
 
@@ -100,7 +100,7 @@ public class Espacing_Ring implements PlugIn {
 
 		Parameters params = new Parameters(imageName, xc, yc, zc, radius,  step,  impInside,
 				impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
-				thirdLoop, maxIn, minMem,  maxMem, minOut, maxOut);
+				thirdLoop, maxIn, widthMem, minOut, maxOut);
 		Gui.usedParameters.add(params);
 
 		generateView(true);
@@ -133,7 +133,7 @@ public class Espacing_Ring implements PlugIn {
 		Branch.setSecondLoopElimination(param.getSecondLoop());
 		Branch.setThirdLoopElimination(param.getThirdLoop());
 		Branch.stopAll(false);	
-		Ring.setParameters(param.getMaxIn(), param.getMinMem(), param.getMaxMem(), param.getMinOut(), param.getMaxOut());
+		Ring.setParameters(param.getMaxIn(), param.getWidthMem(), param.getMinOut(), param.getMaxOut());
 
 
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, param.getStep()*2);
@@ -160,7 +160,7 @@ public class Espacing_Ring implements PlugIn {
 
 	public static Ring trySeedRing(Network network, double step, double impInside, double impOutside, double threshold, double branchFacilitator,
 			double firstLoop, double secondLoop, double thirdLoop,
-			double maxIn, double minMem, double maxMem, double minOut, double maxOut,
+			double maxIn, double widthMem, double minOut, double maxOut,
 			double checkWorstRings) {
 
 		imp = WindowManager.getCurrentImage();
@@ -190,7 +190,7 @@ public class Espacing_Ring implements PlugIn {
 
 		Ring.setImpInside(impInside);
 		Ring.setImpOutside(impOutside);	
-		Ring.setParameters(maxIn, minMem, maxMem, minOut, maxOut);
+		Ring.setParameters(maxIn, widthMem, minOut, maxOut);
 
 
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
