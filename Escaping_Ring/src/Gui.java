@@ -173,7 +173,7 @@ public class Gui extends JDialog {
 		JLabel branchLabel = new JLabel("Branching");
 		JFormattedTextField branchField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		branchField.setColumns(5);
-		branchField.setText("0.6");
+		branchField.setText("1");
 		leftPanel.add(branchLabel);
 		leftPanel.add(branchField);
 
