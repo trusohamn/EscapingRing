@@ -81,7 +81,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 					IJ.log(e.toString());
 				}
 				finally {
-					Gui.ringsRunning.remove(nextRing);
+					if(Gui.ringsRunning.contains(nextRing)) Gui.ringsRunning.remove(nextRing);
 					Gui.updateRunning();
 				}
 			}
@@ -127,12 +127,9 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 			do {
 				if(Gui.stopAll) break MAINLOOP;
 				ArrayList<Ring> candidates = proposeCandidates(current, step, maxRadius, minRadius);
-				ArrayList<Ring> previous = new ArrayList<Ring>(); 
-
-				previous.addAll(newBranch);
 				
-				if(newBranch.size()>0)candidates = keepRingsWhichDontOverlapWithOthers(candidates, 1.1 , previous);
-				else candidates = keepRingsWhichDontOverlapWithOthers(candidates, 0.1, previous);//first ring
+				if(newBranch.size()>0)candidates = keepRingsWhichDontOverlapWithOthers(candidates, 1.1 , newBranch);
+				else candidates = keepRingsWhichDontOverlapWithOthers(candidates, 0.1, newBranch);//first ring
 				if(candidates.size()==0) break MAINLOOP;
 
 				//keep x% best
@@ -187,7 +184,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 				if(max<prevMax*evolveValue || max==0) {
 					//check if there is a branching point, always break
-					Ring closestRing = current.getClosestRing();
+					Ring closestRing = current.getClosestRing(newBranch);
 					//IJ.log("Closest:" + closestRing);
 					if(closestRing!= null && current.getC().distance(closestRing.getC())<step*4){
 						newBranch.add(closestRing);

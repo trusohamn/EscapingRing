@@ -344,6 +344,26 @@ public class Ring  implements Serializable {
 		}
 		return closestRing;
 	}
+	
+	public Ring getClosestRing(ArrayList<Ring> rings){
+		/*gets closest Ring which doesnt belong to rings*/
+		Point3D target = this.c;
+
+		double minDistance = Double.MAX_VALUE;
+		Ring closestRing = null;
+		for(Branch branch : Gui.network){
+			for(Ring ring : branch){
+				if(!rings.contains(ring)) {
+					double thisDistance=target.distance(ring.getC());
+					if(thisDistance<minDistance){
+						minDistance = thisDistance;
+						closestRing = ring;
+					}
+				}
+			}
+		}
+		return closestRing;
+	}
 	/*GETTERS SETTERS*/
 	
 	public ArrayList<Branch> getBranches() {

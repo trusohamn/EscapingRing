@@ -128,7 +128,7 @@ public class Gui extends JDialog {
 		final JButton showButton = new JButton("Show");
 		final JButton resetButton = new JButton("Reset");
 		setBounds(100, 100, 750, 300);
-		setTitle("VesselTracer3D");
+		setTitle("Vessel3DTracer");
 
 
 		IJ.log("Starting GUI");
@@ -1304,7 +1304,7 @@ public class Gui extends JDialog {
 					Espacing_Ring.voxelDepth = Espacing_Ring.imp.getCalibration().pixelDepth;
 					Gui.updateLoadedImage();
 					Espacing_Ring.workingVol = new Volume(Espacing_Ring.imp );
-					Espacing_Ring.imp  = new ImagePlus("VascRing3D", Espacing_Ring.vol.createImageStackFrom3DArray());
+					Espacing_Ring.imp  = new ImagePlus("Vessel3DTracer", Espacing_Ring.vol.createImageStackFrom3DArray());
 					Espacing_Ring.imp.setDisplayMode(IJ.COLOR);
 					Espacing_Ring.iC = new ImageCanvas(Espacing_Ring.imp);
 					Espacing_Ring.imgS = new StackWindow (Espacing_Ring.imp, Espacing_Ring.iC);
