@@ -1,3 +1,4 @@
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -8,11 +9,13 @@ import ij.gui.StackWindow;
 import ij.plugin.PlugIn;
 import ij.process.ImageProcessor;
 
+
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
+
 
 
 
@@ -35,11 +38,9 @@ public class Espacing_Ring implements PlugIn {
 		iC = null;
 		imp = null;
 		imgS=null;
-
-		Gui dialog = new Gui();
+		final Gui dialog = new Gui();
 		dialog.setVisible(true);
 
-		//start();
 
 	}
 

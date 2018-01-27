@@ -1,3 +1,4 @@
+
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -33,7 +34,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
@@ -45,6 +45,7 @@ import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
+
 
 
 public class Gui extends JDialog {
@@ -86,37 +87,13 @@ public class Gui extends JDialog {
 
 	static ArrayList<Parameters> usedParameters = new ArrayList<Parameters>();
 	static ArrayList<Parameters> toUseParameters = new ArrayList<Parameters>();
-
 	static ArrayList<Ring> ringsRunning = new ArrayList<Ring>();
 	static boolean stopAll;
 	static boolean roiRunning = false; //not needed for now
-
 	static boolean synch = false;
-
 	ArrayList<MouseListener> activatedListeners = new ArrayList<MouseListener>();
 
-
-	public static void main(final String[] args) {
-		try {
-			final Gui dialog = new Gui();
-			//dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-			IJ.log("Starting GUI");
-			dialog.addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosing(WindowEvent e) {
-					IJ.log("Terminating processing");
-					Branch.stopAll(true);
-					System.exit(0);
-				}
-			});
-
-		}
-		catch (final Exception e) {
-			e.printStackTrace();
-		}
-	}
-
+	
 
 	public Gui() {
 		JPanel tab1;
@@ -1484,5 +1461,28 @@ public class Gui extends JDialog {
 		cal.pixelDepth = ((voxelDepth/pixelWidth*sliceNumber)/newSliceNumber)*pixelWidth;
 		return imp2;		
 	}
+	
+
+	public static void main(final String[] args) {
+		try {
+			final Gui dialog = new Gui();
+			//dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+			IJ.log("Starting GUI");
+			dialog.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosing(WindowEvent e) {
+					IJ.log("Terminating processing");
+					Branch.stopAll(true);
+					System.exit(0);
+				}
+			});
+
+		}
+		catch (final Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 }
 
