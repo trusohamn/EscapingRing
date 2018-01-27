@@ -1,3 +1,4 @@
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,7 +82,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 					IJ.log(e.toString());
 				}
 				finally {
-					Gui.ringsRunning.remove(nextRing);
+					if(Gui.ringsRunning.contains(nextRing)) Gui.ringsRunning.remove(nextRing);
 					Gui.updateRunning();
 				}
 			}
@@ -114,6 +115,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	}
 
 	public ArrayList<Ring> evolve( Ring initial) {
+		boolean loop = false;
 		Ring current = initial.duplicate();
 		int iter = 0;
 		double prevMax = Gui.network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*2 : Gui.network.getMeanContrast()*2; //later the contrast value is a sum of three rings
@@ -124,13 +126,11 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		double minRadius = 0.60;
 		MAINLOOP:
 			do {
+				if(Gui.stopAll) break MAINLOOP;
 				ArrayList<Ring> candidates = proposeCandidates(current, step, maxRadius, minRadius);
-				ArrayList<Ring> previous = new ArrayList<Ring>();
-				previous.addAll(newBranch);
 				
-				
-				if(newBranch.size()>0)candidates = keepRingsWhichDontOverlapWithOthers(candidates, 1 , previous);
-				else candidates = keepRingsWhichDontOverlapWithOthers(candidates, 0.1, previous);//first ring
+				if(newBranch.size()>0)candidates = keepRingsWhichDontOverlapWithOthers(candidates, 1.1 , newBranch);
+				else candidates = keepRingsWhichDontOverlapWithOthers(candidates, 0.1, newBranch);//first ring
 				if(candidates.size()==0) break MAINLOOP;
 
 				//keep x% best
@@ -150,7 +150,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 						}	
 					}
 				}
-
+				if(candidatesTriple.isEmpty()) break MAINLOOP;
 
 				//calculating the best contrast out of those [three rings]
 				Ring best = null; //first ring of triple
@@ -185,10 +185,11 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 				if(max<prevMax*evolveValue || max==0) {
 					//check if there is a branching point, always break
-					Ring closestRing = current.getClosestRing();
+					Ring closestRing = current.getClosestRing(newBranch);
 					//IJ.log("Closest:" + closestRing);
 					if(closestRing!= null && current.getC().distance(closestRing.getC())<step*4){
 						newBranch.add(closestRing);
+						loop = true;
 					}
 					break MAINLOOP;
 				}
@@ -213,6 +214,8 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 				iter++;
 			}
 			while (true);
+		int minRings = loop ? minLengthBranch-1 : minLengthBranch;
+		if(newBranch.size() < minRings) newBranch.clear();
 		return newBranch;
 	}
 
@@ -238,7 +241,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	}
 
 	private ArrayList<Ring> keepRingsWhichDontOverlapWithOthers(ArrayList<Ring> rings, double rate, ArrayList<Ring> previous){
-		//keeps percent of best candidates
+		//keeps percent of good candidates
 		ArrayList<Ring> keepCands = new ArrayList<Ring>();	
 		keepCands.addAll(rings);
 		for(Ring cand: rings) {
@@ -323,30 +326,26 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 	private ArrayList<Ring> sparseCandidates(Ring ring) {
 		//returns sparse rings in 3d space, which keep the initial contrast
+		//change 20180122 - sparse candidates center is initRadius further from initial center
 		double keepContrast = ring.getContrast();
 		ArrayList<Ring> cands = new ArrayList<Ring>();	
 		double angleStep = Math.PI/2;
 		int angleRange = 1;
 
 		double initRadius = ring.getRadius();
-		double maxRadius = 1.75;
-		double maxMeasurmentArea = 2;
 
 
 		for(double dt = -angleRange*angleStep; dt<=angleRange*angleStep; dt+= angleStep) {
 			for(double dp = -angleRange*angleStep; dp<=angleRange*angleStep; dp+= angleStep) {	
-				Ring maxRing = ring.duplicate();
-				double polar[] = maxRing.getAnglesFromDirection();
-				maxRing.setRadius (initRadius*maxRadius*maxMeasurmentArea);
-				maxRing.setDir (maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp));
-				double r = initRadius;
-				//for(double r = initRadius*0.25; r<=initRadius*maxRadius; r+=0.75*initRadius) {
-				Ring cand = maxRing.duplicate();
-				cand.setRadius(r);
+				Ring cand = ring.duplicate();
+				double polar[] = cand.getAnglesFromDirection();
+				cand.setDir (cand.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp));
+				cand.setC(cand.getPositionFromSphericalAngles(initRadius, polar[0] + dt, polar[1] + dp));
+				cand.setDir(new Point3D((cand.getC().getX() - ring.getC().getX()) / initRadius, (cand.getC().getY()-ring.getC().getY())/initRadius, (cand.getC().getZ()-ring.getC().getZ())/initRadius));
+				
+				cand.setRadius(initRadius);
 				cand.setContrast(keepContrast) ;
-				//IJ.log("contrast: " + cand.contrast);
-				cands.add(cand);
-				//}				
+				cands.add(cand);			
 			}
 		}	
 		return cands;

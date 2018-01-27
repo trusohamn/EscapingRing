@@ -1,3 +1,4 @@
+
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -33,7 +34,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
@@ -45,6 +45,7 @@ import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
+
 
 
 public class Gui extends JDialog {
@@ -86,37 +87,13 @@ public class Gui extends JDialog {
 
 	static ArrayList<Parameters> usedParameters = new ArrayList<Parameters>();
 	static ArrayList<Parameters> toUseParameters = new ArrayList<Parameters>();
-
 	static ArrayList<Ring> ringsRunning = new ArrayList<Ring>();
 	static boolean stopAll;
 	static boolean roiRunning = false; //not needed for now
-
 	static boolean synch = false;
-
 	ArrayList<MouseListener> activatedListeners = new ArrayList<MouseListener>();
 
-
-	public static void main(final String[] args) {
-		try {
-			final Gui dialog = new Gui();
-			//dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-			IJ.log("Starting GUI");
-			dialog.addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosing(WindowEvent e) {
-					IJ.log("Terminating processing");
-					Branch.stopAll(true);
-					System.exit(0);
-				}
-			});
-
-		}
-		catch (final Exception e) {
-			e.printStackTrace();
-		}
-	}
-
+	
 
 	public Gui() {
 		JPanel tab1;
@@ -128,7 +105,7 @@ public class Gui extends JDialog {
 		final JButton showButton = new JButton("Show");
 		final JButton resetButton = new JButton("Reset");
 		setBounds(100, 100, 750, 300);
-		setTitle("VesselTracer3D");
+		setTitle("Vessel3DTracer");
 
 
 		IJ.log("Starting GUI");
@@ -173,7 +150,7 @@ public class Gui extends JDialog {
 		JLabel branchLabel = new JLabel("Branching");
 		JFormattedTextField branchField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		branchField.setColumns(5);
-		branchField.setText("0.6");
+		branchField.setText("1");
 		leftPanel.add(branchLabel);
 		leftPanel.add(branchField);
 
@@ -1304,7 +1281,7 @@ public class Gui extends JDialog {
 					Espacing_Ring.voxelDepth = Espacing_Ring.imp.getCalibration().pixelDepth;
 					Gui.updateLoadedImage();
 					Espacing_Ring.workingVol = new Volume(Espacing_Ring.imp );
-					Espacing_Ring.imp  = new ImagePlus("VascRing3D", Espacing_Ring.vol.createImageStackFrom3DArray());
+					Espacing_Ring.imp  = new ImagePlus("Vessel3DTracer", Espacing_Ring.vol.createImageStackFrom3DArray());
 					Espacing_Ring.imp.setDisplayMode(IJ.COLOR);
 					Espacing_Ring.iC = new ImageCanvas(Espacing_Ring.imp);
 					Espacing_Ring.imgS = new StackWindow (Espacing_Ring.imp, Espacing_Ring.iC);
@@ -1484,5 +1461,28 @@ public class Gui extends JDialog {
 		cal.pixelDepth = ((voxelDepth/pixelWidth*sliceNumber)/newSliceNumber)*pixelWidth;
 		return imp2;		
 	}
+	
+
+	public static void main(final String[] args) {
+		try {
+			final Gui dialog = new Gui();
+			//dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+			IJ.log("Starting GUI");
+			dialog.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosing(WindowEvent e) {
+					IJ.log("Terminating processing");
+					Branch.stopAll(true);
+					System.exit(0);
+				}
+			});
+
+		}
+		catch (final Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 }
 
