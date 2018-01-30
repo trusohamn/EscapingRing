@@ -20,8 +20,8 @@ import javax.swing.DefaultListModel;
 
 
 public class Espacing_Ring implements PlugIn {
-	static Volume vol; //raw image, not changable in processing
-	static Volume workingVol; //raw image, changed during processing
+	static MyVolume vol; //raw image, not changable in processing
+	static MyVolume workingVol; //raw image, changed during processing
 	static ImageCanvas iC;
 	static ImagePlus imp; //display image
 	static StackWindow imgS;
@@ -38,7 +38,7 @@ public class Espacing_Ring implements PlugIn {
 		iC = null;
 		imp = null;
 		imgS=null;
-		final Gui dialog = new Gui();
+		final MyGui dialog = new MyGui();
 		dialog.setVisible(true);
 
 
@@ -89,20 +89,20 @@ public class Espacing_Ring implements PlugIn {
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
 
 		if(vol == null) {
-			vol = new Volume(imp);
+			vol = new MyVolume(imp);
 			imageName = imp.getTitle();
-			Gui.updateSaveAsWithCurrentImage();
+			MyGui.updateSaveAsWithCurrentImage();
 			pixelWidth = imp.getCalibration().pixelWidth;
 			pixelHeight = imp.getCalibration().pixelWidth;
 			voxelDepth = imp.getCalibration().pixelDepth;
-			Gui.updateLoadedImage();
+			MyGui.updateLoadedImage();
 		}
-		if(workingVol == null) workingVol = new Volume(imp); 
+		if(workingVol == null) workingVol = new MyVolume(imp); 
 
 		Parameters params = new Parameters(imageName, xc, yc, zc, radius,  step,  impInside,
 				impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
 				thirdLoop, maxIn, widthMem, minOut, maxOut);
-		Gui.usedParameters.add(params);
+		MyGui.usedParameters.add(params);
 
 		generateView(true);
 
@@ -140,13 +140,13 @@ public class Espacing_Ring implements PlugIn {
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, param.getStep()*2);
 
 		if(vol == null) {
-			vol = new Volume(imp);
+			vol = new MyVolume(imp);
 			imageName = imp.getTitle();
-			Gui.updateLoadedImage();
+			MyGui.updateLoadedImage();
 		}
-		if(workingVol == null) workingVol = new Volume(imp); 
+		if(workingVol == null) workingVol = new MyVolume(imp); 
 		param.setImageName(imageName);
-		Gui.usedParameters.add(param);
+		MyGui.usedParameters.add(param);
 
 		generateView(true);
 
@@ -197,11 +197,11 @@ public class Espacing_Ring implements PlugIn {
 		Ring initial = new Ring(xc, yc, zc, 0, 0, 0, radius, step*2);
 
 		if(vol == null) {
-			vol = new Volume(imp);
+			vol = new MyVolume(imp);
 			imageName = imp.getTitle();
-			Gui.updateLoadedImage();
+			MyGui.updateLoadedImage();
 		}
-		if(workingVol == null) workingVol = new Volume(imp); 
+		if(workingVol == null) workingVol = new MyVolume(imp); 
 
 
 
@@ -280,7 +280,7 @@ public class Espacing_Ring implements PlugIn {
 	}
 	 */
 
-	public void drawCenterLine(Volume volume, Ring ring) {
+	public void drawCenterLine(MyVolume myVolume, Ring ring) {
 
 		double angles[] = ring.getAnglesFromDirection();
 		double sint = Math.sin(angles[0]);
@@ -297,7 +297,7 @@ public class Espacing_Ring implements PlugIn {
 			double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
 			double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
 			double dz = i*R[2][0]  + k*R[2][2];
-			volume.setValue(ring.getC(), dx, dy, dz, 1000);
+			myVolume.setValue(ring.getC(), dx, dy, dz, 1000);
 		}
 	}
 

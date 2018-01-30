@@ -7,7 +7,7 @@ public class MeasurmentVolume {
 	int[] count;
 	double bin;
 
-	public MeasurmentVolume(Volume volume, Ring ring){
+	public MeasurmentVolume(MyVolume myVolume, Ring ring){
 		//Ring with maximum radius is passed
 
 		double angles[] =  ring.getAnglesFromDirection();
@@ -42,7 +42,7 @@ public class MeasurmentVolume {
 						float dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
 						float dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
 						float dz = i*R[2][0] + k*R[2][2];
-						sumIntensity[binIndex] += volume.getValue(ring.getC(), dx, dy, dz);
+						sumIntensity[binIndex] += myVolume.getValue(ring.getC(), dx, dy, dz);
 						++count[binIndex];
 					}
 				}

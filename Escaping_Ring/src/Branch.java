@@ -35,8 +35,8 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		this.addAll(evolve( ring));
 		Collections.reverse(this);
 		this.addAll(evolve( ring.flippedRing()));
-		Gui.network.add(this);
-		this.branchNo = Gui.network.getLastBranchNo();
+		MyGui.network.add(this);
+		this.branchNo = MyGui.network.getLastBranchNo();
 		this.regression();
 		for(Ring r: this){
 			r.addBranch(this);
@@ -46,8 +46,8 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	public Branch(ArrayList<Ring> branch, double step){
 		this.step = step;
 		this.addAll(branch);
-		Gui.network.add(this);
-		this.branchNo = Gui.network.getLastBranchNo();
+		MyGui.network.add(this);
+		this.branchNo = MyGui.network.getLastBranchNo();
 		this.regression();
 		for(Ring r: this){
 			r.addBranch(this);
@@ -61,14 +61,14 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 				this.nextRing = nextRing;
 			}			
 			public void run() {
-				Gui.ringsRunning.add(nextRing);
-				Gui.updateRunning();
+				MyGui.ringsRunning.add(nextRing);
+				MyGui.updateRunning();
 				try {
 					ArrayList<Ring> ringsAround = sparseCandidates(nextRing);
 					//sparseCandidate is not added to the branch, init is
 					for(Ring r : ringsAround) {
 
-						if(Gui.stopAll) break;
+						if(MyGui.stopAll) break;
 						ArrayList<Ring> branchCand = new ArrayList<Ring>();
 						branchCand.add(nextRing);
 						branchCand.addAll(evolve( r));
@@ -82,8 +82,8 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 					IJ.log(e.toString());
 				}
 				finally {
-					if(Gui.ringsRunning.contains(nextRing)) Gui.ringsRunning.remove(nextRing);
-					Gui.updateRunning();
+					if(MyGui.ringsRunning.contains(nextRing)) MyGui.ringsRunning.remove(nextRing);
+					MyGui.updateRunning();
 				}
 			}
 		}
@@ -95,14 +95,14 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		ArrayList<Ring> sortedBranchCopy = this.sortLowestContrastFirst();
 		ArrayList<Thread> listOfThreads = new ArrayList<Thread>();
 		for(int i = 0; i < (int) sortedBranchCopy.size()*checkWorstRings; i++){
-			if(Gui.stopAll) break;
+			if(MyGui.stopAll) break;
 			IJ.log("checking ring: " + i);
 			Ring nextRing = sortedBranchCopy.get(i);
 			Thread t = new Thread(new OneShotTask(nextRing));
 			t.start();
 			listOfThreads.add(t);
 		}
-		if(Gui.synch){
+		if(MyGui.synch){
 			//IJ.log("Synching: " + listOfThreads.size() + " threads" );
 			for(Thread t: listOfThreads){
 				try {
@@ -118,7 +118,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		boolean loop = false;
 		Ring current = initial.duplicate();
 		int iter = 0;
-		double prevMax = Gui.network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*2 : Gui.network.getMeanContrast()*2; //later the contrast value is a sum of three rings
+		double prevMax = MyGui.network.getMeanContrast() == -Double.MAX_VALUE ? initial.getContrast()*2 : MyGui.network.getMeanContrast()*2; //later the contrast value is a sum of three rings
 		prevMax = prevMax*branchFacilitator; //to lower the threshold of starting the new branch
 		ArrayList<Ring> newBranch = new ArrayList<Ring>();
 		//newBranch.add(current);
@@ -126,7 +126,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		double minRadius = 0.60;
 		MAINLOOP:
 			do {
-				if(Gui.stopAll) break MAINLOOP;
+				if(MyGui.stopAll) break MAINLOOP;
 				ArrayList<Ring> candidates = proposeCandidates(current, step, maxRadius, minRadius);
 				
 				if(newBranch.size()>0)candidates = keepRingsWhichDontOverlapWithOthers(candidates, 1.1 , newBranch);
@@ -201,16 +201,16 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 				//erase ring 2 places backwards
 				if(newBranch.size()>=2  && newBranch.size()>= minLengthBranch-1) {
-					Gui.network.recalculateContrast(best.getContrast());
-					IJ.log("------>" +Gui.ringsUsed.size());
-					if(!Gui.ringsUsed.contains(newBranch.get(newBranch.size()-2))) Gui.ringsUsed.add(newBranch.get(newBranch.size()-2));
-					if(!Gui.ringsUsed.contains(best)) Gui.ringsUsed.add(best);
+					MyGui.network.recalculateContrast(best.getContrast());
+					IJ.log("------>" +MyGui.ringsUsed.size());
+					if(!MyGui.ringsUsed.contains(newBranch.get(newBranch.size()-2))) MyGui.ringsUsed.add(newBranch.get(newBranch.size()-2));
+					if(!MyGui.ringsUsed.contains(best)) MyGui.ringsUsed.add(best);
 					newBranch.get(newBranch.size()-2).eraseVol(Espacing_Ring.workingVol);
 				}
-				prevMax = Gui.network.getMeanContrast()*2;
+				prevMax = MyGui.network.getMeanContrast()*2;
 
-				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + Gui.network.getMeanContrast() + " nrRings: " + Gui.network.getTotalNumberRings() + " totalContrast: " + Gui.network.getTotalContrast());
-				Gui.updateMeanContrast();
+				IJ.log(" after iter"  + iter + " current contrast:  " +currentContrast + " mean: " + MyGui.network.getMeanContrast() + " nrRings: " + MyGui.network.getTotalNumberRings() + " totalContrast: " + MyGui.network.getTotalContrast());
+				MyGui.updateMeanContrast();
 				iter++;
 			}
 			while (true);
@@ -245,7 +245,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		ArrayList<Ring> keepCands = new ArrayList<Ring>();	
 		keepCands.addAll(rings);
 		for(Ring cand: rings) {
-			for(Ring r: Gui.ringsUsed){
+			for(Ring r: MyGui.ringsUsed){
 				if(!previous.contains(r)){
 					if( cand.getC().distance(r.getC()) < (cand.getRadius()+r.getRadius())*rate){
 						if(keepCands.contains(cand)) keepCands.remove(cand);
@@ -350,9 +350,9 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		}	
 		return cands;
 	}
-	public void drawBranch(Volume volume) {
+	public void drawBranch(MyVolume myVolume) {
 		for(Ring r:this) {
-			r.drawMeasureArea(volume);
+			r.drawMeasureArea(myVolume);
 		}
 	}
 
@@ -383,7 +383,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		newBranch.add(newRing);
 		newBranch.add(end);
 		newBranch.eraseBranch();
-		Gui.network.add(newBranch);
+		MyGui.network.add(newBranch);
 
 
 		return newBranch;
@@ -404,7 +404,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		newBranch.add(newRing);
 		newBranch.add(endRing);
 		newBranch.eraseBranch();
-		Gui.network.add(newBranch);
+		MyGui.network.add(newBranch);
 		return newBranch;
 
 	}
@@ -412,8 +412,8 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	public void restoreBranch(){
 		for(Ring ring : this){
 			ring.restoreVol(Espacing_Ring.workingVol, Espacing_Ring.vol);
-			if(ring.getBranches().size()==1 && Gui.ringsUsed.contains(ring)) {
-				Gui.ringsUsed.remove(ring);
+			if(ring.getBranches().size()==1 && MyGui.ringsUsed.contains(ring)) {
+				MyGui.ringsUsed.remove(ring);
 			}			
 		}
 	}
@@ -448,7 +448,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 	/*GETTERS AND SETTERS*/
 	public static void stopAll(boolean stop) {
-		Gui.stopAll = stop;
+		MyGui.stopAll = stop;
 	}
 
 	public int getBranchNo() {

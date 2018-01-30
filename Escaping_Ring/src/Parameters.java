@@ -86,7 +86,7 @@ public class Parameters {
 
 		FileWriter writer = new FileWriter(csvFile);
 
-		for(Parameters p : Gui.usedParameters) {
+		for(Parameters p : MyGui.usedParameters) {
 			List<String> row = p.listParams();
 			IJ.log(row.toString());
 			data.add(row);

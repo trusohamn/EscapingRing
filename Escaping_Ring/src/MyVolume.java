@@ -10,14 +10,14 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
 
-public class Volume {
+public class MyVolume {
 
 	public int[][][] data;
 	public int nx;
 	public int ny;
 	public int nz;
 	
-	public Volume(ImagePlus imp) {
+	public MyVolume(ImagePlus imp) {
 		nx = imp.getWidth();
 		ny = imp.getHeight();
 		nz = imp.getNSlices();
@@ -32,7 +32,7 @@ public class Volume {
 	}
 	
 	
-	public Volume(int nx, int ny, int nz) {
+	public MyVolume(int nx, int ny, int nz) {
 		this.nx = nx;
 		this.ny = ny;
 		this.nz = nz;
@@ -103,13 +103,13 @@ public class Volume {
 		new ImagePlus(title, createImageStackFrom3DArray()).show();
 	}
 	
-	public void showTwoChannels(String title, Volume vol2) {
+	public void showTwoChannels(String title, MyVolume vol2) {
 		ImagePlus first = new ImagePlus(title, this.createImageStackFrom3DArray());
 		ImagePlus second = new ImagePlus(title, vol2.createImageStackFrom3DArray());
 		RGBStackMerge.mergeChannels(new ImagePlus[] {first, second}, false).show();	
 	}
 	
-	public ImagePlus generateThreeChannels(String title, Volume vol2, Volume vol3) {
+	public ImagePlus generateThreeChannels(String title, MyVolume vol2, MyVolume vol3) {
 		ImagePlus first = new ImagePlus("Raw", this.createImageStackFrom3DArray());
 		ImagePlus second = new ImagePlus("Segmented", vol2.createImageStackFrom3DArray());
 		ImagePlus third = new ImagePlus("Selected", vol3.createImageStackFrom3DArray());
@@ -129,11 +129,11 @@ public class Volume {
 	}
 	
 
-	protected Volume gradient(Volume in) {
+	protected MyVolume gradient(MyVolume in) {
 		int nx = in.nx;
 		int ny = in.ny;
 		int nz = in.nz;
-		Volume out = new Volume(nx, ny, nz);
+		MyVolume out = new MyVolume(nx, ny, nz);
 		Point3D zero = new Point3D(0, 0, 0);
 		for(int i=1; i<nx-1; i++)
 		for(int j=1; j<ny-1; j++)
@@ -147,11 +147,11 @@ public class Volume {
 		return out;	
 	}
 	
-	protected Volume smooth(Volume in) {
+	protected MyVolume smooth(MyVolume in) {
 		int nx = in.nx;
 		int ny = in.ny;
 		int nz = in.nz;
-		Volume out = new Volume (nx, ny, nz);
+		MyVolume out = new MyVolume (nx, ny, nz);
 		Point3D zero = new Point3D(0, 0, 0);
 		for(int i=1; i<nx-1; i++)
 		for(int j=1; j<ny-1; j++)
