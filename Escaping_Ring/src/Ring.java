@@ -129,7 +129,7 @@ public class Ring  implements Serializable {
 		if(countMembrane==0) this.contrast = impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter);
 		else this.contrast = (meanMembrane/countMembrane) +  impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter) ;	
 	}
-	public void drawMeasureArea(Volume volume) {
+	public void drawMeasureArea(MyVolume myVolume) {
 		int radius = (int)Math.ceil(this.radius);
 
 		double angles[] = this.getAnglesFromDirection();
@@ -154,7 +154,7 @@ public class Ring  implements Serializable {
 
 
 					if (d >= 0.8*radius && d <=1.2*radius) {
-						volume.setValue(this.c, dx, dy, dz, 150);
+						myVolume.setValue(this.c, dx, dy, dz, 150);
 					}
 				}	
 			}
@@ -200,7 +200,7 @@ public class Ring  implements Serializable {
 		}
 	}
 	
-	public void draw(Volume volume, float value, double sampling) {
+	public void draw(MyVolume myVolume, float value, double sampling) {
 		int radius = (int)Math.ceil(this.radius);
 		double angles[] = this.getAnglesFromDirection();
 		double sint = Math.sin(angles[0]);
@@ -216,7 +216,7 @@ public class Ring  implements Serializable {
 					double dx = i*R[0][0] + j*R[0][1] + k*R[0][2];
 					double dy = i*R[1][0] + j*R[1][1] + k*R[1][2];
 					double dz = i*R[2][0] + k*R[2][2];
-					volume.setValue(c, dx, dy, dz, value);
+					myVolume.setValue(c, dx, dy, dz, value);
 				}
 			}	
 		}
@@ -231,7 +231,7 @@ public class Ring  implements Serializable {
 		return newRing;
 	}
 	
-	public void eraseVol(Volume workingVol){
+	public void eraseVol(MyVolume workingVol){
 		int radius = (int)Math.ceil(this.radius*plusErase);
 		
 		
@@ -262,7 +262,7 @@ public class Ring  implements Serializable {
 		}
 	}
 	
-	public void restoreVol(Volume workingVol, Volume vol){
+	public void restoreVol(MyVolume workingVol, MyVolume vol){
 		int radius = (int)Math.ceil(this.radius*plusErase);
 		
 		
@@ -294,7 +294,7 @@ public class Ring  implements Serializable {
 		}
 	}
 	
-	public Ring adjustFirstRing( Volume vol) {
+	public Ring adjustFirstRing( MyVolume vol) {
 		Ring bestCand = null;	
 		double maxContrast = -Double.MAX_VALUE;
 		double angleStep = Math.PI/12;
@@ -334,7 +334,7 @@ public class Ring  implements Serializable {
 
 		double minDistance = Double.MAX_VALUE;
 		Ring closestRing = null;
-		for(Branch branch : Gui.network){
+		for(Branch branch : MyGui.network){
 			for(Ring ring : branch){
 				double thisDistance=target.distance(ring.getC());
 				if(thisDistance<minDistance){
@@ -352,7 +352,7 @@ public class Ring  implements Serializable {
 
 		double minDistance = Double.MAX_VALUE;
 		Ring closestRing = null;
-		for(Branch branch : Gui.network){
+		for(Branch branch : MyGui.network){
 			for(Ring ring : branch){
 				if(!rings.contains(ring)) {
 					double thisDistance=target.distance(ring.getC());

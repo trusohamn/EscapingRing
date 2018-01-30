@@ -69,7 +69,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		}
 	}
 
-	public void eraseNetworkVolume(Volume workingVol){
+	public void eraseNetworkVolume(MyVolume workingVol){
 		for (Branch b: this){
 			for (Ring r: b){
 				r.eraseVol(workingVol);
@@ -91,7 +91,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		this.meanContrast = meanContrast*percent;
 	}
 
-	public void generateSkeleton(Volume vol) {
+	public void generateSkeleton(MyVolume vol) {
 		for(Branch branch : this) {
 			for(int n = 0; n<branch.size()-1; n++) {
 				double[] angles = new double[2];
@@ -156,7 +156,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		}
 	}
 
-	public void generateBinary(Volume vol) {
+	public void generateBinary(MyVolume vol) {
 		for(Branch branch : this) {
 			for(int n = 0; n<branch.size()-1; n++) {
 				double[] angles = new double[2];
@@ -209,8 +209,8 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		double totalIntWidth = 0;
 		double totalIntStraightness = 0;
 
-		Gui.updateRingsUsed();
-		for(Ring r: Gui.ringsUsed) {
+		MyGui.updateRingsUsed();
+		for(Ring r: MyGui.ringsUsed) {
 			if (r.isBranchPoint) ++ numberBranchPoints;
 			if (r.isEndPoint) ++numberEndPoints;
 		}
@@ -289,8 +289,8 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 	}
 
-	public void createMask(Volume in, double sampling, boolean mask) {
-		Volume vol = new Volume(in.nx, in.ny, in.nz);
+	public void createMask(MyVolume in, double sampling, boolean mask) {
+		MyVolume vol = new MyVolume(in.nx, in.ny, in.nz);
 		Point3D zero = new Point3D(0, 0, 0);
 
 
@@ -359,12 +359,12 @@ public class Network extends ArrayList<Branch> implements Serializable{
 
 
 		//vol.showFloat("Rolling ball");
-		Volume s = vol.smooth(vol);
+		MyVolume s = vol.smooth(vol);
 		if(mask) {		
 			s.showFloat("Mask");
 		}
 		else {
-			Volume g = s.gradient(s);
+			MyVolume g = s.gradient(s);
 			g.showFloat("Outline");
 		}
 
@@ -373,10 +373,10 @@ public class Network extends ArrayList<Branch> implements Serializable{
 	}	
 
 	public void orderBranchPoints(){
-		Gui.updateRingsUsed();
+		MyGui.updateRingsUsed();
 
-		for(int m = 0; m < Gui.ringsUsed.size(); m++){
-			Ring r = Gui.ringsUsed.get(m);
+		for(int m = 0; m < MyGui.ringsUsed.size(); m++){
+			Ring r = MyGui.ringsUsed.get(m);
 			ArrayList<Branch> motherBranches = new ArrayList<Branch>();
 			motherBranches.addAll(r.getBranches());
 			if(motherBranches.size()>1){
@@ -471,13 +471,13 @@ public class Network extends ArrayList<Branch> implements Serializable{
 			}
 		}
 
-		Gui.updateRingsUsed();
+		MyGui.updateRingsUsed();
 	}
 
 	@Override public boolean add(Branch branch) {
 		branchList.addElement(branch);
 		for(Ring r : branch){
-			if(!Gui.ringsUsed.contains(r)) Gui.ringsUsed.add(r);
+			if(!MyGui.ringsUsed.contains(r)) MyGui.ringsUsed.add(r);
 		}
 		++this.lastBranchNo;
 		branch.setBranchNo(lastBranchNo+1);
@@ -487,9 +487,9 @@ public class Network extends ArrayList<Branch> implements Serializable{
 	@Override
 	public boolean remove(Object branch) {
 		branchList.removeElement(branch);
-		Gui.extraBranchList.removeElement(branch);
+		MyGui.extraBranchList.removeElement(branch);
 		for(Ring r : (Branch) branch){
-			if(Gui.ringsUsed.contains(r)) Gui.ringsUsed.remove(r);
+			if(MyGui.ringsUsed.contains(r)) MyGui.ringsUsed.remove(r);
 		}
 		return super.remove(branch);
 	}

@@ -46,9 +46,7 @@ import ij.gui.StackWindow;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
 
-
-
-public class Gui extends JDialog {
+public class MyGui extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	static DefaultListModel<Branch> branchList = new DefaultListModel<Branch>();
@@ -95,7 +93,7 @@ public class Gui extends JDialog {
 
 	
 
-	public Gui() {
+	public MyGui() {
 		JPanel tab1;
 		JPanel tab2;
 		JPanel tab3;
@@ -836,7 +834,7 @@ public class Gui extends JDialog {
 		btnSkeleton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				Volume skeleton = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
+				MyVolume skeleton = new MyVolume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
 				network.generateSkeleton(skeleton);
 				skeleton.show("Skeleton");
 
@@ -848,7 +846,7 @@ public class Gui extends JDialog {
 		btnBinary.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				Volume binary = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
+				MyVolume binary = new MyVolume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
 				network.createMask(binary, 0.5, true);
 
 			}
@@ -859,7 +857,7 @@ public class Gui extends JDialog {
 		btnOutline.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				Volume binary = new Volume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
+				MyVolume binary = new MyVolume(Espacing_Ring.vol.nx, Espacing_Ring.vol.ny, Espacing_Ring.vol.nz);
 				network.createMask(binary, 0.5, false);
 				//binary.show("Binary");
 
@@ -1026,8 +1024,8 @@ public class Gui extends JDialog {
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION) { 
 					CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
 					String objectName = chooser.getSelectedFile().getPath();
-					Gui.toUseParameters = Parameters.importParams(objectName);
-					for (Parameters p : Gui.toUseParameters){
+					MyGui.toUseParameters = Parameters.importParams(objectName);
+					for (Parameters p : MyGui.toUseParameters){
 						IJ.log(p.toString());
 					}
 				}
@@ -1039,13 +1037,13 @@ public class Gui extends JDialog {
 		btnStartParams.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				Gui.synch = true;
-				for(Parameters param: Gui.toUseParameters){
+				MyGui.synch = true;
+				for(Parameters param: MyGui.toUseParameters){
 					Espacing_Ring.start(network, param);
-					IJ.log("Left: " + Gui.ringsRunning.size());
+					IJ.log("Left: " + MyGui.ringsRunning.size());
 
 				}
-				Gui.synch = false;
+				MyGui.synch = false;
 			}
 		}); 
 		tab4row1.add(btnStartParams);
@@ -1062,9 +1060,9 @@ public class Gui extends JDialog {
 				chooser.setAcceptAllFileFilterUsed(false);
 
 				if (chooser.showOpenDialog(tab4) == JFileChooser.APPROVE_OPTION){
-					Gui.synch = true;
+					MyGui.synch = true;
 					CSVUtils.setDEFAULT_SEPARATOR(sepField.getText().charAt(0));
-					for(Parameters param: Gui.toUseParameters){
+					for(Parameters param: MyGui.toUseParameters){
 						Espacing_Ring.start(network, param);
 
 						String objectName = chooser.getSelectedFile().getPath() + File.separator + nameField.getText() + n + ".ser";
@@ -1086,7 +1084,7 @@ public class Gui extends JDialog {
 						resetButton.doClick();
 						++n;
 					}
-					Gui.synch = false;
+					MyGui.synch = false;
 				}
 			}}); 
 		tab4row1.add(btnStartParamsSave);
@@ -1247,7 +1245,7 @@ public class Gui extends JDialog {
 		loadedImageLabel = new JLabel("Loaded image: " + Espacing_Ring.imageName);
 		buttonPane.add(loadedImageLabel);
 
-		runningLabel = new JLabel("Running: " + Gui.ringsRunning.size());
+		runningLabel = new JLabel("Running: " + MyGui.ringsRunning.size());
 		buttonPane.add(runningLabel,  FlowLayout.LEFT);
 
 		double meanContrast = network.getMeanContrast();
@@ -1269,18 +1267,18 @@ public class Gui extends JDialog {
 		showButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				Gui.updateRingsUsed();
+				MyGui.updateRingsUsed();
 				if(Espacing_Ring.vol == null){
 					IJ.log("Saving the image as volume");
 					Espacing_Ring.imp = WindowManager.getCurrentImage();
-					Espacing_Ring.vol = new Volume(Espacing_Ring.imp );
+					Espacing_Ring.vol = new MyVolume(Espacing_Ring.imp );
 					Espacing_Ring.imageName = Espacing_Ring.imp.getTitle();
-					Gui.updateSaveAsWithCurrentImage();
+					MyGui.updateSaveAsWithCurrentImage();
 					Espacing_Ring.pixelWidth = Espacing_Ring.imp.getCalibration().pixelWidth;
 					Espacing_Ring.pixelHeight = Espacing_Ring.imp.getCalibration().pixelWidth;
 					Espacing_Ring.voxelDepth = Espacing_Ring.imp.getCalibration().pixelDepth;
-					Gui.updateLoadedImage();
-					Espacing_Ring.workingVol = new Volume(Espacing_Ring.imp );
+					MyGui.updateLoadedImage();
+					Espacing_Ring.workingVol = new MyVolume(Espacing_Ring.imp );
 					Espacing_Ring.imp  = new ImagePlus("Vessel3DTracer", Espacing_Ring.vol.createImageStackFrom3DArray());
 					Espacing_Ring.imp.setDisplayMode(IJ.COLOR);
 					Espacing_Ring.iC = new ImageCanvas(Espacing_Ring.imp);
@@ -1317,8 +1315,8 @@ public class Gui extends JDialog {
 				Espacing_Ring.imageName = null;
 				//Espacing_Ring.iC = null;
 				//Espacing_Ring.imgS = null;
-				Gui.ringsUsed = new ArrayList<Ring>();
-				Gui.updateLoadedImage();
+				MyGui.ringsUsed = new ArrayList<Ring>();
+				MyGui.updateLoadedImage();
 			}
 		}); 
 		buttonPane.add(resetButton, FlowLayout.LEFT);
@@ -1333,9 +1331,9 @@ public class Gui extends JDialog {
 
 		for(Branch b: network) {
 			for(Ring r: b) {
-				if(!Gui.ringsUsed.contains(r)) {
+				if(!MyGui.ringsUsed.contains(r)) {
 					r.setBranches(new ArrayList<Branch>());
-					Gui.ringsUsed.add(r);
+					MyGui.ringsUsed.add(r);
 				}
 			}
 		}
@@ -1361,13 +1359,13 @@ public class Gui extends JDialog {
 				r = b.get(n);
 				r.isBranchPoint = false;
 				r.isEndPoint = false;
-				if(!Gui.ringsUsed.contains(r)) Gui.ringsUsed.add(r);
+				if(!MyGui.ringsUsed.contains(r)) MyGui.ringsUsed.add(r);
 			}
 		}
 	}
 
 	public static void updateRunning() {
-		runningLabel.setText("Running: " + Gui.ringsRunning.size());
+		runningLabel.setText("Running: " + MyGui.ringsRunning.size());
 	}
 
 	public static void updateMeanContrast() {
@@ -1465,7 +1463,7 @@ public class Gui extends JDialog {
 
 	public static void main(final String[] args) {
 		try {
-			final Gui dialog = new Gui();
+			final MyGui dialog = new MyGui();
 			//dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 			IJ.log("Starting GUI");
