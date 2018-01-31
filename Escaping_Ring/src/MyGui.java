@@ -18,6 +18,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
@@ -398,7 +399,8 @@ public class MyGui extends JDialog {
 						if(closestBranch.isEmpty()==false){
 							if(extraBranchList.contains(closestBranch)==false){
 								extraBranchList.addElement(closestBranch);
-								showButton.doClick();
+								Espacing_Ring.generateView(true);
+								Espacing_Ring.showResult(extraBranchList);
 								Espacing_Ring.iC.repaint();
 							}
 						}
@@ -612,7 +614,8 @@ public class MyGui extends JDialog {
 						if(closestRing!=null){
 							if(ringList.contains(closestRing)==false){
 								ringList.addElement(closestRing);
-								showButton.doClick();	
+								Espacing_Ring.generateView(true);
+								Espacing_Ring.showRings(ringList);
 								Espacing_Ring.iC.repaint();
 							}
 						}
@@ -1289,7 +1292,7 @@ public class MyGui extends JDialog {
 					IJ.log("Restoring image");
 					Espacing_Ring.generateView(true);
 				}
-				//Espacing_Ring.drawNetwork(network);
+
 				Espacing_Ring.drawNetworkBranchEndPoints(network);
 				Espacing_Ring.showResult(extraBranchList);
 				Espacing_Ring.showRings(ringList);	

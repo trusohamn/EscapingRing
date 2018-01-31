@@ -209,6 +209,7 @@ public class Espacing_Ring implements PlugIn {
 
 		generateView(true);
 		showRings(Arrays.asList(adjInitial));
+		Espacing_Ring.iC.repaint();
 		
 		return adjInitial;
 	}
@@ -250,6 +251,15 @@ public class Espacing_Ring implements PlugIn {
 	public static void showResult(DefaultListModel<Branch> branchList){
 		for(int i=0; i< branchList.getSize(); i++){
 			Branch branch = branchList.getElementAt(i);
+			for(Ring ring : branch) {
+				ring.drawMeasureArea(iC.getImage(), java.awt.Color.RED);
+			}
+		}
+	}
+	
+	public static void showResult(List<Branch> branchList){
+		for(int i=0; i< branchList.size(); i++){
+			Branch branch = branchList.get(i);
 			for(Ring ring : branch) {
 				ring.drawMeasureArea(iC.getImage(), java.awt.Color.RED);
 			}
