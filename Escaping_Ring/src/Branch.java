@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import ij.IJ;
+import ij.ImagePlus;
 
 public class Branch extends ArrayList<Ring>  implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -415,6 +416,12 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 			if(ring.getBranches().size()==1 && MyGui.ringsUsed.contains(ring)) {
 				MyGui.ringsUsed.remove(ring);
 			}			
+		}
+	}
+	
+	public void redrawRawBranch(ImagePlus img) {
+		for(Ring r:this) {
+			r.redrawRaw(img);
 		}
 	}
 

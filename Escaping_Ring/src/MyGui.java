@@ -342,13 +342,15 @@ public class MyGui extends JDialog {
 				for(int i=0; i< extraBranchList.getSize(); i++){
 					toRemove.add(extraBranchList.getElementAt(i));
 				}
+				Espacing_Ring.generateView(true);
+				
 				for(Branch b: toRemove){
 					network.remove(b);
 					b.restoreBranch();
-
+					b.redrawRawBranch(Espacing_Ring.iC.getImage());
 				}
-				Espacing_Ring.updateImgWithVol(Espacing_Ring.iC.getImage());
-				showButton.doClick();
+				Espacing_Ring.drawNetworkBranchEndPoints(network);
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		buttonListPanel.add(btnDelete);
@@ -364,7 +366,9 @@ public class MyGui extends JDialog {
 				for(Branch b: toRemove){
 					extraBranchList.removeElement(b);
 				}
-				showButton.doClick();
+				Espacing_Ring.generateView(true);
+				Espacing_Ring.drawNetworkBranchEndPoints(network);
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		buttonListPanel.add(btnCleanBranches);
@@ -423,7 +427,9 @@ public class MyGui extends JDialog {
 						Branch o = theList.getModel().getElementAt(index);
 						if(extraBranchList.contains(o)==false) {
 							extraBranchList.addElement(o);
-							showButton.doClick();
+							Espacing_Ring.generateView(true);
+							Espacing_Ring.showResult(extraBranchList);
+							Espacing_Ring.iC.repaint();
 						}
 					}
 				}
@@ -440,7 +446,10 @@ public class MyGui extends JDialog {
 					if (index >= 0) {
 						Branch o = theList.getModel().getElementAt(index);
 						extraBranchList.removeElement(o);
-						showButton.doClick();
+						Espacing_Ring.generateView(true);
+						Espacing_Ring.drawNetworkBranchEndPoints(network);
+						Espacing_Ring.showResult(extraBranchList);
+						Espacing_Ring.iC.repaint();
 					}
 				}
 			}
@@ -510,7 +519,9 @@ public class MyGui extends JDialog {
 					for(Branch b : filteredBranches){
 						if(!extraBranchList.contains(b)) extraBranchList.addElement(b);
 					}
-					showButton.doClick();
+					Espacing_Ring.generateView(true);
+					Espacing_Ring.showResult(extraBranchList);
+					Espacing_Ring.iC.repaint();
 				}
 			}
 		}); 
@@ -521,7 +532,9 @@ public class MyGui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				network.orderBranchPoints();
-				showButton.doClick();
+				Espacing_Ring.generateView(true);
+				Espacing_Ring.drawNetworkBranchEndPoints(network);
+				Espacing_Ring.iC.repaint();
 
 			}}); 
 		tab2UpLeft.add(btnOrderNetwork);
@@ -657,9 +670,11 @@ public class MyGui extends JDialog {
 						}}	
 					ringList.removeElement(toRemove);
 					updateRingsUsed();
+					toRemove.redrawRaw(Espacing_Ring.iC.getImage());
 				}
-				Espacing_Ring.updateImgWithVol(Espacing_Ring.iC.getImage());
-				showButton.doClick();
+				Espacing_Ring.generateView(true);
+				Espacing_Ring.drawNetworkBranchEndPoints(network);
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		selectRingPanel.add(btnDeleteRing);
@@ -675,7 +690,9 @@ public class MyGui extends JDialog {
 				for(Ring toRemove: ringsToRemove){	
 					ringList.removeElement(toRemove);
 				}
-				showButton.doClick();
+				Espacing_Ring.generateView(true);
+				Espacing_Ring.drawNetworkBranchEndPoints(network);
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		selectRingPanel.add(btnCleanRing);
@@ -705,7 +722,9 @@ public class MyGui extends JDialog {
 						Ring start = ringList.getElementAt(0);
 						Ring end = ringList.getElementAt(1);
 						Branch.createBranchBetweenTwoRings(start, end, width);
-						showButton.doClick();
+						Espacing_Ring.generateView(true);
+						Espacing_Ring.drawNetworkBranchEndPoints(network);
+						Espacing_Ring.iC.repaint();
 
 					} catch (NumberFormatException e) {
 						e.printStackTrace();
@@ -740,7 +759,9 @@ public class MyGui extends JDialog {
 								double width= Double.parseDouble(widthField.getText());
 								Branch.createBranchBetweenRingAndPoint(start, end, width);
 								Espacing_Ring.iC.removeMouseListener(this);
-								showButton.doClick();
+								Espacing_Ring.generateView(true);
+								Espacing_Ring.drawNetworkBranchEndPoints(network);
+								Espacing_Ring.iC.repaint();
 
 							} catch (Exception e) {
 								e.printStackTrace();
@@ -776,7 +797,9 @@ public class MyGui extends JDialog {
 							else {
 								r.removeBranch(toDis);
 								toDis.remove(r);
-								showButton.doClick();
+								Espacing_Ring.generateView(true);
+								Espacing_Ring.drawNetworkBranchEndPoints(network);
+								Espacing_Ring.iC.repaint();
 							}
 						}
 						else JOptionPane.showMessageDialog(downPanel, "Select a branch point!");					
