@@ -1,4 +1,5 @@
 
+import java.awt.Color;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -189,11 +190,40 @@ public class Ring  implements Serializable {
 						if (d >= 0.9*radius && d <=1.1*radius) {
 							ip.drawPixel(dx, dy);
 						}
-						/*
-						else if(d<0.8*radius){
-							ip.setColor(toTrans);
-							ip.drawPixel(dx, dy);
-						} */
+					}
+				}	
+			}
+		}
+	}
+	
+	public void redrawRaw(ImagePlus img) {
+		int radius = (int)Math.ceil(this.radius);
+		
+		double angles[] = this.getAnglesFromDirection();
+		double sint = Math.sin(angles[0]);
+		double cost = Math.cos(angles[0]);
+		double sinp = Math.sin(angles[1]);
+		double cosp = Math.cos(angles[1]);
+		double R[][] = 
+			{{cosp*cost, -sinp, cosp*sint},
+					{sinp*cost, cosp, sinp*sint},
+					{-sint, 0, cost}};
+
+		for(int k=-(int)this.length/2; k<=(int)this.length/2; k++) {
+			for(int j=-radius*2; j<=radius*2; j++) {
+				for(int i=-radius*2; i<=radius*2; i++) {
+
+					int dx = (int) Math.round(this.c.getX() +  i*R[0][0] + j*R[0][1] + k*R[0][2]);
+					int dy = (int) Math.round(this.c.getY() + i*R[1][0] + j*R[1][1] + k*R[1][2]);
+					int dz = (int) Math.round(this.c.getZ() + i*R[2][0]  + k*R[2][2]);
+
+					double d = Math.sqrt(i*i+j*j);
+					if(dx>=0 && dy>=0 && dz>=0 && dx<img.getWidth() && dy<img.getHeight() && dz< img.getImageStackSize()){
+						ImageProcessor ip = img.getStack().getProcessor(dz+1);
+						ip.setColor(Color.GRAY);
+						if (d >= 0.9*radius && d <=1.1*radius) {
+							ip.putPixelValue(dx, dy, Espacing_Ring.vol.data[dx][dy][dz]);
+						}
 					}
 				}	
 			}

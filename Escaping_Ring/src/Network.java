@@ -481,6 +481,12 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		}
 		++this.lastBranchNo;
 		branch.setBranchNo(lastBranchNo+1);
+		
+		//adds branch to the display
+		Espacing_Ring.generateView(true);
+		Espacing_Ring.drawBranchBranchEndPoints(branch);
+		Espacing_Ring.iC.repaint();
+		
 		return super.add(branch);
 	}
 

@@ -18,6 +18,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
@@ -341,13 +342,20 @@ public class MyGui extends JDialog {
 				for(int i=0; i< extraBranchList.getSize(); i++){
 					toRemove.add(extraBranchList.getElementAt(i));
 				}
+				Espacing_Ring.generateView(true);
+				
 				for(Branch b: toRemove){
 					network.remove(b);
 					b.restoreBranch();
-
+					b.redrawRawBranch(Espacing_Ring.iC.getImage());
 				}
-				Espacing_Ring.updateImgWithVol(Espacing_Ring.iC.getImage());
-				showButton.doClick();
+				updateRingsUsed();
+				for(Branch b: toRemove){
+					for(Ring r: b) {
+						if(ringsUsed.contains(r)) Espacing_Ring.drawRingBranchEndPoints(r);
+					}
+				}
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		buttonListPanel.add(btnDelete);
@@ -360,10 +368,13 @@ public class MyGui extends JDialog {
 				for(int i=0; i< extraBranchList.getSize(); i++){
 					toRemove.add(extraBranchList.getElementAt(i));
 				}
+				Espacing_Ring.generateView(true);
 				for(Branch b: toRemove){
 					extraBranchList.removeElement(b);
+					Espacing_Ring.drawBranchBranchEndPoints(b);
 				}
-				showButton.doClick();
+								
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		buttonListPanel.add(btnCleanBranches);
@@ -398,7 +409,8 @@ public class MyGui extends JDialog {
 						if(closestBranch.isEmpty()==false){
 							if(extraBranchList.contains(closestBranch)==false){
 								extraBranchList.addElement(closestBranch);
-								showButton.doClick();
+								Espacing_Ring.generateView(true);
+								Espacing_Ring.showResult(extraBranchList);
 								Espacing_Ring.iC.repaint();
 							}
 						}
@@ -421,7 +433,9 @@ public class MyGui extends JDialog {
 						Branch o = theList.getModel().getElementAt(index);
 						if(extraBranchList.contains(o)==false) {
 							extraBranchList.addElement(o);
-							showButton.doClick();
+							Espacing_Ring.generateView(true);
+							Espacing_Ring.showResult(extraBranchList);
+							Espacing_Ring.iC.repaint();
 						}
 					}
 				}
@@ -438,7 +452,10 @@ public class MyGui extends JDialog {
 					if (index >= 0) {
 						Branch o = theList.getModel().getElementAt(index);
 						extraBranchList.removeElement(o);
-						showButton.doClick();
+						Espacing_Ring.generateView(true);
+						Espacing_Ring.drawBranchBranchEndPoints(o);
+						Espacing_Ring.showResult(extraBranchList);
+						Espacing_Ring.iC.repaint();
 					}
 				}
 			}
@@ -508,7 +525,9 @@ public class MyGui extends JDialog {
 					for(Branch b : filteredBranches){
 						if(!extraBranchList.contains(b)) extraBranchList.addElement(b);
 					}
-					showButton.doClick();
+					Espacing_Ring.generateView(true);
+					Espacing_Ring.showResult(extraBranchList);
+					Espacing_Ring.iC.repaint();
 				}
 			}
 		}); 
@@ -519,7 +538,9 @@ public class MyGui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				network.orderBranchPoints();
-				showButton.doClick();
+				Espacing_Ring.generateView(true);
+				Espacing_Ring.drawNetworkBranchEndPoints(network);
+				Espacing_Ring.iC.repaint();
 
 			}}); 
 		tab2UpLeft.add(btnOrderNetwork);
@@ -612,7 +633,8 @@ public class MyGui extends JDialog {
 						if(closestRing!=null){
 							if(ringList.contains(closestRing)==false){
 								ringList.addElement(closestRing);
-								showButton.doClick();	
+								Espacing_Ring.generateView(true);
+								Espacing_Ring.showRings(ringList);
 								Espacing_Ring.iC.repaint();
 							}
 						}
@@ -629,6 +651,7 @@ public class MyGui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				IJ.log(""+ringList.getSize());
+				Espacing_Ring.generateView(true);
 				ArrayList<Ring> ringsToRemove = new ArrayList<Ring>();
 				for(int i=0; i< ringList.getSize(); i++){
 					ringsToRemove.add(ringList.getElementAt(i));
@@ -647,16 +670,23 @@ public class MyGui extends JDialog {
 							network.add(newBranch2);
 							branchList.removeElement(motherBranch);
 							extraBranchList.removeElement(motherBranch);
+							
+							toRemove.redrawRaw(Espacing_Ring.iC.getImage());
+							Espacing_Ring.drawBranchBranchEndPoints(newBranch1);
+							Espacing_Ring.drawBranchBranchEndPoints(newBranch2);
 						}
 						else{
 							//the ring is last of first of the branch
 							motherBranch.remove(toRemove);
+							toRemove.redrawRaw(Espacing_Ring.iC.getImage());
+							Espacing_Ring.drawBranchBranchEndPoints(motherBranch);
 						}}	
 					ringList.removeElement(toRemove);
 					updateRingsUsed();
+					
 				}
-				Espacing_Ring.updateImgWithVol(Espacing_Ring.iC.getImage());
-				showButton.doClick();
+				
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		selectRingPanel.add(btnDeleteRing);
@@ -669,10 +699,12 @@ public class MyGui extends JDialog {
 				for(int i=0; i< ringList.getSize(); i++){
 					ringsToRemove.add(ringList.getElementAt(i));
 				}
+				Espacing_Ring.generateView(true);
 				for(Ring toRemove: ringsToRemove){	
 					ringList.removeElement(toRemove);
-				}
-				showButton.doClick();
+					Espacing_Ring.drawRingBranchEndPoints(toRemove);
+				}				
+				Espacing_Ring.iC.repaint();
 			}
 		}); 
 		selectRingPanel.add(btnCleanRing);
@@ -701,8 +733,10 @@ public class MyGui extends JDialog {
 						double width= Double.parseDouble(widthField.getText());
 						Ring start = ringList.getElementAt(0);
 						Ring end = ringList.getElementAt(1);
-						Branch.createBranchBetweenTwoRings(start, end, width);
-						showButton.doClick();
+						Branch newBranch = Branch.createBranchBetweenTwoRings(start, end, width);
+						Espacing_Ring.generateView(true);
+						Espacing_Ring.drawBranchBranchEndPoints(newBranch);
+						Espacing_Ring.iC.repaint();
 
 					} catch (NumberFormatException e) {
 						e.printStackTrace();
@@ -735,10 +769,11 @@ public class MyGui extends JDialog {
 							end = new Point3D(x, y, z);
 							try {
 								double width= Double.parseDouble(widthField.getText());
-								Branch.createBranchBetweenRingAndPoint(start, end, width);
+								Branch newBranch = Branch.createBranchBetweenRingAndPoint(start, end, width);
 								Espacing_Ring.iC.removeMouseListener(this);
-								showButton.doClick();
-
+								Espacing_Ring.generateView(true);
+								Espacing_Ring.drawBranchBranchEndPoints(newBranch);
+								Espacing_Ring.iC.repaint();
 							} catch (Exception e) {
 								e.printStackTrace();
 								IJ.log(e.toString());
@@ -773,7 +808,9 @@ public class MyGui extends JDialog {
 							else {
 								r.removeBranch(toDis);
 								toDis.remove(r);
-								showButton.doClick();
+								Espacing_Ring.generateView(true);
+								Espacing_Ring.drawRingBranchEndPoints(r);
+								Espacing_Ring.iC.repaint();
 							}
 						}
 						else JOptionPane.showMessageDialog(downPanel, "Select a branch point!");					
@@ -950,7 +987,6 @@ public class MyGui extends JDialog {
 					e.printStackTrace();
 				}
 				 */
-
 				JFileChooser chooser = new JFileChooser(); 
 				chooser.setCurrentDirectory(new java.io.File("."));
 				chooser.setDialogTitle("Choose .ser file");
@@ -966,6 +1002,15 @@ public class MyGui extends JDialog {
 						IJ.log(n.toString());
 						in.close();
 						fileIn.close();
+						
+						Espacing_Ring.imp = WindowManager.getCurrentImage();
+						if(Espacing_Ring.vol == null) {
+							Espacing_Ring.vol = new MyVolume(Espacing_Ring.imp);
+							Espacing_Ring.imageName = Espacing_Ring.imp.getTitle();
+							MyGui.updateLoadedImage();
+						}
+						if(Espacing_Ring.workingVol == null) Espacing_Ring.workingVol = new MyVolume(Espacing_Ring.imp); 
+						
 						for(Branch b : n){
 							network.add(b);
 						}
@@ -1109,7 +1154,7 @@ public class MyGui extends JDialog {
 
 		JPanel Cell1 = new JPanel();
 		Cell1.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel firstLabel = new JLabel("Keep after first loop");
+		JLabel firstLabel = new JLabel("Keep after 1st generation");
 		firstField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		firstField.setColumns(3);
 		firstField.setText("100");
@@ -1119,7 +1164,7 @@ public class MyGui extends JDialog {
 
 		JPanel Cell2 = new JPanel();
 		Cell2.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel secondLabel = new JLabel("Keep after second loop");
+		JLabel secondLabel = new JLabel("Keep after 2nd generation");
 		secondField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		secondField.setColumns(3);
 		secondField.setText("5");
@@ -1129,7 +1174,7 @@ public class MyGui extends JDialog {
 
 		JPanel Cell3 = new JPanel();
 		Cell3.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel thirdLabel = new JLabel("Keep after third loop");
+		JLabel thirdLabel = new JLabel("Keep after 3rd generation");
 		thirdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		thirdField.setColumns(3);
 		thirdField.setText("10");
@@ -1139,10 +1184,10 @@ public class MyGui extends JDialog {
 
 		JPanel Cell4 = new JPanel();
 		Cell4.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel checkWorstRingsLabel = new JLabel("check only X worst rings");
+		JLabel checkWorstRingsLabel = new JLabel("Check weak Rings");
 		checkWorstRingsField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		checkWorstRingsField.setColumns(4);
-		checkWorstRingsField.setText("1");
+		checkWorstRingsField.setText("100");
 		Cell4.add(checkWorstRingsLabel);
 		Cell4.add(checkWorstRingsField);
 		tab5Upper.add(Cell4);
@@ -1289,7 +1334,7 @@ public class MyGui extends JDialog {
 					IJ.log("Restoring image");
 					Espacing_Ring.generateView(true);
 				}
-				//Espacing_Ring.drawNetwork(network);
+
 				Espacing_Ring.drawNetworkBranchEndPoints(network);
 				Espacing_Ring.showResult(extraBranchList);
 				Espacing_Ring.showRings(ringList);	
@@ -1324,9 +1369,6 @@ public class MyGui extends JDialog {
 	}
 
 	public static void updateRingsUsed() {
-
-
-
 		ringsUsed = new ArrayList<Ring>();
 
 		for(Branch b: network) {

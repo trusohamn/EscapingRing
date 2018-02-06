@@ -209,6 +209,7 @@ public class Espacing_Ring implements PlugIn {
 
 		generateView(true);
 		showRings(Arrays.asList(adjInitial));
+		Espacing_Ring.iC.repaint();
 		
 		return adjInitial;
 	}
@@ -247,9 +248,56 @@ public class Espacing_Ring implements PlugIn {
 		}
 	}
 
+	public static void drawBranchBranchEndPoints(Branch branch){
+		java.awt.Color normal = java.awt.Color.BLUE;
+		java.awt.Color notCorrect = java.awt.Color.ORANGE;
+		java.awt.Color branchpoint = java.awt.Color.MAGENTA;
+		java.awt.Color endpoint = java.awt.Color.CYAN;
+
+		Ring ring;
+		for(int i = 1; i< branch.size()-1; i++) {
+			//other rings
+			ring = branch.get(i);
+			ring.drawMeasureArea(iC.getImage(), normal);
+		}
+		//first and last ring
+		for(int j : new int[]{0, (branch.size()-1)}){
+			ring = branch.get(j);
+			if(ring.getBranches().size()>2) ring.drawMeasureArea(iC.getImage(), branchpoint);
+			else if(ring.getBranches().size()>1) ring.drawMeasureArea(iC.getImage(), notCorrect);
+			else ring.drawMeasureArea(iC.getImage(), endpoint);
+
+		}
+	}
+	public static void drawRingBranchEndPoints(Ring ring){
+		java.awt.Color normal = java.awt.Color.BLUE;
+		java.awt.Color notCorrect = java.awt.Color.ORANGE;
+		java.awt.Color branchpoint = java.awt.Color.MAGENTA;
+		java.awt.Color endpoint = java.awt.Color.CYAN;
+
+		if(ring.getBranches().size()==1) {
+			int index = ring.getBranches().get(0).indexOf(ring);
+			if( index == 0 || index == ring.getBranches().get(0).size()-1) ring.drawMeasureArea(iC.getImage(), endpoint);
+			else ring.drawMeasureArea(iC.getImage(), normal);
+
+		}
+		else if(ring.getBranches().size()>2) ring.drawMeasureArea(iC.getImage(), branchpoint);
+		else if(ring.getBranches().size()>1) ring.drawMeasureArea(iC.getImage(), notCorrect);
+
+	}
+
 	public static void showResult(DefaultListModel<Branch> branchList){
 		for(int i=0; i< branchList.getSize(); i++){
 			Branch branch = branchList.getElementAt(i);
+			for(Ring ring : branch) {
+				ring.drawMeasureArea(iC.getImage(), java.awt.Color.RED);
+			}
+		}
+	}
+	
+	public static void showResult(List<Branch> branchList){
+		for(int i=0; i< branchList.size(); i++){
+			Branch branch = branchList.get(i);
 			for(Ring ring : branch) {
 				ring.drawMeasureArea(iC.getImage(), java.awt.Color.RED);
 			}
@@ -303,7 +351,7 @@ public class Espacing_Ring implements PlugIn {
 
 	public static void generateView(boolean setVisible){
 		if(iC==null || Espacing_Ring.imgS.isVisible() == false){
-			imp = new ImagePlus("VascRing3D", vol.createImageStackFrom3DArray());
+			imp = new ImagePlus("Vessel3DTracer", vol.createImageStackFrom3DArray());
 			imp.setDisplayMode(IJ.COLOR);
 			iC = new ImageCanvas(imp);
 			imgS = new StackWindow (imp, iC);			

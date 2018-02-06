@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import ij.IJ;
+import ij.ImagePlus;
 
 public class Branch extends ArrayList<Ring>  implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -15,7 +16,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 	private static double secondLoopElimination = 30;
 	private static double thirdLoopElimination = 100;
 	private static int minLengthBranch = 4;
-	private static double checkWorstRings = 0.5; //max = 0
+	private static double checkWorstRings = 50; //max = 0
 
 
 	private int branchNo;
@@ -94,7 +95,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		}
 		ArrayList<Ring> sortedBranchCopy = this.sortLowestContrastFirst();
 		ArrayList<Thread> listOfThreads = new ArrayList<Thread>();
-		for(int i = 0; i < (int) sortedBranchCopy.size()*checkWorstRings; i++){
+		for(int i = 0; i < (int) sortedBranchCopy.size()*(checkWorstRings/100.00); i++){
 			if(MyGui.stopAll) break;
 			IJ.log("checking ring: " + i);
 			Ring nextRing = sortedBranchCopy.get(i);
@@ -415,6 +416,12 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 			if(ring.getBranches().size()==1 && MyGui.ringsUsed.contains(ring)) {
 				MyGui.ringsUsed.remove(ring);
 			}			
+		}
+	}
+	
+	public void redrawRawBranch(ImagePlus img) {
+		for(Ring r:this) {
+			r.redrawRaw(img);
 		}
 	}
 
