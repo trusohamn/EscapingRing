@@ -987,7 +987,6 @@ public class MyGui extends JDialog {
 					e.printStackTrace();
 				}
 				 */
-
 				JFileChooser chooser = new JFileChooser(); 
 				chooser.setCurrentDirectory(new java.io.File("."));
 				chooser.setDialogTitle("Choose .ser file");
@@ -1003,6 +1002,15 @@ public class MyGui extends JDialog {
 						IJ.log(n.toString());
 						in.close();
 						fileIn.close();
+						
+						Espacing_Ring.imp = WindowManager.getCurrentImage();
+						if(Espacing_Ring.vol == null) {
+							Espacing_Ring.vol = new MyVolume(Espacing_Ring.imp);
+							Espacing_Ring.imageName = Espacing_Ring.imp.getTitle();
+							MyGui.updateLoadedImage();
+						}
+						if(Espacing_Ring.workingVol == null) Espacing_Ring.workingVol = new MyVolume(Espacing_Ring.imp); 
+						
 						for(Branch b : n){
 							network.add(b);
 						}
@@ -1146,7 +1154,7 @@ public class MyGui extends JDialog {
 
 		JPanel Cell1 = new JPanel();
 		Cell1.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel firstLabel = new JLabel("Keep after first loop");
+		JLabel firstLabel = new JLabel("Keep after 1st generation");
 		firstField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		firstField.setColumns(3);
 		firstField.setText("100");
@@ -1156,7 +1164,7 @@ public class MyGui extends JDialog {
 
 		JPanel Cell2 = new JPanel();
 		Cell2.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel secondLabel = new JLabel("Keep after second loop");
+		JLabel secondLabel = new JLabel("Keep after 2nd generation");
 		secondField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		secondField.setColumns(3);
 		secondField.setText("5");
@@ -1166,7 +1174,7 @@ public class MyGui extends JDialog {
 
 		JPanel Cell3 = new JPanel();
 		Cell3.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel thirdLabel = new JLabel("Keep after third loop");
+		JLabel thirdLabel = new JLabel("Keep after 3rd generation");
 		thirdField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		thirdField.setColumns(3);
 		thirdField.setText("10");
@@ -1176,10 +1184,10 @@ public class MyGui extends JDialog {
 
 		JPanel Cell4 = new JPanel();
 		Cell4.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel checkWorstRingsLabel = new JLabel("check only X worst rings");
+		JLabel checkWorstRingsLabel = new JLabel("Check weak Rings");
 		checkWorstRingsField = new JFormattedTextField(NumberFormat.getNumberInstance(Locale.US));
 		checkWorstRingsField.setColumns(4);
-		checkWorstRingsField.setText("1");
+		checkWorstRingsField.setText("100");
 		Cell4.add(checkWorstRingsLabel);
 		Cell4.add(checkWorstRingsField);
 		tab5Upper.add(Cell4);

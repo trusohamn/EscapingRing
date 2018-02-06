@@ -351,7 +351,7 @@ public class Espacing_Ring implements PlugIn {
 
 	public static void generateView(boolean setVisible){
 		if(iC==null || Espacing_Ring.imgS.isVisible() == false){
-			imp = new ImagePlus("VascRing3D", vol.createImageStackFrom3DArray());
+			imp = new ImagePlus("Vessel3DTracer", vol.createImageStackFrom3DArray());
 			imp.setDisplayMode(IJ.COLOR);
 			iC = new ImageCanvas(imp);
 			imgS = new StackWindow (imp, iC);			
