@@ -349,7 +349,12 @@ public class MyGui extends JDialog {
 					b.restoreBranch();
 					b.redrawRawBranch(Espacing_Ring.iC.getImage());
 				}
-				Espacing_Ring.drawNetworkBranchEndPoints(network);
+				updateRingsUsed();
+				for(Branch b: toRemove){
+					for(Ring r: b) {
+						if(ringsUsed.contains(r)) Espacing_Ring.drawRingBranchEndPoints(r);
+					}
+				}
 				Espacing_Ring.iC.repaint();
 			}
 		}); 
@@ -363,11 +368,12 @@ public class MyGui extends JDialog {
 				for(int i=0; i< extraBranchList.getSize(); i++){
 					toRemove.add(extraBranchList.getElementAt(i));
 				}
+				Espacing_Ring.generateView(true);
 				for(Branch b: toRemove){
 					extraBranchList.removeElement(b);
+					Espacing_Ring.drawBranchBranchEndPoints(b);
 				}
-				Espacing_Ring.generateView(true);
-				Espacing_Ring.drawNetworkBranchEndPoints(network);
+								
 				Espacing_Ring.iC.repaint();
 			}
 		}); 
@@ -447,7 +453,7 @@ public class MyGui extends JDialog {
 						Branch o = theList.getModel().getElementAt(index);
 						extraBranchList.removeElement(o);
 						Espacing_Ring.generateView(true);
-						Espacing_Ring.drawNetworkBranchEndPoints(network);
+						Espacing_Ring.drawBranchBranchEndPoints(o);
 						Espacing_Ring.showResult(extraBranchList);
 						Espacing_Ring.iC.repaint();
 					}
@@ -645,6 +651,7 @@ public class MyGui extends JDialog {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				IJ.log(""+ringList.getSize());
+				Espacing_Ring.generateView(true);
 				ArrayList<Ring> ringsToRemove = new ArrayList<Ring>();
 				for(int i=0; i< ringList.getSize(); i++){
 					ringsToRemove.add(ringList.getElementAt(i));
@@ -663,17 +670,22 @@ public class MyGui extends JDialog {
 							network.add(newBranch2);
 							branchList.removeElement(motherBranch);
 							extraBranchList.removeElement(motherBranch);
+							
+							toRemove.redrawRaw(Espacing_Ring.iC.getImage());
+							Espacing_Ring.drawBranchBranchEndPoints(newBranch1);
+							Espacing_Ring.drawBranchBranchEndPoints(newBranch2);
 						}
 						else{
 							//the ring is last of first of the branch
 							motherBranch.remove(toRemove);
+							toRemove.redrawRaw(Espacing_Ring.iC.getImage());
+							Espacing_Ring.drawBranchBranchEndPoints(motherBranch);
 						}}	
 					ringList.removeElement(toRemove);
 					updateRingsUsed();
-					toRemove.redrawRaw(Espacing_Ring.iC.getImage());
+					
 				}
-				Espacing_Ring.generateView(true);
-				Espacing_Ring.drawNetworkBranchEndPoints(network);
+				
 				Espacing_Ring.iC.repaint();
 			}
 		}); 
@@ -687,11 +699,11 @@ public class MyGui extends JDialog {
 				for(int i=0; i< ringList.getSize(); i++){
 					ringsToRemove.add(ringList.getElementAt(i));
 				}
+				Espacing_Ring.generateView(true);
 				for(Ring toRemove: ringsToRemove){	
 					ringList.removeElement(toRemove);
-				}
-				Espacing_Ring.generateView(true);
-				Espacing_Ring.drawNetworkBranchEndPoints(network);
+					Espacing_Ring.drawRingBranchEndPoints(toRemove);
+				}				
 				Espacing_Ring.iC.repaint();
 			}
 		}); 
@@ -721,9 +733,9 @@ public class MyGui extends JDialog {
 						double width= Double.parseDouble(widthField.getText());
 						Ring start = ringList.getElementAt(0);
 						Ring end = ringList.getElementAt(1);
-						Branch.createBranchBetweenTwoRings(start, end, width);
+						Branch newBranch = Branch.createBranchBetweenTwoRings(start, end, width);
 						Espacing_Ring.generateView(true);
-						Espacing_Ring.drawNetworkBranchEndPoints(network);
+						Espacing_Ring.drawBranchBranchEndPoints(newBranch);
 						Espacing_Ring.iC.repaint();
 
 					} catch (NumberFormatException e) {
@@ -757,12 +769,11 @@ public class MyGui extends JDialog {
 							end = new Point3D(x, y, z);
 							try {
 								double width= Double.parseDouble(widthField.getText());
-								Branch.createBranchBetweenRingAndPoint(start, end, width);
+								Branch newBranch = Branch.createBranchBetweenRingAndPoint(start, end, width);
 								Espacing_Ring.iC.removeMouseListener(this);
 								Espacing_Ring.generateView(true);
-								Espacing_Ring.drawNetworkBranchEndPoints(network);
+								Espacing_Ring.drawBranchBranchEndPoints(newBranch);
 								Espacing_Ring.iC.repaint();
-
 							} catch (Exception e) {
 								e.printStackTrace();
 								IJ.log(e.toString());
@@ -798,7 +809,7 @@ public class MyGui extends JDialog {
 								r.removeBranch(toDis);
 								toDis.remove(r);
 								Espacing_Ring.generateView(true);
-								Espacing_Ring.drawNetworkBranchEndPoints(network);
+								Espacing_Ring.drawRingBranchEndPoints(r);
 								Espacing_Ring.iC.repaint();
 							}
 						}
@@ -1350,9 +1361,6 @@ public class MyGui extends JDialog {
 	}
 
 	public static void updateRingsUsed() {
-
-
-
 		ringsUsed = new ArrayList<Ring>();
 
 		for(Branch b: network) {

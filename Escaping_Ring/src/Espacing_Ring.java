@@ -269,7 +269,22 @@ public class Espacing_Ring implements PlugIn {
 
 		}
 	}
+	public static void drawRingBranchEndPoints(Ring ring){
+		java.awt.Color normal = java.awt.Color.BLUE;
+		java.awt.Color notCorrect = java.awt.Color.ORANGE;
+		java.awt.Color branchpoint = java.awt.Color.MAGENTA;
+		java.awt.Color endpoint = java.awt.Color.CYAN;
 
+		if(ring.getBranches().size()==1) {
+			int index = ring.getBranches().get(0).indexOf(ring);
+			if( index == 0 || index == ring.getBranches().get(0).size()-1) ring.drawMeasureArea(iC.getImage(), endpoint);
+			else ring.drawMeasureArea(iC.getImage(), normal);
+
+		}
+		else if(ring.getBranches().size()>2) ring.drawMeasureArea(iC.getImage(), branchpoint);
+		else if(ring.getBranches().size()>1) ring.drawMeasureArea(iC.getImage(), notCorrect);
+
+	}
 
 	public static void showResult(DefaultListModel<Branch> branchList){
 		for(int i=0; i< branchList.getSize(); i++){
