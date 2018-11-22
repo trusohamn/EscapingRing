@@ -1,5 +1,6 @@
 # Vessel3DTracer
-
+  <img src="media/vessel3dtracer_header.png" alt="drawing" width="600"/>
+ 	
  Vessel3DTracer is an ImageJ plugin for segmentation and quantification of hollow and filled 3D vasculature.
 
  visit for manual and tutorials:
