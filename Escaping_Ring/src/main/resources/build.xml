@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Escaping Ring" default="compile" basedir=".">
+
+<property name="dest" value="C:/ImageJ/plugins/"></property>
+
+<target name="compile">
+<copy file="plugins.config" toDir="bin" />
+
+<jar destfile="Vessel_3D_Tracer.jar" basedir="bin" />
+<copy todir="${dest}" file="Vessel_3D_Tracer.jar" />
+</target>
+
+ </project>
