@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
@@ -13,7 +13,7 @@
 	</parent>
 
 	<groupId>trusohamn</groupId>
-	<artifactId>vessel3dtracer</artifactId>
+	<artifactId>vessel_3dtracer</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 
 	<name>Vessel3DTracer</name>
@@ -67,11 +67,14 @@
 	</ciManagement>
 
 	<properties>
-		<main-class>Escaping_Ring</main-class>
+		<package-name>com.mycompany.imagej</package-name>
+		<main-class>com.mycompany.imagej.GaussFiltering</main-class>
 		<license.licenseName>cc0</license.licenseName>
 		<license.copyrightOwners>N/A</license.copyrightOwners>
-		<license.projectName>ImageJ software for multidimensional image processing and analysis.</license.projectName>
+		<license.projectName>N/A</license.projectName>
 	</properties>
+	
+
 
 	<repositories>
 		<repository>
@@ -80,10 +83,18 @@
 		</repository>
 	</repositories>
 
-	<dependencies>
+<dependencies>
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-ij</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-legacy</artifactId>
 		</dependency>
 	</dependencies>
 </project>

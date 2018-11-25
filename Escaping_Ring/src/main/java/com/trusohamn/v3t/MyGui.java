@@ -1,4 +1,4 @@
-package main.java;
+package com.trusohamn.v3t;
 
 
 import java.awt.BorderLayout;

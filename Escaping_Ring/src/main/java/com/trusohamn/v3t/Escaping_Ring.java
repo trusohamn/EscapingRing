@@ -1,4 +1,4 @@
-package main.java;
+package com.trusohamn.v3t;
 
 
 import ij.IJ;
@@ -8,22 +8,52 @@ import ij.gui.ImageCanvas;
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
-import ij.plugin.PlugIn;
 import ij.process.ImageProcessor;
-import net.imagej.ops.Op;
+import net.imagej.ops.OpService;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.type.numeric.real.FloatType;
 
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
+import javax.swing.SwingUtilities;
 
+import org.scijava.ItemIO;
+import org.scijava.app.StatusService;
+import org.scijava.command.Command;
+import org.scijava.command.CommandService;
+import org.scijava.log.LogService;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.thread.ThreadService;
+import org.scijava.ui.UIService;
 
 
+@Plugin(type = Command.class, headless = true,menuPath = "Plugins>Vessel3DTracer")
+public class Escaping_Ring implements Command {
+	@Parameter
+	OpService ops;
 
-@Plugin(type = Op.class, name = "Vessel3DTracer", menuPath = "Plugins")
-public class Escaping_Ring implements PlugIn {
+	@Parameter
+	LogService log;
+
+	@Parameter
+	UIService ui;
+
+	@Parameter
+	CommandService cmd;
+
+	@Parameter
+	StatusService status;
+
+	@Parameter
+	ThreadService thread;
+	
+	@Parameter(type = ItemIO.OUTPUT)
+	RandomAccessibleInterval<FloatType> myOutput;
+	
 	static MyVolume vol; //raw image, not changable in processing
 	static MyVolume workingVol; //raw image, changed during processing
 	static ImageCanvas iC;
@@ -33,19 +63,26 @@ public class Escaping_Ring implements PlugIn {
 	static double pixelWidth;
 	static double pixelHeight;
 	static double voxelDepth;
+	private static MyGui dialog = null;
 
 	@Override
-	public void run(String arg0) {
+	public void run() {
 
 		vol = null;
 		workingVol = null;
 		iC = null;
 		imp = null;
 		imgS=null;
-		final MyGui dialog = new MyGui();
-		dialog.setVisible(true);
 
 
+		SwingUtilities.invokeLater(() -> {
+			if (dialog == null) {
+				dialog = new  MyGui();
+			}
+			dialog.setVisible(true);
+
+
+		});
 	}
 
 	public static void start(Network network, double step, double impInside, double impOutside, double threshold, double branchFacilitator,
@@ -378,4 +415,5 @@ public class Escaping_Ring implements PlugIn {
 
 		}
 	}
+
 }
