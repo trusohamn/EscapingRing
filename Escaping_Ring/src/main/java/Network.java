@@ -284,7 +284,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		CSVUtils.writeLine(writer, header);			
 		CSVUtils.writeLine(writer, Arrays.asList(String.valueOf(totalLength),String.valueOf(totalIntWidth/totalLength), String.valueOf(totalIntStraightness/totalLength), 
 				String.valueOf(numberBranchPoints), String.valueOf(numberEndPoints ), 
-				String.valueOf(Espacing_Ring.pixelWidth), String.valueOf(Espacing_Ring.pixelHeight), String.valueOf(Espacing_Ring.voxelDepth)));
+				String.valueOf(Escaping_Ring.pixelWidth), String.valueOf(Escaping_Ring.pixelHeight), String.valueOf(Escaping_Ring.voxelDepth)));
 
 		writer.flush();
 		writer.close();
@@ -485,9 +485,9 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		branch.setBranchNo(lastBranchNo+1);
 		
 		//adds branch to the display
-		Espacing_Ring.generateView(true);
-		Espacing_Ring.drawBranchBranchEndPoints(branch);
-		Espacing_Ring.iC.repaint();
+		Escaping_Ring.generateView(true);
+		Escaping_Ring.drawBranchBranchEndPoints(branch);
+		Escaping_Ring.iC.repaint();
 		
 		return super.add(branch);
 	}

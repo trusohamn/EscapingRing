@@ -10,7 +10,7 @@ import ij.gui.Roi;
 import ij.gui.StackWindow;
 import ij.plugin.PlugIn;
 import ij.process.ImageProcessor;
-
+import net.imagej.ops.Op;
 
 import java.awt.Rectangle;
 import java.util.Arrays;
@@ -18,10 +18,12 @@ import java.util.List;
 
 import javax.swing.DefaultListModel;
 
+import org.scijava.plugin.Plugin;
 
 
 
-public class Espacing_Ring implements PlugIn {
+@Plugin(type = Op.class, name = "Vessel3DTracer", menuPath = "Plugins")
+public class Escaping_Ring implements PlugIn {
 	static MyVolume vol; //raw image, not changable in processing
 	static MyVolume workingVol; //raw image, changed during processing
 	static ImageCanvas iC;
@@ -211,7 +213,7 @@ public class Espacing_Ring implements PlugIn {
 
 		generateView(true);
 		showRings(Arrays.asList(adjInitial));
-		Espacing_Ring.iC.repaint();
+		Escaping_Ring.iC.repaint();
 		
 		return adjInitial;
 	}
@@ -352,7 +354,7 @@ public class Espacing_Ring implements PlugIn {
 	}
 
 	public static void generateView(boolean setVisible){
-		if(iC==null || Espacing_Ring.imgS.isVisible() == false){
+		if(iC==null || Escaping_Ring.imgS.isVisible() == false){
 			imp = new ImagePlus("Vessel3DTracer", vol.createImageStackFrom3DArray());
 			imp.setDisplayMode(IJ.COLOR);
 			iC = new ImageCanvas(imp);

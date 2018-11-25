@@ -224,7 +224,7 @@ public class Ring  implements Serializable {
 						ImageProcessor ip = img.getStack().getProcessor(dz+1);
 						ip.setColor(Color.GRAY);
 						if (d >= 0.9*radius && d <=1.1*radius) {
-							ip.putPixelValue(dx, dy, Espacing_Ring.vol.data[dx][dy][dz]);
+							ip.putPixelValue(dx, dy, Escaping_Ring.vol.data[dx][dy][dz]);
 						}
 					}
 				}	

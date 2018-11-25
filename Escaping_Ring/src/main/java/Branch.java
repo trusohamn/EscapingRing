@@ -93,7 +93,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 
 		for(Ring ring: this) {
-			ring.eraseVol(Espacing_Ring.workingVol);
+			ring.eraseVol(Escaping_Ring.workingVol);
 		}
 		ArrayList<Ring> sortedBranchCopy = this.sortLowestContrastFirst();
 		ArrayList<Thread> listOfThreads = new ArrayList<Thread>();
@@ -208,7 +208,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 					IJ.log("------>" +MyGui.ringsUsed.size());
 					if(!MyGui.ringsUsed.contains(newBranch.get(newBranch.size()-2))) MyGui.ringsUsed.add(newBranch.get(newBranch.size()-2));
 					if(!MyGui.ringsUsed.contains(best)) MyGui.ringsUsed.add(best);
-					newBranch.get(newBranch.size()-2).eraseVol(Espacing_Ring.workingVol);
+					newBranch.get(newBranch.size()-2).eraseVol(Escaping_Ring.workingVol);
 				}
 				prevMax = MyGui.network.getMeanContrast()*2;
 
@@ -277,7 +277,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.setC(maxRing.getPositionFromSphericalAngles(step, polar[0] + dt, polar[1] + dp));
 				maxRing.setDir(new Point3D((maxRing.getC().getX() - ring.getC().getX()) / step, (maxRing.getC().getY()-ring.getC().getY())/step, (maxRing.getC().getZ()-ring.getC().getZ())/step));
-				MeasurmentVolume mv = new MeasurmentVolume(Espacing_Ring.workingVol, maxRing);
+				MeasurmentVolume mv = new MeasurmentVolume(Escaping_Ring.workingVol, maxRing);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
@@ -311,7 +311,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 				double polar[] = maxRing.getAnglesFromDirection();
 				maxRing.setRadius(initRadius*maxRadius*maxMeasurmentArea);
 				maxRing.setDir(maxRing.getDirectionFromSphericalAngles(polar[0] + dt, polar[1] + dp));
-				MeasurmentVolume mv = new MeasurmentVolume(Espacing_Ring.workingVol, maxRing);
+				MeasurmentVolume mv = new MeasurmentVolume(Escaping_Ring.workingVol, maxRing);
 				//IJ.log("radius: " + maxRing.radius);
 				//IJ.log(mv.toString());
 
@@ -414,7 +414,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 	public void restoreBranch(){
 		for(Ring ring : this){
-			ring.restoreVol(Espacing_Ring.workingVol, Espacing_Ring.vol);
+			ring.restoreVol(Escaping_Ring.workingVol, Escaping_Ring.vol);
 			if(ring.getBranches().size()==1 && MyGui.ringsUsed.contains(ring)) {
 				MyGui.ringsUsed.remove(ring);
 			}			
@@ -429,7 +429,7 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 
 	public void eraseBranch(){
 		for(Ring ring: this) {
-			ring.eraseVol(Espacing_Ring.workingVol);
+			ring.eraseVol(Escaping_Ring.workingVol);
 		}
 	}
 
