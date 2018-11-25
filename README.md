@@ -5,6 +5,15 @@
 
  visit for manual and tutorials:
  https://ki.se/en/mbb/vessel3dtracer
+ 
+  You can download the .jar file to the ImageJ Plugin folder or use the Updater:
+  
+ To upload, add a new update site (check 'for upload' before clicking 'Add')
+or change your existing one. You need to set the URL to
+    http://sites.imagej.net/Trusohamn/
+the sshHost to
+    webdav:Trusohamn
+and set the upload directory to '.' in updater's Advanced Mode's 'Manage Update Sites'.
 
 ## Escaping_Ring
 
