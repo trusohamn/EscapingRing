@@ -1,3 +1,5 @@
+package main.java;
+
 
 import ij.IJ;
 import ij.ImagePlus;
