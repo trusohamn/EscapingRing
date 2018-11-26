@@ -30,6 +30,12 @@ import org.scijava.plugin.Plugin;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.UIService;
 
+import com.trusohamn.v3t.io.Parameters;
+import com.trusohamn.v3t.vascularObjects.Branch;
+import com.trusohamn.v3t.vascularObjects.Network;
+import com.trusohamn.v3t.vascularObjects.Ring;
+import com.trusohamn.v3t.volumes.MyVolume;
+
 
 @Plugin(type = Command.class, headless = true,menuPath = "Plugins>Vessel3DTracer")
 public class Escaping_Ring implements Command {
@@ -54,15 +60,15 @@ public class Escaping_Ring implements Command {
 	@Parameter(type = ItemIO.OUTPUT)
 	RandomAccessibleInterval<FloatType> myOutput;
 	
-	static MyVolume vol; //raw image, not changable in processing
-	static MyVolume workingVol; //raw image, changed during processing
-	static ImageCanvas iC;
-	static ImagePlus imp; //display image
-	static StackWindow imgS;
-	static String imageName;
-	static double pixelWidth;
-	static double pixelHeight;
-	static double voxelDepth;
+	public static MyVolume vol; //raw image, not changable in processing
+	public static MyVolume workingVol; //raw image, changed during processing
+	public static ImageCanvas iC;
+	public static ImagePlus imp; //display image
+	public static StackWindow imgS;
+	public static String imageName;
+	public static double pixelWidth;
+	public static double pixelHeight;
+	public static double voxelDepth;
 	private static MyGui dialog = null;
 
 	@Override
@@ -143,7 +149,7 @@ public class Escaping_Ring implements Command {
 		Parameters params = new Parameters(imageName, xc, yc, zc, radius,  step,  impInside,
 				impOutside, threshold, branchFacilitator, firstLoop,  secondLoop,
 				thirdLoop, maxIn, widthMem, minOut, maxOut);
-		MyGui.usedParameters.add(params);
+		MyGui.getUsedParameters().add(params);
 
 		generateView(true);
 
@@ -187,7 +193,7 @@ public class Escaping_Ring implements Command {
 		}
 		if(workingVol == null) workingVol = new MyVolume(imp); 
 		param.setImageName(imageName);
-		MyGui.usedParameters.add(param);
+		MyGui.getUsedParameters().add(param);
 
 		generateView(true);
 

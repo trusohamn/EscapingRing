@@ -1,13 +1,15 @@
-package com.trusohamn.v3t;
+package com.trusohamn.v3t.volumes;
 
 
 import java.util.Arrays;
 
+import com.trusohamn.v3t.vascularObjects.Ring;
+
 
 public class MeasurmentVolume {
-	double[] sumIntensity; //in the cilinder with wall with bin and length of the step/width
-	int[] count;
-	double bin;
+	public double[] sumIntensity; //in the cilinder with wall with bin and length of the step/width
+	public int[] count;
+	public double bin;
 
 	public MeasurmentVolume(MyVolume myVolume, Ring ring){
 		//Ring with maximum radius is passed

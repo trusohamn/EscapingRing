@@ -1,4 +1,4 @@
-package com.trusohamn.v3t;
+package com.trusohamn.v3t.helperStructures;
 
 
 import java.io.Serializable;
@@ -6,9 +6,9 @@ import java.io.Serializable;
 public class Point3D  implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	protected double x;
-	protected double y;
-	protected double z;
+	public double x;
+	public double y;
+	public double z;
 	
 	public Point3D(){		
 	}

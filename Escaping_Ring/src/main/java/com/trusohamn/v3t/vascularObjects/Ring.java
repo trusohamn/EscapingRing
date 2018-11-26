@@ -1,10 +1,16 @@
-package com.trusohamn.v3t;
+package com.trusohamn.v3t.vascularObjects;
 
 
 import java.awt.Color;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Locale;
+
+import com.trusohamn.v3t.Escaping_Ring;
+import com.trusohamn.v3t.MyGui;
+import com.trusohamn.v3t.helperStructures.Point3D;
+import com.trusohamn.v3t.volumes.MeasurmentVolume;
+import com.trusohamn.v3t.volumes.MyVolume;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -13,6 +19,12 @@ import ij.process.ImageProcessor;
 public class Ring  implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	static private double impInside = -0.25;
+	static private double impOutside = -0.25;
+	
+	static private double maxIn, widthMem, minOut, maxOut;
+	static private double plusErase = 2;
+	
 	private Point3D c;
 	private Point3D dir = new Point3D(0, 0, 1);
 
@@ -22,20 +34,13 @@ public class Ring  implements Serializable {
 	private double contrast;
 	
 	private ArrayList<Branch> branches;
-	boolean isBranchPoint = false;
-	boolean isEndPoint = false;
-	
-	static private double impInside = -0.25;
-	static private double impOutside = -0.25;
-	
-	static private double maxIn, widthMem, minOut, maxOut;
-	static private double plusErase = 2;
-	
+	private RingType type;
 
 
 	public Ring() {	
 		branches = new ArrayList<Branch>();
 		contrast = 0;
+		setType(RingType.NORMAL);
 	}
 	
 	public Ring(double x, double y, double z, double radius, double length) {
@@ -132,6 +137,7 @@ public class Ring  implements Serializable {
 		if(countMembrane==0) this.contrast = impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter);
 		else this.contrast = (meanMembrane/countMembrane) +  impInside*(meanInner/countInner) + impOutside*(meanOuter/countOuter) ;	
 	}
+	
 	public void drawMeasureArea(MyVolume myVolume) {
 		int radius = (int)Math.ceil(this.radius);
 
@@ -366,7 +372,7 @@ public class Ring  implements Serializable {
 
 		double minDistance = Double.MAX_VALUE;
 		Ring closestRing = null;
-		for(Branch branch : MyGui.network){
+		for(Branch branch : MyGui.getNetwork()){
 			for(Ring ring : branch){
 				double thisDistance=target.distance(ring.getC());
 				if(thisDistance<minDistance){
@@ -384,7 +390,7 @@ public class Ring  implements Serializable {
 
 		double minDistance = Double.MAX_VALUE;
 		Ring closestRing = null;
-		for(Branch branch : MyGui.network){
+		for(Branch branch : MyGui.getNetwork()){
 			for(Ring ring : branch){
 				if(!rings.contains(ring)) {
 					double thisDistance=target.distance(ring.getC());
@@ -513,6 +519,14 @@ public class Ring  implements Serializable {
 
 	public void setLength(double length) {
 		this.length = length;
+	}
+
+	public RingType getType() {
+		return type;
+	}
+
+	public void setType(RingType type) {
+		this.type = type;
 	}
 
 }

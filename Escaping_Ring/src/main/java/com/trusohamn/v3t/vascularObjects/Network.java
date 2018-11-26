@@ -1,4 +1,4 @@
-package com.trusohamn.v3t;
+package com.trusohamn.v3t.vascularObjects;
 
 
 import java.io.FileWriter;
@@ -10,6 +10,12 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
+
+import com.trusohamn.v3t.Escaping_Ring;
+import com.trusohamn.v3t.MyGui;
+import com.trusohamn.v3t.helperStructures.Point3D;
+import com.trusohamn.v3t.io.CSVUtils;
+import com.trusohamn.v3t.volumes.MyVolume;
 
 import ij.IJ;
 
@@ -212,9 +218,9 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		double totalIntStraightness = 0;
 
 		MyGui.updateRingsUsed();
-		for(Ring r: MyGui.ringsUsed) {
-			if (r.isBranchPoint) ++ numberBranchPoints;
-			if (r.isEndPoint) ++numberEndPoints;
+		for(Ring r: MyGui.getRingsUsed()) {
+			if (r.getType() == RingType.BRANCH) ++ numberBranchPoints;
+			if (r.getType() == RingType.END) ++numberEndPoints;
 		}
 
 		for(Branch branch : this) {
@@ -377,8 +383,8 @@ public class Network extends ArrayList<Branch> implements Serializable{
 	public void orderBranchPoints(){
 		MyGui.updateRingsUsed();
 
-		for(int m = 0; m < MyGui.ringsUsed.size(); m++){
-			Ring r = MyGui.ringsUsed.get(m);
+		for(int m = 0; m < MyGui.getRingsUsed().size(); m++){
+			Ring r = MyGui.getRingsUsed().get(m);
 			ArrayList<Branch> motherBranches = new ArrayList<Branch>();
 			motherBranches.addAll(r.getBranches());
 			if(motherBranches.size()>1){
@@ -479,7 +485,7 @@ public class Network extends ArrayList<Branch> implements Serializable{
 	@Override public boolean add(Branch branch) {
 		branchList.addElement(branch);
 		for(Ring r : branch){
-			if(!MyGui.ringsUsed.contains(r)) MyGui.ringsUsed.add(r);
+			if(!MyGui.getRingsUsed().contains(r)) MyGui.getRingsUsed().add(r);
 		}
 		++this.lastBranchNo;
 		branch.setBranchNo(lastBranchNo+1);
@@ -495,9 +501,9 @@ public class Network extends ArrayList<Branch> implements Serializable{
 	@Override
 	public boolean remove(Object branch) {
 		branchList.removeElement(branch);
-		MyGui.extraBranchList.removeElement(branch);
+		MyGui.getExtraBranchList().removeElement(branch);
 		for(Ring r : (Branch) branch){
-			if(MyGui.ringsUsed.contains(r)) MyGui.ringsUsed.remove(r);
+			if(MyGui.getRingsUsed().contains(r)) MyGui.getRingsUsed().remove(r);
 		}
 		return super.remove(branch);
 	}

@@ -1,4 +1,4 @@
-package com.trusohamn.v3t;
+package com.trusohamn.v3t.io;
 
 
 import java.io.BufferedReader;
@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.trusohamn.v3t.MyGui;
 
 import ij.IJ;
 
@@ -88,7 +90,7 @@ public class Parameters {
 
 		FileWriter writer = new FileWriter(csvFile);
 
-		for(Parameters p : MyGui.usedParameters) {
+		for(Parameters p : MyGui.getUsedParameters()) {
 			List<String> row = p.listParams();
 			IJ.log(row.toString());
 			data.add(row);

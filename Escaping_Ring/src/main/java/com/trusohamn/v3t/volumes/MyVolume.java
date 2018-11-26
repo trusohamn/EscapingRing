@@ -1,7 +1,9 @@
-package com.trusohamn.v3t;
+package com.trusohamn.v3t.volumes;
 
 
 import java.awt.Color;
+
+import com.trusohamn.v3t.helperStructures.Point3D;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -131,7 +133,7 @@ public class MyVolume {
 	}
 	
 
-	protected MyVolume gradient(MyVolume in) {
+	public MyVolume gradient(MyVolume in) {
 		int nx = in.nx;
 		int ny = in.ny;
 		int nz = in.nz;
@@ -149,7 +151,7 @@ public class MyVolume {
 		return out;	
 	}
 	
-	protected MyVolume smooth(MyVolume in) {
+	public MyVolume smooth(MyVolume in) {
 		int nx = in.nx;
 		int ny = in.ny;
 		int nz = in.nz;
