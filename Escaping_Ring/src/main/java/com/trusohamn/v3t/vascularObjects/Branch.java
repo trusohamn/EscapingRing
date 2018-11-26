@@ -40,13 +40,17 @@ public class Branch extends ArrayList<Ring>  implements Serializable {
 		//first branch
 		IJ.log("first branch");
 		this.step = step;
+		
 		this.add(ring);
-		this.addAll(evolve( ring));
+		this.addAll(evolve(ring));
+		
 		Collections.reverse(this);
 		this.addAll(evolve( ring.flippedRing()));
+		
 		MyGui.getNetwork().add(this);
-		this.branchNo = MyGui.getNetwork().getLastBranchNo();
+		
 		this.regression();
+		
 		for(Ring r: this){
 			r.addBranch(this);
 		}

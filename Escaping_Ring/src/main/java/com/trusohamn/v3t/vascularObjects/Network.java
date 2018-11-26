@@ -482,7 +482,8 @@ public class Network extends ArrayList<Branch> implements Serializable{
 		MyGui.updateRingsUsed();
 	}
 
-	@Override public boolean add(Branch branch) {
+	@Override 
+	public boolean add(Branch branch) {
 		branchList.addElement(branch);
 		for(Ring r : branch){
 			if(!MyGui.getRingsUsed().contains(r)) MyGui.getRingsUsed().add(r);
